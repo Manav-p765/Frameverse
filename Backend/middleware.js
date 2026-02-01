@@ -3,6 +3,7 @@ import Avatar from "./models/avatar.js";
 import { userschema, avatarschema } from "./schema.js";
 import ExpressErrors from "./utils/expressErrors.js";
 import jwt from "jsonwebtoken";
+import Chat from "./models/chat.js";
 
 
 //validating user server side errors
@@ -67,4 +68,51 @@ const isAvatarOwner = async (req, res, next) => {
     }
 
     next();
+};
+
+
+export const canAccessChat = async (req, res, next) => {
+  const { chatId } = req.params;
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    return res.status(404).json({ message: "Chat not found" });
+  }
+
+  const isParticipant = chat.users
+    .map(id => id.toString())
+    .includes(req.userId);
+
+  if (!isParticipant) {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  // Extra safety for 1v1
+  if (!chat.isGroupChat && chat.users.length !== 2) {
+    return res.status(400).json({ message: "Invalid 1v1 chat state" });
+  }
+
+  req.chat = await Chat.findById(chatId)
+  .populate({
+    path: "lastMessage",
+    populate: {
+      path: "sender",
+      select: "username email"
+    }
+  });
+  next();
+};
+
+
+// Group admin only
+export const isGroupAdmin = (req, res, next) => {
+  if (!req.chat.isGroupChat) {
+    return res.status(400).json({ message: "Not a group chat" });
+  }
+
+  if (req.chat.admin.toString() !== req.user) {
+    return res.status(403).json({ message: "Admins only" });
+  }
+
+  next();
 };
