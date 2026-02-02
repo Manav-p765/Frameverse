@@ -4,6 +4,7 @@ import { userschema, avatarschema } from "./schema.js";
 import ExpressErrors from "./utils/expressErrors.js";
 import jwt from "jsonwebtoken";
 import Chat from "./models/chat.js";
+import Post from "./models/post.js";
 
 
 //validating user server side errors
@@ -49,12 +50,24 @@ export const isLoggedIn = (req, res, next) => {
 };
 
 
-export const isOwner = (req, res, next) => {
-    if (req.userId !== req.params.id) {
-        return next(new ExpressErrors(403, "You are not allowed to do this"));
-    }
-    next();
+export const isOwner = async (req, res, next) => {
+  const { id } = req.params; 
+
+  const post = await Post.findById(id);
+
+  if (!post) {
+    return res.status(404).json({ message: "Post not found" });
+  }
+
+  if (!post.owner.equals(req.user)) {
+    return res.status(403).json({
+      message: "You are not allowed to modify this post",
+    });
+  }
+
+  next();
 };
+
 
 const isAvatarOwner = async (req, res, next) => {
     const avatar = await Avatar.findById(req.params.id);
