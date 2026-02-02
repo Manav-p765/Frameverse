@@ -1,6 +1,7 @@
 import User from "../models/user.js";
 import {sendToken} from "../utils/sendToken.js";
 import bcrypt from "bcrypt";
+import Post from "../models/post.js";
 
 export const getUserProfile = async (req, res) => {
     const users = await User.findById(req.userId).populate("avatar").populate("posts");
@@ -28,8 +29,7 @@ export const loginUser = async (req, res) => {
         return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    sendToken(user, res, 200, "Login successful");
-    res.status(200).json({ message: "Login successful" });
+     return sendToken(user, res, 200, "Login successful");
 };
 
 export const logoutUser = (req, res) => {
@@ -128,4 +128,36 @@ export const unfollowUser = async (req, res) => {
   });
 
   res.status(200).json({ message: "User unfollowed successfully" });
+};
+
+
+export const getFeed = async (req, res) => {
+    const user = await User.findById(req.userId);
+
+    const followingIds = user.following.map(id => id.toString());
+
+    const feed = await Post.aggregate([
+        {
+            $addFields: {
+                priority: {
+                    $cond: [
+                        { $in: ["$owner", followingIds] },
+                        1, // followed users
+                        0  // others
+                    ]
+                }
+            }
+        },
+        {
+            $sort: {
+                priority: -1,
+                createdAt: -1
+            }
+        },
+        {
+            $limit: 50
+        }
+    ]);
+
+    res.json(feed);
 };

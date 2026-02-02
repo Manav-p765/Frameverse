@@ -24,34 +24,3 @@ export const createPost = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
-
-export const getFeed = async (req, res) => {
-    const user = await User.findById(req.user).select("following");
-
-    const followingIds = user.following.map(id => id.toString());
-
-    const feed = await Post.aggregate([
-        {
-            $addFields: {
-                priority: {
-                    $cond: [
-                        { $in: ["$owner", followingIds] },
-                        1, // followed users
-                        0  // others
-                    ]
-                }
-            }
-        },
-        {
-            $sort: {
-                priority: -1,
-                createdAt: -1
-            }
-        },
-        {
-            $limit: 50
-        }
-    ]);
-
-    res.json(feed);
-};

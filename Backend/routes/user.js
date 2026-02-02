@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { validateuser, isLoggedIn } from "../middleware.js";
 import wrapAsync from "../utils/wrapAsync.js";
-import { followUser, getUserProfile, loginUser, logoutUser, registerUser, searchUsers, updateUserProfile, unfollowUser } from "../controllers/user.js";
+import { getFeed,followUser, getUserProfile, loginUser, logoutUser, registerUser, searchUsers, updateUserProfile, unfollowUser } from "../controllers/user.js";
 
 const router = Router({ mergeParams: true });
 
@@ -20,5 +20,7 @@ router.put("/updateProfile", isLoggedIn, validateuser, wrapAsync(updateUserProfi
 router.post("/follow/:id", isLoggedIn, followUser);
 
 router.post("/unfollow/:id", isLoggedIn, unfollowUser);
+
+router.get("/feed",isLoggedIn, getFeed);
 
 export default router;
