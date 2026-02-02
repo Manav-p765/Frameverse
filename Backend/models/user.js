@@ -43,7 +43,23 @@ const userSchema = new Schema({
     avatar: [{
       type: Schema.Types.ObjectId,
       ref: "Avatar",
-    }]
+    }],
+    posts: [{
+      type: Schema.Types.ObjectId,
+      ref: "Post",
+    }],
+    followers: [{
+      type: Schema.Types.ObjectId,
+      ref: "User", 
+    }],
+    following: [{
+      type: Schema.Types.ObjectId,
+      ref: "User", 
+    }],
+    bio: {
+        type: String,
+        maxlength: [160, 'Bio cannot exceed 160 characters']
+    },
 });
 
 

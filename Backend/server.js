@@ -10,6 +10,7 @@ import cors from "cors";
 import initSocket from "./config/socket.js";
 import userRoute from "./routes/user.js";
 import chatRoute from "./routes/chat.js";
+import postRoute from "./routes/post.js";
 
 const Port = process.env.PORT;
 const server = http.createServer(app);
@@ -39,6 +40,8 @@ initSocket(io);
 app.use("/user", userRoute);
 
 app.use("/chat", chatRoute);
+
+app.use("/post", postRoute);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

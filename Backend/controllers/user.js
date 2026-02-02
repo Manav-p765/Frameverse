@@ -3,7 +3,7 @@ import {sendToken} from "../utils/sendToken.js";
 import bcrypt from "bcrypt";
 
 export const getUserProfile = async (req, res) => {
-    const users = await User.findById(req.userId).populate("avatar");
+    const users = await User.findById(req.userId).populate("avatar").populate("posts");
     res.status(200).json(users);
 }
 
@@ -66,4 +66,66 @@ export const updateUserProfile = async (req, res) => {
     await user.save();
 
     res.status(200).json({ message: "Profile updated successfully" });
+};
+
+export const followUser = async (req, res) => {
+  const userId = req.user;          
+  const targetUserId = req.params.id; 
+
+  // can't follow yourself (narcissism check)
+  if (userId === targetUserId) {
+    return res.status(400).json({ message: "You can't follow yourself" });
+  }
+
+  const targetUser = await User.findById(targetUserId);
+  if (!targetUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // already following
+  if (targetUser.followers.includes(userId)) {
+    return res.status(400).json({ message: "Already following this user" });
+  }
+
+  // follow
+  await User.findByIdAndUpdate(userId, {
+    $push: { following: targetUserId },
+  });
+
+  await User.findByIdAndUpdate(targetUserId, {
+    $push: { followers: userId },
+  });
+
+  res.status(200).json({ message: "User followed successfully" });
+};
+
+export const unfollowUser = async (req, res) => {
+  const userId = req.user;           // me
+  const targetUserId = req.params.id; // them
+
+  // can't unfollow yourself
+  if (userId === targetUserId) {
+    return res.status(400).json({ message: "You can't unfollow yourself" });
+  }
+
+  const targetUser = await User.findById(targetUserId);
+  if (!targetUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // not following already
+  if (!targetUser.followers.includes(userId)) {
+    return res.status(400).json({ message: "You are not following this user" });
+  }
+
+  // unfollow
+  await User.findByIdAndUpdate(userId, {
+    $pull: { following: targetUserId },
+  });
+
+  await User.findByIdAndUpdate(targetUserId, {
+    $pull: { followers: userId },
+  });
+
+  res.status(200).json({ message: "User unfollowed successfully" });
 };
