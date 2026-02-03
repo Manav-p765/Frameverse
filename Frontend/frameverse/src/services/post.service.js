@@ -1,16 +1,20 @@
-import axios from 'axios';
+import axios from "axios";
 
-const post = axios.create({
-    baseURL: 'http://localhost:8080/user',
-    withCredentials: true,
+const api = axios.create({
+  baseURL: "http://localhost:8080",
+  withCredentials: true,
 });
 
-post.interceptors.request.use((req) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        req.headers.Authorization = `Bearer ${token}`;
+/* RESPONSE INTERCEPTOR */
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem("user");
+      window.location.href = "/auth";
     }
-    return req;
-})
+    return Promise.reject(err);
+  }
+);
 
-export const getFeed = ()=> post.get("/feed");
+export default api;
