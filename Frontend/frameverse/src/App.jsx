@@ -1,14 +1,22 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Feed from './pages/Feed';
-import Register from './pages/Login';
+import Auth from './pages/Auth';
+import ProtectedRoute from "./utils/ProtectedRoute"
+import Logout from './components/logout';
 
 const App = () => {
   return (
     <div>
       <Routes>
-        <Route path="/" element={<Register />} />
-        <Route path="/feed" element={<Feed />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/feed" element={
+          <ProtectedRoute>
+            <Feed />
+          </ProtectedRoute>
+          } />
+
+          <Route path="/logout" element={<Logout />} />
       </Routes>
     </div>
   )

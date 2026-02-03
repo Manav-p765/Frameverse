@@ -8,13 +8,41 @@ export const getUserProfile = async (req, res) => {
     res.status(200).json(users);
 }
 
-export const registerUser = async (req, res) => {
-    const user = new User(req.body);
-    await user.save();
+export const registerUser = async (req, res, next) => {
+  try {
+    const { username, email, password } = req.body;
+
+    // OPTIONAL pre-check (nice UX, not mandatory)
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+    });
+
+    const user = await User.create({
+      username,
+      email,
+      password,
+    });
 
     sendToken(user, res, 201, "User created");
     res.status(201).json({ message: "User created" });
-}
+
+  } catch (err) {
+    // 🔥 HANDLE DUPLICATE KEY ERROR PROPERLY
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyValue)[0];
+
+
+      return res.status(409).json({
+        field,
+        message: `${field} already exists`,
+      });
+    }
+
+    // other errors
+    next(err);
+  }
+};
+
 
 export const loginUser = async (req, res) => {
     const { email, password } = req.body;
