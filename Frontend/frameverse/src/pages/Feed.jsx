@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import api from "../services/post.service"
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import api from "../services/post.service";
+import PostCard from "../components/Postcard";
 
 const Feed = () => {
-  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -13,7 +12,6 @@ const Feed = () => {
         const res = await api.get("/user/feed");
         setPosts(res.data);
       } catch (err) {
-        // 401 is already handled by interceptor
         console.error("Failed to fetch feed", err);
       } finally {
         setLoading(false);
@@ -23,27 +21,27 @@ const Feed = () => {
     fetchFeed();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0f0f12] flex items-center justify-center">
+        <p className="text-gray-400">Loading feed...</p>
+      </div>
+    );
+  }
+
   return (
-    <div>
-
-      <h1>Feed</h1>
-      <button onClick={() => navigate("/logout")}>
-        Logout
-      </button>
-
-
-      {posts.length === 0 ? (
-        <p>No posts found</p>
-      ) : (
-        posts.map((post, index) => (
-          <div key={post._id || index} style={{ border: "1px solid gray", margin: 8 }}>
-            <p><strong>RAW POST:</strong></p>
-            <pre>{JSON.stringify(post, null, 2)}</pre>
-          </div>
-        ))
-      )}
+    <div className=" flex justify-center py-6">
+      <div className="w-full max-w-xl space-y-6">
+        {posts.length === 0 ? (
+          <p className="text-gray-400 text-center">No posts found</p>
+        ) : (
+          posts.map((post) => (
+            <PostCard key={post._id} post={post} />
+          ))
+        )}
+      </div>
     </div>
-  )
-}
+  );
+};
 
 export default Feed;

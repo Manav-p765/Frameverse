@@ -159,33 +159,69 @@ export const unfollowUser = async (req, res) => {
 };
 
 
-export const getFeed = async (req, res) => {
-    const user = await User.findById(req.userId);
+import mongoose from "mongoose";
 
-    const followingIds = user.following.map(id => id.toString());
+export const getFeed = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("following");
+
+    // Convert following IDs to ObjectId
+    const followingIds = user.following.map(
+      (id) => new mongoose.Types.ObjectId(id)
+    );
 
     const feed = await Post.aggregate([
-        {
-            $addFields: {
-                priority: {
-                    $cond: [
-                        { $in: ["$owner", followingIds] },
-                        1, // followed users
-                        0  // others
-                    ]
-                }
-            }
+      // Add priority (followed users first)
+      {
+        $addFields: {
+          priority: {
+            $cond: [
+              { $in: ["$owner", followingIds] },
+              1,
+              0,
+            ],
+          },
         },
-        {
-            $sort: {
-                priority: -1,
-                createdAt: -1
-            }
+      },
+
+      // Sort: followed users → latest posts
+      {
+        $sort: {
+          priority: -1,
+          createdAt: -1,
         },
-        {
-            $limit: 50
-        }
+      },
+
+      // Limit feed
+      { $limit: 50 },
+
+      // Populate owner (IMPORTANT)
+      {
+        $lookup: {
+          from: "users", // collection name
+          localField: "owner",
+          foreignField: "_id",
+          as: "owner",
+        },
+      },
+
+      // Convert owner array → object
+      {
+        $unwind: "$owner",
+      },
+
+      // Security: remove sensitive fields
+      {
+        $project: {
+          "owner.password": 0,
+          "owner.email": 0,
+          "owner.__v": 0,
+        },
+      },
     ]);
 
     res.json(feed);
+  } catch (err) {
+    console.error("Feed error:", err);
+  }
 };

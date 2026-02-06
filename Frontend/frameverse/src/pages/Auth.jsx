@@ -76,7 +76,7 @@ const Auth = () => {
         localStorage.setItem("user", JSON.stringify(res.data.user));
       }
 
-      navigate("/feed");
+      navigate("/");
 
     } catch (err) {
 
