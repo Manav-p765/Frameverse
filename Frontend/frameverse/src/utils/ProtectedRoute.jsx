@@ -1,8 +1,14 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import MainLayout from "../components/mainlayout";
 
-const ProtectedRoute = ({ children }) => {
-  const user = localStorage.getItem("user");
-  return user ? children : <Navigate to="/auth" replace />;
+const ProtectedRoute = () => {
+  const isAuthenticated = !!localStorage.getItem("user");
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <MainLayout>{Outlet}</MainLayout>;
 };
 
 export const clearUser = () => {
