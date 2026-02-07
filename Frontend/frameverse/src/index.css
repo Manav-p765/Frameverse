@@ -1,11 +1,21 @@
 @import "tailwindcss";
 
+
+
+.unito{
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: weight;
+  font-style: normal;
+}
+
 html,
 body,
 #root {
   background-color: #18181c;
   margin: 0;
   padding: 0;
+  font-family: 'Comforto', 'Nunito', sans-serif;
 }
 
 /* ===== Animated Gradient Background ===== */
