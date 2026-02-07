@@ -268,7 +268,7 @@ const Auth = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-lg bg-gradient-to-r from-red-300 to-pink-500 
+              className="w-full py-3.5 rounded-lg bg-linear-to-r from-red-300 to-pink-500 
                        text-black font-semibold text-base
                        hover:from-red-400 hover:to-pink-400 
                        active:scale-[0.98] disabled:opacity-50
