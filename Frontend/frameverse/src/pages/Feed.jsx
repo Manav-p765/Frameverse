@@ -23,7 +23,7 @@ const Feed = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f0f12] flex items-center justify-center">
+      <div className="min-h-screen bg-[#18181c] flex items-center justify-center">
         <p className="text-gray-400">Loading feed...</p>
       </div>
     );

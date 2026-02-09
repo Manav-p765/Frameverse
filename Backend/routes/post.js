@@ -1,11 +1,13 @@
 import { Router } from "express";
-import { isLoggedIn, isOwner } from "../middleware.js";
-import { createPost } from "../controllers/post.js";
+import { isLoggedIn, isOwner, verifyToken } from "../middleware.js";
+import { createPost, deletePost } from "../controllers/post.js";
 
 
 const postRouter = Router();
 
 postRouter.post("/create", isLoggedIn, createPost);
+
+postRouter.delete("/posts/:id", verifyToken,isOwner, deletePost);
 
 
 

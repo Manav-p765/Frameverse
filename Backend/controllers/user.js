@@ -2,11 +2,25 @@ import User from "../models/user.js";
 import {sendToken} from "../utils/sendToken.js";
 import bcrypt from "bcrypt";
 import Post from "../models/post.js";
+import mongoose from "mongoose";
 
 export const getUserProfile = async (req, res) => {
-    const users = await User.findById(req.userId).populate("avatar").populate("posts");
-    res.status(200).json(users);
-}
+  try {
+    const userId = req.params.id || req.userId; // 👈 key line
+
+    const user = await User.findById(userId)
+      .populate("avatar")
+      .populate("posts");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -81,20 +95,34 @@ export const searchUsers = async (req, res) => {
 };
 
 export const updateUserProfile = async (req, res) => {
-    const { username, email, password, age } = req.body;
+  try {
+    const updates = { ...req.body };
+
+    delete updates.password;
+
     const user = await User.findById(req.userId);
 
     if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
-    user.username = username;
-    user.email = email;
-    user.password = password;
-    user.age = age;
+
+    // Dynamically update only provided fields
+    Object.keys(updates).forEach((key) => {
+      user[key] = updates[key];
+    });
+
     await user.save();
 
-    res.status(200).json({ message: "Profile updated successfully" });
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
+
 
 export const followUser = async (req, res) => {
   const userId = req.user;          
@@ -158,8 +186,6 @@ export const unfollowUser = async (req, res) => {
   res.status(200).json({ message: "User unfollowed successfully" });
 };
 
-
-import mongoose from "mongoose";
 
 export const getFeed = async (req, res) => {
   try {

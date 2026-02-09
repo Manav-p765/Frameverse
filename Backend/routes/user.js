@@ -1,11 +1,13 @@
 import { Router } from "express";
-import { validateuser, isLoggedIn } from "../middleware.js";
+import { validateuser, isLoggedIn, verifyToken } from "../middleware.js";
 import wrapAsync from "../utils/wrapAsync.js";
 import { getFeed,followUser, getUserProfile, loginUser, logoutUser, registerUser, searchUsers, updateUserProfile, unfollowUser } from "../controllers/user.js";
 
 const router = Router({ mergeParams: true });
 
 router.get("/profile", isLoggedIn, wrapAsync(getUserProfile));
+
+router.get("/profile/:id", verifyToken, getUserProfile);
 
 router.post("/register", validateuser, wrapAsync(registerUser));
 

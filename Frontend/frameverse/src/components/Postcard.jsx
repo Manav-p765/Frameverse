@@ -1,21 +1,23 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post, profile }) => {
   if (!post) return null;
+
 
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
 
   return (
+
     <div className="bg-[#18181c] rounded-2xl overflow-hidden border border-white/5 shadow-md">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="w-9 h-9 rounded-full bg-gray-600 flex items-center justify-center text-sm text-white">
-          {post.owner.username?.[0]?.toUpperCase() || "U"}
+          {post.owner.username || profile.username?.[0]?.toUpperCase() || "U"}
         </div>
         <p className="text-white font-medium">
-          {post.owner.username || "unknown_user"}
+          {post.owner.username || profile.username}
         </p>
       </div>
 
