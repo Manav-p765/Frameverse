@@ -3,9 +3,12 @@ import Avatar from "./models/avatar.js";
 import { userschema, avatarschema } from "./schema.js";
 import ExpressErrors from "./utils/expressErrors.js";
 import jwt from "jsonwebtoken";
+import app from "./config/app.js"
 import Chat from "./models/chat.js";
 import Post from "./models/post.js";
+import cookieParser from "cookie-parser";
 
+app.use(cookieParser());
 
 //validating user server side errors
 export const validateuser = (req, res, next) => {
@@ -130,19 +133,17 @@ export const isGroupAdmin = (req, res, next) => {
   next();
 };
 
-export const verifyToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+export const verifyToken = (req, res, next) => {
+  const token = req.cookies.token;
+
+  if (!token) {
     return res.status(401).json({ message: "No token provided" });
   }
 
-  const token = authHeader.split(" ")[1];
-
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    req.userId = decoded.id; // 👈 this is important
+    req.userId = decoded.id;
     next();
   } catch (error) {
     return res.status(403).json({ message: "Invalid token" });

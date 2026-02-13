@@ -3,10 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/post.service";
 import ProfileHeader from "../components/ProfileHeader";
 import ProfilePosts from "../components/ProfilePosts";
-import ProfilePictureModal from "../components/ProfilePictureModel";
 import ShareProfileModal from "../components/ShareProfileModal";
 import SkeletonLoader from "../components/SkeletonLoader";
-import "../styles/Profile.css";
 
 const Profile = () => {
   const { userId } = useParams();
@@ -17,17 +15,12 @@ const Profile = () => {
   const [error, setError] = useState(null);
   
   const [posts, setPosts] = useState([]);
-  const [filteredPosts, setFilteredPosts] = useState([]);
   const [displayedPosts, setDisplayedPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   
-  const [activeFilter, setActiveFilter] = useState("all");
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [isEditingBio, setIsEditingBio] = useState(false);
-  const [bioValue, setBioValue] = useState("");
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   
@@ -47,14 +40,12 @@ const Profile = () => {
         const res = await api.get(endpoint);
         
         setProfile(res.data);
-        setBioValue(res.data.bio || "");
         
         const sortedPosts = [...(res.data.posts || [])].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
         
         setPosts(sortedPosts);
-        setFilteredPosts(sortedPosts);
         
         if (!isOwnProfile) {
           const currentUser = await api.get("/user/profile");
@@ -77,14 +68,14 @@ const Profile = () => {
   }, [userId, isOwnProfile]);
 
   useEffect(() => {
-    if (!filteredPosts.length) return;
+    if (!posts.length) return;
     
     const endIndex = currentPage * POSTS_PER_PAGE;
-    const newDisplayedPosts = filteredPosts.slice(0, endIndex);
+    const newDisplayedPosts = posts.slice(0, endIndex);
     
     setDisplayedPosts(newDisplayedPosts);
-    setHasMore(endIndex < filteredPosts.length);
-  }, [filteredPosts, currentPage]);
+    setHasMore(endIndex < posts.length);
+  }, [posts, currentPage]);
 
   useEffect(() => {
     const options = {
@@ -114,28 +105,25 @@ const Profile = () => {
     };
   }, [hasMore, loadingMore]);
 
-  const handleFilterChange = (filter) => {
-    setActiveFilter(filter);
-    setCurrentPage(1);
-    
-    if (filter === "all") {
-      setFilteredPosts(posts);
-    } else {
-      const filtered = posts.filter(
-        (post) => post.category?.toLowerCase() === filter.toLowerCase()
-      );
-      setFilteredPosts(filtered);
-    }
-  };
-
-  const handleBioSave = async () => {
+  const handleUpdateProfile = async (updateData) => {
     try {
-      await api.put("/user/updateProfile", { bio: bioValue });
-      setProfile({ ...profile, bio: bioValue });
-      setIsEditingBio(false);
-    } catch (err) {
-      console.error("Failed to update bio:", err);
-      alert("Failed to update bio");
+      const formData = new FormData();
+      formData.append("username", updateData.username);
+      formData.append("bio", updateData.bio);
+      
+      if (updateData.avatarFile) {
+        formData.append("avatar", updateData.avatarFile);
+      }
+
+      const response = await api.put("/user/updateProfile", formData);
+
+      setProfile({ ...response.data.user });
+
+      console.log("Profile updated successfully!");
+      console.log("Updated profile:", response.data.user);
+    } catch (error) {
+      console.error("Update profile error:", error);
+      throw new Error(error.response?.data?.message || "Failed to update profile");
     }
   };
 
@@ -180,25 +168,22 @@ const Profile = () => {
     
     const updatedPosts = posts.filter((p) => p._id !== postId);
     setPosts(updatedPosts);
-    setFilteredPosts(updatedPosts.filter((p) => 
-      activeFilter === "all" || p.category?.toLowerCase() === activeFilter.toLowerCase()
-    ));
 
     try {
       await api.delete(`/post/${postId}`);
     } catch (err) {
       setPosts(previousPosts);
-      setFilteredPosts(previousPosts);
       console.error("Failed to delete post:", err);
       alert("Failed to delete post");
     }
   };
 
-  const handleAvatarUpdate = (newAvatarUrl) => {
-    setProfile({
-      ...profile,
-      avatar: [{ url: newAvatarUrl }],
-    });
+  const handlePostClick = (post) => {
+    navigate(`/post/${post._id}`);
+  };
+
+  const handleUserClick = (user) => {
+    navigate(`/profile/${user._id}`);
   };
 
   if (loading) {
@@ -207,12 +192,15 @@ const Profile = () => {
 
   if (error) {
     return (
-      <div className="profile-error">
-        <div className="error-content">
-          <div className="error-icon">🎬</div>
-          <h2>{error}</h2>
-          <p>This user may not exist or has been removed</p>
-          <button onClick={() => navigate("/feed")} className="back-btn">
+      <div className="min-h-screen bg-[#18181c] flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🎬</div>
+          <h2 className="text-2xl font-bold text-white mb-2">{error}</h2>
+          <p className="text-gray-400 mb-6">This user may not exist or has been removed</p>
+          <button 
+            onClick={() => navigate("/feed")} 
+            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+          >
             ← Back to Feed
           </button>
         </div>
@@ -221,90 +209,54 @@ const Profile = () => {
   }
 
   return (
-    <div className="profile-page">
-      <div className="profile-bg">
-        <div className="bg-gradient"></div>
-        <div className="bg-grain"></div>
-      </div>
-
-      <div className="profile-container">
+    <div className="min-h-screen bg-[#18181c] text-white">
+      {/* Content */}
+      <div className="max-w-4xl mx-auto">
         <ProfileHeader
           profile={profile}
           isOwnProfile={isOwnProfile}
           isFollowing={isFollowing}
           followLoading={followLoading}
           onFollowToggle={handleFollowToggle}
-          onAvatarClick={() => setShowAvatarModal(true)}
           onShareClick={() => setShowShareModal(true)}
-          bioValue={bioValue}
-          isEditingBio={isEditingBio}
-          onBioChange={setBioValue}
-          onBioEdit={() => setIsEditingBio(true)}
-          onBioSave={handleBioSave}
-          onBioCancel={() => {
-            setIsEditingBio(false);
-            setBioValue(profile.bio || "");
-          }}
+          onUpdateProfile={handleUpdateProfile}
+          onUserClick={handleUserClick}
         />
 
-        <div className="filter-bar">
-          <button
-            className={`filter-btn ${activeFilter === "all" ? "active" : ""}`}
-            onClick={() => handleFilterChange("all")}
-          >
-            All
-          </button>
-          <button
-            className={`filter-btn ${activeFilter === "movie" ? "active" : ""}`}
-            onClick={() => handleFilterChange("movie")}
-          >
-            🎬 Movies
-          </button>
-          <button
-            className={`filter-btn ${activeFilter === "anime" ? "active" : ""}`}
-            onClick={() => handleFilterChange("anime")}
-          >
-            🎌 Anime
-          </button>
+        {/* Posts Grid */}
+        <div className="px-4">
+          <ProfilePosts
+            posts={displayedPosts}
+            isOwnProfile={isOwnProfile}
+            onDeletePost={handleDeletePost}
+            profile={profile}
+            onPostClick={handlePostClick}
+          />
         </div>
 
-        <ProfilePosts
-          posts={displayedPosts}
-          isOwnProfile={isOwnProfile}
-          onDeletePost={handleDeletePost}
-          profile={profile}
-        />
-
+        {/* Load More Trigger */}
         {hasMore && (
-          <div ref={loadMoreRef} className="load-more-trigger">
+          <div ref={loadMoreRef} className="flex justify-center py-8">
             {loadingMore && (
-              <div className="loading-more">
-                <div className="loader-dots">
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
+              <div className="flex gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0s" }} />
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
               </div>
             )}
           </div>
         )}
 
+        {/* End Message */}
         {!hasMore && displayedPosts.length > 0 && (
-          <div className="end-message">
-            <span>🎬</span>
-            <p>You've reached the end</p>
+          <div className="text-center py-12 text-gray-500">
+            <span className="text-3xl mb-2 block">🎬</span>
+            <p className="text-sm">You've reached the end</p>
           </div>
         )}
       </div>
 
-      {showAvatarModal && (
-        <ProfilePictureModal
-          currentAvatar={profile.avatar?.[0]?.url}
-          onClose={() => setShowAvatarModal(false)}
-          onUpdate={handleAvatarUpdate}
-        />
-      )}
-
+      {/* Share Profile Modal */}
       {showShareModal && (
         <ShareProfileModal
           username={profile.username}

@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { validateuser, isLoggedIn, verifyToken } from "../middleware.js";
 import wrapAsync from "../utils/wrapAsync.js";
+import multer from "multer";
 import { getFeed,followUser, getUserProfile, loginUser, logoutUser, registerUser, searchUsers, updateUserProfile, unfollowUser } from "../controllers/user.js";
 
+
+const upload = multer({ dest: "uploads/" });
 const router = Router({ mergeParams: true });
 
 router.get("/profile", isLoggedIn, wrapAsync(getUserProfile));
@@ -17,7 +20,7 @@ router.post("/logout", isLoggedIn, logoutUser);
 
 router.get("/search", wrapAsync(searchUsers));
 
-router.put("/updateProfile", isLoggedIn, validateuser, wrapAsync(updateUserProfile));
+router.put("/updateProfile", isLoggedIn, validateuser,  upload.single("avatar"), wrapAsync(updateUserProfile));
 
 router.post("/follow/:id", isLoggedIn, followUser);
 

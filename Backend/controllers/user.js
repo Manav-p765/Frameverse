@@ -94,22 +94,25 @@ export const searchUsers = async (req, res) => {
     res.status(200).json(users);
 };
 
+
 export const updateUserProfile = async (req, res) => {
   try {
     const updates = { ...req.body };
-
     delete updates.password;
 
-    const user = await User.findById(req.userId);
 
+    const user = await User.findById(req.userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Dynamically update only provided fields
     Object.keys(updates).forEach((key) => {
       user[key] = updates[key];
     });
+
+    if (req.file) {
+      user.avatar = req.file.path; // or upload to cloudinary
+    }
 
     await user.save();
 
@@ -122,6 +125,7 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 
 export const followUser = async (req, res) => {
