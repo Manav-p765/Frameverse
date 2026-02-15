@@ -5,6 +5,7 @@ import ProfileHeader from "../components/ProfileHeader";
 import ProfilePosts from "../components/ProfilePosts";
 import ShareProfileModal from "../components/ShareProfileModal";
 import SkeletonLoader from "../components/SkeletonLoader";
+import PostViewer from "../components/PostViewer";
 
 const Profile = () => {
   const { userId } = useParams();
@@ -24,6 +25,9 @@ const Profile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
 
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
   const observerRef = useRef();
   const loadMoreRef = useRef(null);
 
@@ -37,7 +41,9 @@ const Profile = () => {
         setError(null);
 
         const endpoint = userId ? `/user/profile/${userId}` : "/user/profile";
+      
         const res = await api.get(endpoint);
+
 
         setProfile(res.data);
 
@@ -105,33 +111,33 @@ const Profile = () => {
     };
   }, [hasMore, loadingMore]);
 
- const handleUpdateProfile = async (updateData) => {
-  try {
-    const formData = new FormData();
+  const handleUpdateProfile = async (updateData) => {
+    try {
+      const formData = new FormData();
 
-    formData.append("username", updateData.username);
-    formData.append("bio", updateData.bio);
+      formData.append("username", updateData.username);
+      formData.append("bio", updateData.bio);
 
-    if (updateData.profilePicFile) {
-      formData.append("profilePic", updateData.profilePicFile);
+      if (updateData.profilePicFile) {
+        formData.append("profilePic", updateData.profilePicFile);
+      }
+
+      const response = await api.put("/user/updateProfile", formData, {
+        withCredentials: true, // keep if using cookies
+      });
+
+      setProfile(response.data.user);
+
+      console.log("Profile updated successfully!");
+      console.log("Updated profile:", response.data.user);
+
+    } catch (error) {
+      console.error("Update profile error:", error);
+      throw new Error(
+        error.response?.data?.message || "Failed to update profile"
+      );
     }
-
-    const response = await api.put("/user/updateProfile", formData, {
-      withCredentials: true, // keep if using cookies
-    });
-
-    setProfile(response.data.user);
-
-    console.log("Profile updated successfully!");
-    console.log("Updated profile:", response.data.user);
-
-  } catch (error) {
-    console.error("Update profile error:", error);
-    throw new Error(
-      error.response?.data?.message || "Failed to update profile"
-    );
-  }
-};
+  };
 
 
   const handleFollowToggle = async () => {
@@ -186,7 +192,9 @@ const Profile = () => {
   };
 
   const handlePostClick = (post) => {
-    navigate(`/post/${post._id}`);
+    const index = posts.findIndex(p => p._id === post._id);
+    setSelectedIndex(index);
+    setViewerOpen(true);
   };
 
   const handleUserClick = (user) => {
@@ -240,6 +248,15 @@ const Profile = () => {
             onPostClick={handlePostClick}
           />
         </div>
+
+        {viewerOpen && (
+          <PostViewer
+            posts={posts}        // all profile posts
+            initialIndex={selectedIndex}
+            profile={profile}
+            onClose={() => setViewerOpen(false)}
+          />
+        )}
 
         {/* Load More Trigger */}
         {hasMore && (

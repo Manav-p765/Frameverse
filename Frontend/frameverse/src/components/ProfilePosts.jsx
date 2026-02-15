@@ -2,16 +2,12 @@ import React, { useState } from "react";
 
 const ProfilePosts = ({ posts, isOwnProfile, onDeletePost, profile, onPostClick }) => {
   const [imageErrors, setImageErrors] = useState({});
+  const [selectedPost, setSelectedPost] = useState(null);
 
   const handleImageError = (postId) => {
     setImageErrors(prev => ({ ...prev, [postId]: true }));
   };
 
-  const handlePostClick = (post) => {
-    if (onPostClick) {
-      onPostClick(post);
-    }
-  };
 
   if (posts.length === 0) {
     return (
@@ -33,7 +29,7 @@ const ProfilePosts = ({ posts, isOwnProfile, onDeletePost, profile, onPostClick 
         <div 
           key={post._id} 
           className="relative w-full group cursor-pointer"
-          onClick={() => handlePostClick(post)}
+          onClick={() => onPostClick(post)}
         >
           {/* Post Image */}
           <div className="relative w-full aspect-square overflow-hidden bg-gray-900">
