@@ -20,7 +20,7 @@ router.post("/logout", isLoggedIn, logoutUser);
 
 router.get("/search", wrapAsync(searchUsers));
 
-router.put("/updateProfile", isLoggedIn, validateuser,  upload.single("avatar"), wrapAsync(updateUserProfile));
+router.put("/updateProfile", isLoggedIn, validateuser,  upload.single("profilePic"), wrapAsync(updateUserProfile));
 
 router.post("/follow/:id", isLoggedIn, followUser);
 

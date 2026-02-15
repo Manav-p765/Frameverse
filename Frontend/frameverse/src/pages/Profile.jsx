@@ -9,24 +9,24 @@ import SkeletonLoader from "../components/SkeletonLoader";
 const Profile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  
+
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [posts, setPosts] = useState([]);
   const [displayedPosts, setDisplayedPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  
+
   const [showShareModal, setShowShareModal] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
-  
+
   const observerRef = useRef();
   const loadMoreRef = useRef(null);
-  
+
   const POSTS_PER_PAGE = 9;
   const isOwnProfile = !userId;
 
@@ -38,20 +38,20 @@ const Profile = () => {
 
         const endpoint = userId ? `/user/profile/${userId}` : "/user/profile";
         const res = await api.get(endpoint);
-        
+
         setProfile(res.data);
-        
+
         const sortedPosts = [...(res.data.posts || [])].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
-        
+
         setPosts(sortedPosts);
-        
+
         if (!isOwnProfile) {
           const currentUser = await api.get("/user/profile");
           setIsFollowing(currentUser.data.following?.includes(userId) || false);
         }
-        
+
       } catch (err) {
         console.error("Failed to fetch profile:", err);
         setError(
@@ -69,10 +69,10 @@ const Profile = () => {
 
   useEffect(() => {
     if (!posts.length) return;
-    
+
     const endIndex = currentPage * POSTS_PER_PAGE;
     const newDisplayedPosts = posts.slice(0, endIndex);
-    
+
     setDisplayedPosts(newDisplayedPosts);
     setHasMore(endIndex < posts.length);
   }, [posts, currentPage]);
@@ -105,34 +105,41 @@ const Profile = () => {
     };
   }, [hasMore, loadingMore]);
 
-  const handleUpdateProfile = async (updateData) => {
-    try {
-      const formData = new FormData();
-      formData.append("username", updateData.username);
-      formData.append("bio", updateData.bio);
-      
-      if (updateData.avatarFile) {
-        formData.append("avatar", updateData.avatarFile);
-      }
+ const handleUpdateProfile = async (updateData) => {
+  try {
+    const formData = new FormData();
 
-      const response = await api.put("/user/updateProfile", formData);
+    formData.append("username", updateData.username);
+    formData.append("bio", updateData.bio);
 
-      setProfile({ ...response.data.user });
-
-      console.log("Profile updated successfully!");
-      console.log("Updated profile:", response.data.user);
-    } catch (error) {
-      console.error("Update profile error:", error);
-      throw new Error(error.response?.data?.message || "Failed to update profile");
+    if (updateData.profilePicFile) {
+      formData.append("profilePic", updateData.profilePicFile);
     }
-  };
+
+    const response = await api.put("/user/updateProfile", formData, {
+      withCredentials: true, // keep if using cookies
+    });
+
+    setProfile(response.data.user);
+
+    console.log("Profile updated successfully!");
+    console.log("Updated profile:", response.data.user);
+
+  } catch (error) {
+    console.error("Update profile error:", error);
+    throw new Error(
+      error.response?.data?.message || "Failed to update profile"
+    );
+  }
+};
+
 
   const handleFollowToggle = async () => {
     if (followLoading) return;
-    
+
     setFollowLoading(true);
     const previousState = isFollowing;
-    
+
     setIsFollowing(!isFollowing);
     setProfile({
       ...profile,
@@ -165,7 +172,7 @@ const Profile = () => {
     if (!window.confirm("Delete this post?")) return;
 
     const previousPosts = [...posts];
-    
+
     const updatedPosts = posts.filter((p) => p._id !== postId);
     setPosts(updatedPosts);
 
@@ -197,8 +204,8 @@ const Profile = () => {
           <div className="text-6xl mb-4">🎬</div>
           <h2 className="text-2xl font-bold text-white mb-2">{error}</h2>
           <p className="text-gray-400 mb-6">This user may not exist or has been removed</p>
-          <button 
-            onClick={() => navigate("/feed")} 
+          <button
+            onClick={() => navigate("/feed")}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
           >
             ← Back to Feed
@@ -211,7 +218,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-[#18181c] text-white">
       {/* Content */}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto mt-6">
         <ProfileHeader
           profile={profile}
           isOwnProfile={isOwnProfile}

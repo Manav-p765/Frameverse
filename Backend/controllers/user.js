@@ -1,22 +1,23 @@
 import User from "../models/user.js";
-import {sendToken} from "../utils/sendToken.js";
+import { sendToken } from "../utils/sendToken.js";
 import bcrypt from "bcrypt";
 import Post from "../models/post.js";
 import mongoose from "mongoose";
+import cloudinary from "../config/cloudinary.js";
 
 export const getUserProfile = async (req, res) => {
   try {
-    const userId = req.params.id || req.userId; // 👈 key line
+    const userId = req.params.id || req.userId;
 
     const user = await User.findById(userId)
-      .populate("avatar")
-      .populate("posts");
+      .populate("posts"); // keep this if posts is ObjectId ref
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     res.status(200).json(user);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -59,39 +60,39 @@ export const registerUser = async (req, res, next) => {
 
 
 export const loginUser = async (req, res) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-        return res.status(400).json({ message: "Invalid email or password" });
-    }
+  const user = await User.findOne({ email }).select("+password");
+  if (!user) {
+    return res.status(400).json({ message: "Invalid email or password" });
+  }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return res.status(400).json({ message: "Invalid email or password" });
-    }
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(400).json({ message: "Invalid email or password" });
+  }
 
-     return sendToken(user, res, 200, "Login successful");
+  return sendToken(user, res, 200, "Login successful");
 };
 
 export const logoutUser = (req, res) => {
-    res.clearCookie("token");
-    res.json({ message: "Logged out" });
+  res.clearCookie("token");
+  res.json({ message: "Logged out" });
 };
 
 
 export const searchUsers = async (req, res) => {
-    const q = String(req.query.q || "");
+  const q = String(req.query.q || "");
 
-    if (!q.trim()) return res.json([]);
+  if (!q.trim()) return res.json([]);
 
-    const users = await User.find({
-        _id: { $ne: req.userId },
-        $or: [
-            { username: { $regex: "^" + q, $options: "i" } }
-        ]
-    });
-    res.status(200).json(users);
+  const users = await User.find({
+    _id: { $ne: req.userId },
+    $or: [
+      { username: { $regex: "^" + q, $options: "i" } }
+    ]
+  });
+  res.status(200).json(users);
 };
 
 
@@ -100,21 +101,28 @@ export const updateUserProfile = async (req, res) => {
     const updates = { ...req.body };
     delete updates.password;
 
+    console.log(updates);
 
-    const user = await User.findById(req.userId);
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "profile_pics",
+        transformation: [
+          { width: 500, height: 500, crop: "fill" }
+        ]
+      });
+
+      updates.profilePic = result.secure_url;
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    Object.keys(updates).forEach((key) => {
-      user[key] = updates[key];
-    });
-
-    if (req.file) {
-      user.avatar = req.file.path; // or upload to cloudinary
-    }
-
-    await user.save();
 
     res.status(200).json({
       message: "Profile updated successfully",
@@ -122,6 +130,13 @@ export const updateUserProfile = async (req, res) => {
     });
 
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "Username already exists",
+      });
+    }
+
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -129,8 +144,8 @@ export const updateUserProfile = async (req, res) => {
 
 
 export const followUser = async (req, res) => {
-  const userId = req.user;          
-  const targetUserId = req.params.id; 
+  const userId = req.user;
+  const targetUserId = req.params.id;
 
   // can't follow yourself (narcissism check)
   if (userId === targetUserId) {

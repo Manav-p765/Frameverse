@@ -4,10 +4,9 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     username: profile?.username || "",
     bio: profile?.bio || "",
-    avatar: profile?.avatar || [],
   });
-  const [avatarPreview, setAvatarPreview] = useState(
-    profile?.avatar?.[0]?.url || null
+  const [profilePicPreview, setProfilePicPreview] = useState(
+    profile?.profilePic || null
   );
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,32 +20,42 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
     }
   };
 
-  const handleAvatarSelect = (e) => {
+  const handleProfilePicSelect = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith("image/")) {
-        setErrors((prev) => ({ ...prev, avatar: "Please select an image file" }));
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setErrors((prev) => ({ ...prev, avatar: "Image size must be less than 5MB" }));
-        return;
-      }
+    if (!file) return;
 
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-      setErrors((prev) => ({ ...prev, avatar: "" }));
+    if (!file.type.startsWith("image/")) {
+      setErrors((prev) => ({
+        ...prev,
+        profilePic: "Please select a valid image file",
+      }));
+      return;
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors((prev) => ({
+        ...prev,
+        profilePic: "Image size must be less than 5MB",
+      }));
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // instant preview
+    setProfilePicPreview(URL.createObjectURL(file));
+
+    setErrors((prev) => ({
+      ...prev,
+      profilePic: "",
+    }));
   };
 
-  const handleRemoveAvatar = () => {
+
+  const handleRemoveProfilepic = () => {
     setSelectedFile(null);
-    setAvatarPreview(null);
-    setFormData((prev) => ({ ...prev, avatar: [] }));
+    setProfilePicPreview(null);
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -86,8 +95,10 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
       const updateData = {
         username: formData.username,
         bio: formData.bio,
-        avatarFile: selectedFile,
+        profilePicFile: selectedFile,
       };
+
+      console.log(updateData);
 
       await onSave(updateData);
       onClose();
@@ -102,9 +113,9 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
     setFormData({
       username: profile?.username || "",
       bio: profile?.bio || "",
-      avatar: profile?.avatar || [],
+
     });
-    setAvatarPreview(profile?.avatar?.[0]?.url || null);
+    setProfilePicPreview(profile?.profilePic || null);
     setSelectedFile(null);
     setErrors({});
     onClose();
@@ -123,7 +134,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div 
+        <div
           className="bg-gray-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-800"
           style={{ animation: "slideUp 0.3s ease-out" }}
         >
@@ -150,17 +161,17 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Avatar Upload */}
+            {/* profilepic Upload */}
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-300">
                 Profile Picture
               </label>
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  {avatarPreview ? (
+                  {profilePicPreview ? (
                     <img
-                      src={avatarPreview}
-                      alt="Avatar preview"
+                      src={profilePicPreview}
+                      alt="Profilepic preview"
                       className="w-24 h-24 rounded-full object-cover ring-4 ring-gray-800"
                     />
                   ) : (
@@ -170,10 +181,10 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                       </span>
                     </div>
                   )}
-                  {avatarPreview && (
+                  {profilePicPreview && (
                     <button
                       type="button"
-                      onClick={handleRemoveAvatar}
+                      onClick={handleRemoveProfilepic}
                       className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors"
                     >
                       <svg
@@ -196,12 +207,12 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    onChange={handleAvatarSelect}
+                    onChange={handleProfilePicSelect}
                     className="hidden"
-                    id="avatar-upload"
+                    id="profilepic-upload"
                   />
                   <label
-                    htmlFor="avatar-upload"
+                    htmlFor="profilepic-upload"
                     className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium cursor-pointer transition-colors text-sm"
                   >
                     Change Photo
@@ -211,8 +222,8 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                   </p>
                 </div>
               </div>
-              {errors.avatar && (
-                <p className="text-red-500 text-sm">{errors.avatar}</p>
+              {errors.profilePic && (
+                <p className="text-red-500 text-sm">{errors.profilePic}</p>
               )}
             </div>
 
@@ -229,11 +240,10 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                 type="text"
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
-                className={`w-full bg-gray-800 text-white px-4 py-2.5 rounded-lg border ${
-                  errors.username
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-gray-700 focus:border-blue-500"
-                } focus:outline-none transition-colors`}
+                className={`w-full bg-gray-800 text-white px-4 py-2.5 rounded-lg border ${errors.username
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-gray-700 focus:border-blue-500"
+                  } focus:outline-none transition-colors`}
                 placeholder="Enter your username"
               />
               {errors.username && (
@@ -258,11 +268,10 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                 onChange={(e) => handleInputChange("bio", e.target.value)}
                 maxLength={160}
                 rows="4"
-                className={`w-full bg-gray-800 text-white px-4 py-2.5 rounded-lg border ${
-                  errors.description
-                    ? "border-red-500 focus:border-red-500"
-                    : "border-gray-700 focus:border-blue-500"
-                } focus:outline-none transition-colors resize-none`}
+                className={`w-full bg-gray-800 text-white px-4 py-2.5 rounded-lg border ${errors.bio
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-gray-700 focus:border-blue-500"
+                  } focus:outline-none transition-colors resize-none`}
                 placeholder="Share your passion for movies & anime..."
               />
               {errors.bio && (

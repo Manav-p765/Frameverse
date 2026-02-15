@@ -14,6 +14,7 @@ const userSchema = new Schema({
         maxlength: [20, 'Username cannot exceed 20 characters'],
         match: [/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores']
     },
+
     email: {
         type: String,
         required: true,
@@ -27,7 +28,7 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        required: [ true, 'Password is required' ],
+        required: [true, 'Password is required'],
         minlength: [8, 'Password must be at least 8 characters'],
         select: false,
     },
@@ -41,20 +42,24 @@ const userSchema = new Schema({
         }
     },
     avatar: [{
-      type: Schema.Types.ObjectId,
-      ref: "Avatar",
+        type: Schema.Types.ObjectId,
+        ref: "Avatar",
     }],
+    profilePic: {
+        type: String,   // store file path or Cloudinary URL
+        default: ""
+    },
     posts: [{
-      type: Schema.Types.ObjectId,
-      ref: "Post",
+        type: Schema.Types.ObjectId,
+        ref: "Post",
     }],
     followers: [{
-      type: Schema.Types.ObjectId,
-      ref: "User", 
+        type: Schema.Types.ObjectId,
+        ref: "User",
     }],
     following: [{
-      type: Schema.Types.ObjectId,
-      ref: "User", 
+        type: Schema.Types.ObjectId,
+        ref: "User",
     }],
     bio: {
         type: String,
@@ -69,7 +74,7 @@ userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         return;
     }
-    
+
     const saltrounds = 12;
     this.password = await bcrypt.hash(this.password, saltrounds);
 });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FollowList from "./FollowList";
 import UpdateProfileModal from "./UpdateProfileModal";
 
@@ -12,11 +12,12 @@ const ProfileHeader = ({
   onUpdateProfile,
   onUserClick,
 }) => {
-  const { username, avatar, posts, followers, following, bio } = profile;
+  const { username, avatar, posts, followers, following, bio, profilePic } = profile;
 
   const [showFollowersList, setShowFollowersList] = useState(false);
   const [showFollowingList, setShowFollowingList] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
 
   const postCount = posts?.length || 0;
   const followerCount = followers?.length || 0;
@@ -26,21 +27,34 @@ const ProfileHeader = ({
     await onUpdateProfile(updateData);
   };
 
+  useEffect(() => {
+  const handleEsc = (e) => {
+    if (e.key === "Escape") {
+      setShowImagePreview(false);
+    }
+  };
+  window.addEventListener("keydown", handleEsc);
+  return () => window.removeEventListener("keydown", handleEsc);
+}, []);
+
+
+
   return (
     <>
-      <div className="w-full px-4 py-6 border-b border-gray-800">
+      <div className="w-full px-6 py-10 border-b border-gray-800">
         <div className="flex gap-8">
-          {/* Avatar */}
+          {/* profile pic */}
           <div className="shrink-0">
             <div className="relative">
-              {avatar && avatar.length > 0 ? (
+              {profilePic ? (
                 <img
-                  src={avatar[0].url}
-                  alt={`${username}'s avatar`}
-                  className="w-20 h-20 md:w-32 md:h-32 rounded-full object-cover"
+                  src={profilePic}
+                  alt={`${username}'s profilePic`}
+                  onClick={() => setShowImagePreview(true)}
+                  className="w-28 h-28 md:w-40 md:h-40 rounded-full object-cover [image-rendering:auto]"
                 />
               ) : (
-                <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <div className="w-20 h-20 md:w-32 md:h-32 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                   <span className="text-white font-bold text-2xl md:text-4xl">
                     {username?.charAt(0).toUpperCase()}
                   </span>
@@ -48,6 +62,34 @@ const ProfileHeader = ({
               )}
             </div>
           </div>
+
+          {/* {image preview} */}
+          {showImagePreview && (
+            <div
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
+              onClick={() => setShowImagePreview(false)}
+            >
+              <div
+                className="relative w-[90%] md:w-[60%] max-h-[80vh] animate-[zoomIn_0.2s_ease-out]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowImagePreview(false)}
+                  className="absolute -top-10 right-0 text-white text-2xl hover:opacity-70"
+                >
+                  ✕
+                </button>
+
+                <img
+                  src={profilePic}
+                  alt="Profile preview"
+                  className="w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+                />
+              </div>
+            </div>
+          )}
+
 
           {/* User Info */}
           <div className="flex-1 min-w-0">
@@ -57,10 +99,10 @@ const ProfileHeader = ({
             </h1>
 
             {/* Stats */}
-            <div className="flex gap-8 mb-4">
+            <div className="flex gap-10 mb-6">
               <div>
-                <span className="font-semibold text-white mr-1">{postCount}</span>
-                <span className="text-gray-400 text-sm">posts</span>
+                <span className="font-semibold text-white text-xl mr-1">{postCount}</span>
+                <span className="text-gray-400 text-base">posts</span>
               </div>
               <button
                 onClick={() => setShowFollowersList(true)}
@@ -80,7 +122,7 @@ const ProfileHeader = ({
 
             {/* Bio */}
             {bio && (
-              <p className="text-sm text-gray-300 mb-4 leading-relaxed">
+              <p className="text-base md:text-lg text-gray-300 mb-4 leading-relaxed">
                 {bio}
               </p>
             )}
@@ -91,13 +133,13 @@ const ProfileHeader = ({
                 <>
                   <button
                     onClick={() => setShowUpdateModal(true)}
-                    className="px-4 py-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded border border-gray-700 transition-colors"
+                    className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded border border-gray-700 transition-colors"
                   >
                     Edit profile
                   </button>
                   <button
                     onClick={onShareClick}
-                    className="px-4 py-1 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded border border-gray-700 transition-colors"
+                    className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded border border-gray-700 transition-colors"
                     title="Share profile"
                   >
                     <svg
@@ -121,11 +163,10 @@ const ProfileHeader = ({
                 <button
                   onClick={onFollowToggle}
                   disabled={followLoading}
-                  className={`px-6 py-1 text-sm font-semibold rounded transition-all ${
-                    isFollowing
-                      ? "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`px-8 py-2 text-sm font-semibold rounded transition-all ${isFollowing
+                    ? "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
+                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {followLoading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
@@ -175,5 +216,14 @@ const ProfileHeader = ({
     </>
   );
 };
+
+
+<style>{`
+  @keyframes zoomIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+`}</style>
+
 
 export default ProfileHeader;
