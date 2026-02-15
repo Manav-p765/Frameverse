@@ -10,7 +10,13 @@ export const getUserProfile = async (req, res) => {
     const userId = req.params.id || req.userId;
 
     const user = await User.findById(userId)
-      .populate("posts"); // keep this if posts is ObjectId ref
+      .populate("posts").populate({
+        path: "posts",
+        populate: {
+          path: "owner",
+          select: "-password -email -__v"
+        }
+      }); // keep this if posts is ObjectId ref
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -205,57 +211,52 @@ export const unfollowUser = async (req, res) => {
   res.status(200).json({ message: "User unfollowed successfully" });
 };
 
-
 export const getFeed = async (req, res) => {
   try {
+    const limit = parseInt(req.query.limit) || 10;
+    const depth = parseInt(req.query.depth) || 0;
+
     const user = await User.findById(req.userId).select("following");
 
-    // Convert following IDs to ObjectId
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const followingIds = user.following.map(
       (id) => new mongoose.Types.ObjectId(id)
     );
 
-    const feed = await Post.aggregate([
-      // Add priority (followed users first)
+    const posts = await Post.aggregate([
       {
         $addFields: {
           priority: {
-            $cond: [
-              { $in: ["$owner", followingIds] },
-              1,
-              0,
-            ],
+            $cond: [{ $in: ["$owner", followingIds] }, 1, 0],
           },
         },
       },
-
-      // Sort: followed users → latest posts
       {
         $sort: {
           priority: -1,
           createdAt: -1,
         },
       },
-
-      // Limit feed
-      { $limit: 50 },
-
-      // Populate owner (IMPORTANT)
+      {
+        $skip: depth * limit,
+      },
+      {
+        $limit: limit,
+      },
       {
         $lookup: {
-          from: "users", // collection name
+          from: "users",
           localField: "owner",
           foreignField: "_id",
           as: "owner",
         },
       },
-
-      // Convert owner array → object
       {
         $unwind: "$owner",
       },
-
-      // Security: remove sensitive fields
       {
         $project: {
           "owner.password": 0,
@@ -265,8 +266,12 @@ export const getFeed = async (req, res) => {
       },
     ]);
 
-    res.json(feed);
+    return res.status(200).json({
+      posts,
+    });
+
   } catch (err) {
     console.error("Feed error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 };
