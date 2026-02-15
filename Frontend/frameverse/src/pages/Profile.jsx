@@ -36,6 +36,7 @@ const Profile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      
       try {
         setLoading(true);
         setError(null);
