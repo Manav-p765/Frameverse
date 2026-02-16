@@ -109,6 +109,26 @@ const Feed = () => {
     setLightboxIndex(0);
   };
 
+  const onLikeToggle = async (postId) => {
+    try {
+      const res = await api.post(`/post/${postId}/like`);
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId
+            ? {
+              ...post,
+              likesCount: res.data.likesCount,
+              likedByCurrentUser: res.data.liked,
+            }
+            : post
+        )
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#18181c] mt-15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,6 +161,7 @@ const Feed = () => {
               post={post}
               onUserClick={onUserClick}
               onImageClick={handleImageClick}
+              onLikeToggle={onLikeToggle}
               onDeletePost={onDeletePost}
             />
           ))}

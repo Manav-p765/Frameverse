@@ -258,7 +258,16 @@ export const getFeed = async (req, res) => {
         $unwind: "$owner",
       },
       {
+        $addFields: {
+          likesCount: { $size: "$likes" },
+          likedByCurrentUser: {
+            $in: [new mongoose.Types.ObjectId(req.userId), "$likes"],
+          },
+        },
+      },
+      {
         $project: {
+          likes: 0,
           "owner.password": 0,
           "owner.email": 0,
           "owner.__v": 0,
@@ -273,5 +282,20 @@ export const getFeed = async (req, res) => {
   } catch (err) {
     console.error("Feed error:", err);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const authMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 };

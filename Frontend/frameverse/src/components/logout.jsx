@@ -1,24 +1,24 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/post.service";
-import { clearUser } from "../utils/ProtectedRoute";
+
 
 const Logout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const logout = async () => {
+    const handleLogout = async () => {
       try {
-        await api.post("/user/logout");
+        await api.post("/user/logout", {}, { withCredentials: true });
       } catch (err) {
         console.error("Logout failed", err);
       } finally {
-        clearUser(); // localStorage cleanup
+        localStorage.removeItem("user");
         navigate("/auth", { replace: true });
       }
     };
 
-    logout();
+    handleLogout();
   }, [navigate]);
 
   return <p>Logging you out...</p>;

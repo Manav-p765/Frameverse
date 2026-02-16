@@ -18,20 +18,22 @@ const PostCard = ({
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
+
   // Refs
   const lastTapTime = useRef(0);
   const menuRef = useRef(null);
+
+  console.log("PostCard post:", post);
 
   // Extract post data
   const {
     _id,
     owner,
-    image = [],
+    image,
     description,
     location,
-    likes = 0,
+    likes = [],
     commentsCount = 0,
-    likedByCurrentUser = false,
     editable = false,
     createdAt,
   } = post;
@@ -40,12 +42,13 @@ const PostCard = ({
 
   const username = owner?.username || 'Unknown';
   const profilePic = owner?.profilePic;
-  const userId = owner?._id;
+  const userId = owner?._id;;
+  const { likesCount = 0, likedByCurrentUser = false } = post;
 
   // Handle double-tap/double-click like
   const handleDoubleTap = useCallback((e) => {
     e.preventDefault();
-    
+
     const now = Date.now();
     const timeDiff = now - lastTapTime.current;
 
@@ -65,7 +68,7 @@ const PostCard = ({
   const handleLikeClick = useCallback((e) => {
     e.stopPropagation();
     onLikeToggle(_id, likedByCurrentUser);
-    
+
     if (!likedByCurrentUser) {
       setShowHeartAnimation(true);
       setTimeout(() => setShowHeartAnimation(false), 800);
@@ -75,7 +78,7 @@ const PostCard = ({
   // Handle share
   const handleShare = useCallback(async (e) => {
     e.stopPropagation();
-    
+
     const shareData = {
       title: `${username}'s post`,
       text: description || 'Check out this post!',
@@ -97,7 +100,7 @@ const PostCard = ({
   // Handle menu actions
   const handleMenuAction = useCallback((action) => {
     setShowMenu(false);
-    
+
     switch (action) {
       case 'edit':
         window.location.href = `/post/${_id}/edit`;
@@ -149,8 +152,8 @@ const PostCard = ({
   const mainImage = image;
 
   return (
-    <article 
-      className="bg-linear-to-br from-[#1a1a1f]/80 to-[#16161b]/80 backdrop-blur-xl overflow-hidden border border-gray-800/40 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-gray-700/60 hover:-translate-y-1" 
+    <article
+      className="bg-linear-to-br from-[#1a1a1f]/80 to-[#16161b]/80 backdrop-blur-xl overflow-hidden border border-gray-800/40 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-gray-700/60 hover:-translate-y-1"
       style={style}
     >
       {/* Image Section */}
@@ -163,7 +166,7 @@ const PostCard = ({
           {!imageLoaded && mainImage && (
             <div className="absolute inset-0 bg-linear-to-br from-gray-800/30 to-gray-900/30 animate-pulse" />
           )}
-          
+
           {mainImage ? (
             <>
               <img
@@ -171,11 +174,10 @@ const PostCard = ({
                 alt="Post"
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
-                className={`w-full h-full object-cover transition-all duration-500 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
-                } `}
+                className={`w-full h-full object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                  } `}
               />
-              
+
               {/* Multiple images indicator */}
               {image.length > 1 && (
                 <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1.5">
@@ -183,9 +185,8 @@ const PostCard = ({
                     {images.slice(0, 3).map((_, idx) => (
                       <div
                         key={idx}
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          idx === 0 ? 'bg-white' : 'bg-white/40'
-                        }`}
+                        className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-white' : 'bg-white/40'
+                          }`}
                       />
                     ))}
                   </div>
@@ -272,15 +273,14 @@ const PostCard = ({
               className="group transition-transform active:scale-90 flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-gray-800/30"
             >
               <Heart
-                className={`w-5 h-5 transition-all ${
-                  likedByCurrentUser
-                    ? 'fill-red-500 text-red-500'
-                    : 'text-gray-500 group-hover:text-red-400'
-                }`}
+                className={`w-5 h-5 transition-all ${likedByCurrentUser
+                  ? 'fill-red-500 text-red-500'
+                  : 'text-gray-500 group-hover:text-red-400'
+                  }`}
               />
-              {likes > 0 && (
+              {likesCount > 0 && (
                 <span className="text-gray-400 text-xs font-medium">
-                  {likes}
+                  {likesCount}
                 </span>
               )}
             </button>

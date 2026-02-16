@@ -16,6 +16,10 @@ const postSchema = new mongoose.Schema(
             ref: 'User',
             required: true
         },
+        location: {
+            type: String,
+            trim: true
+        },
         description: {
             type: String
         },
@@ -25,7 +29,6 @@ const postSchema = new mongoose.Schema(
                 ref: 'User'
             }
         ],
-        timestamps: { type: Date, default: Date.now }
     },
     { timestamps: true }
 );
