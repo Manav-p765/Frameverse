@@ -12,19 +12,19 @@ import userRoute from "./routes/user.js";
 import chatRoute from "./routes/chat.js";
 import postRoute from "./routes/post.js";
 
-const Port = process.env.PORT;
+const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
 
 // cors setup
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://frameverse.vercel.app",
     credentials: true,
 }))
 
 // Socket.io setup
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: "https://frameverse.vercel.app",
         methods: ["GET", "POST"],
         credentials: true,
     }
