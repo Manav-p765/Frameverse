@@ -32,8 +32,6 @@ const Feed = () => {
 
       const newPosts = res.data.posts || [];
 
-      console.log(newPosts);
-
       setPosts((prev) => [...prev, ...newPosts]);
 
       if (newPosts.length < 10) {
