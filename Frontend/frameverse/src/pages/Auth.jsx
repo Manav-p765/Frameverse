@@ -28,7 +28,7 @@ const Auth = () => {
   const navigate = useNavigate();
 
   // ===== STATE =====
-  const [mode, setMode] = useState("register"); // login | register
+  const [mode, setMode] = useState("login"); // login | register
   const [form, setForm] = useState({
     username: "",
     email: "",

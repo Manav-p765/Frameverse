@@ -25,7 +25,7 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
                         <p className="text-gray-400 text-sm leading-relaxed">
                             {mode === "login"
                                 ? "Sign in to continue your conversations"
-                                : "Experience next-generation artificial intelligence tools designed to boost productivity and automate tasks"}
+                                : "Register to chat, share and connect."}
                         </p>
                     </div>
 

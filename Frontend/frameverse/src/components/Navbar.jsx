@@ -34,7 +34,7 @@ const Navbar = () => {
         transition-all
         duration-300
         ease-in-out
-        w-[72px]
+        w-18
         hover:w-60
         text-gray-100
       "
@@ -45,7 +45,7 @@ const Navbar = () => {
           className="
             text-2xl font-bold mb-6
             overflow-hidden
-            opacity-0 translate-x-[-8px]
+            opacity-0 -translate-x-2
             group-hover:opacity-800 group-hover:translate-x-0
             transition-all duration-300
           "
@@ -74,7 +74,7 @@ const Navbar = () => {
               <span
                 className="
                   overflow-hidden whitespace-nowrap
-                  opacity-0 translate-x-[-10px]
+                  opacity-0 -translate-x-2.5
                   group-hover:opacity-800 group-hover:translate-x-0
                   transition-all duration-300
                 "
@@ -91,7 +91,7 @@ const Navbar = () => {
           <span
             className="
               overflow-hidden whitespace-nowrap
-              opacity-0 translate-x-[-10px]
+              opacity-0 -translate-x-2.5
               group-hover:opacity-100 group-hover:translate-x-0
               transition-all duration-300
             "
