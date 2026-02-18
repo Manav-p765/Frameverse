@@ -23,7 +23,6 @@ const PostCard = ({
   const lastTapTime = useRef(0);
   const menuRef = useRef(null);
 
-  console.log("PostCard post:", post);
 
   // Extract post data
   const {
