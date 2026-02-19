@@ -17,14 +17,14 @@ const server = http.createServer(app);
 
 // cors setup
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://frameverse.onrender.com",
     credentials: true,
 }))
 
 // Socket.io setup
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: "https://frameverse.onrender.com",
         methods: ["GET", "POST"],
         credentials: true,
     }
