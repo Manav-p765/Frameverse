@@ -54,7 +54,7 @@ const ProfileHeader = ({
                   className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full object-cover cursor-pointer ring-2 ring-gray-700 hover:ring-gray-500 transition-all"
                 />
               ) : (
-                <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                   <span className="text-white font-bold text-2xl sm:text-4xl">
                     {username?.charAt(0).toUpperCase()}
                   </span>
@@ -140,7 +140,7 @@ const ProfileHeader = ({
 
             {/* Bio */}
             {bio && (
-              <p className="text-sm sm:text-base text-gray-300 mb-4 leading-relaxed break-words">
+              <p className="text-sm sm:text-base text-gray-300 mb-4 leading-relaxed wrap-break-word">
                 {bio}
               </p>
             )}
