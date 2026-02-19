@@ -11,7 +11,7 @@ const MainLayout = ({ }) => {
       </aside>
 
       {/* Content */}
-      <main className="flex-1 min-h-screen bg-[#18181c] overflow-y-auto p-4">
+      <main className="flex-1 min-h-screen bg-[#18181c] overflow-y-auto scrollbar-hide p-4">
         <Outlet />
       </main>
       <MobileNavbar />
