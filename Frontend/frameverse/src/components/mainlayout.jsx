@@ -6,7 +6,7 @@ const MainLayout = ({ }) => {
   return (
     <div className="flex h-screen w-full bg-[#18181c]">
       {/* Navigation */}
-      <aside className="w-64 bg-[#18181c]">
+      <aside className="w-64 hidden md:block bg-[#18181c]">
         <Navbar />
       </aside>
 
