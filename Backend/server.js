@@ -17,16 +17,15 @@ const server = http.createServer(app);
 
 // cors setup
 app.use(cors({
-    // origin: "https://frameverse-zeta.vercel.app",
+    origin: "https://frameverse-zeta.vercel.app",
     methods: ["GET", "POST"],
-    origin: "http://localhost:5173",
 
 }))
 
 // Socket.io setup
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173",
+        origin: "https://frameverse-zeta.vercel.app",
         methods: ["GET", "POST"],
         credentials: true,
     }
