@@ -102,9 +102,15 @@ const Auth = () => {
       const url = mode === "login" ? "/user/login" : "/user/register";
       const res = await api.post(url, payload);
 
+      if (res.data?.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+
       if (res.data?.user) {
         localStorage.setItem("user", JSON.stringify(res.data.user));
       }
+
+      navigate("/");
 
       navigate("/");
     } catch (err) {
@@ -132,16 +138,16 @@ const Auth = () => {
         </Suspense>
       </div>
 
-        <AuthForm mode={mode} form={form}
-          serverError={serverError}
-          errors={errors}
-          serverFieldError={serverFieldError}
-          handleSubmit={handleSubmit}
-          handleChange={handleChange}
-          toggleMode={toggleMode}
-          loading={loading}
-        />
-     
+      <AuthForm mode={mode} form={form}
+        serverError={serverError}
+        errors={errors}
+        serverFieldError={serverFieldError}
+        handleSubmit={handleSubmit}
+        handleChange={handleChange}
+        toggleMode={toggleMode}
+        loading={loading}
+      />
+
     </div>
   );
 };

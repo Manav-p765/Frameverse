@@ -1,4 +1,4 @@
-import user from "./models/user.js";
+
 import Avatar from "./models/avatar.js";
 import { userschema, avatarschema } from "./schema.js";
 import ExpressErrors from "./utils/expressErrors.js";
@@ -6,55 +6,57 @@ import jwt from "jsonwebtoken";
 import app from "./config/app.js"
 import Chat from "./models/chat.js";
 import Post from "./models/post.js";
-import cookieParser from "cookie-parser";
-
-app.use(cookieParser());
 
 //validating user server side errors
 export const validateuser = (req, res, next) => {
-    let { error } = userschema.validate(req.body);
-    if (error) {
-        let errmsg = error.details.map((el) => el.message).join(",");
-        throw new ExpressErrors(400, errmsg);
-    }
-    else {
-        next();
-    }
+  let { error } = userschema.validate(req.body);
+  if (error) {
+    let errmsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressErrors(400, errmsg);
+  }
+  else {
+    next();
+  }
 };
 
 //validating avatar server side errors
 export const validateavatar = (req, res, next) => {
-    let { error } = avatarschema.validate(req.body);
-    if (error) {
-        let errmsg = error.details.map((el) => el.message).join(",");
-        throw new ExpressErrors(400, errmsg);
-    }
-    else {
-        next();
-    }
+  let { error } = avatarschema.validate(req.body);
+  if (error) {
+    let errmsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressErrors(400, errmsg);
+  }
+  else {
+    next();
+  }
 };
 
 
 
 export const isLoggedIn = (req, res, next) => {
 
-    const {token} = req.cookies;
-    if (!token) {
-        return res.status(401).json({ message: "Unauthorized" });
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Not authorized" });
     }
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.userId = decoded.id;
-        next();
-    } catch (err) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.id;
+
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid token" });
+  }
 };
 
 
+
 export const isOwner = async (req, res, next) => {
-  const { id } = req.params; 
+  const { id } = req.params;
 
   const post = await Post.findById(id);
 
@@ -62,7 +64,7 @@ export const isOwner = async (req, res, next) => {
     return res.status(404).json({ message: "Post not found" });
   }
 
-  if (!post.owner.equals(req.user)) {
+  if (!post.owner.equals(req.userId)) {
     return res.status(403).json({
       message: "You are not allowed to modify this post",
     });
@@ -73,17 +75,17 @@ export const isOwner = async (req, res, next) => {
 
 
 const isAvatarOwner = async (req, res, next) => {
-    const avatar = await Avatar.findById(req.params.id);
+  const avatar = await Avatar.findById(req.params.id);
 
-    if (!avatar) {
-        return next(new ExpressErrors(404, "Avatar not found"));
-    }
+  if (!avatar) {
+    return next(new ExpressErrors(404, "Avatar not found"));
+  }
 
-    if (avatar.owner.toString() !== req.userId) {
-        return next(new ExpressErrors(403, "You are not allowed to do this"));
-    }
+  if (avatar.owner.toString() !== req.userId) {
+    return next(new ExpressErrors(403, "You are not allowed to do this"));
+  }
 
-    next();
+  next();
 };
 
 
@@ -109,13 +111,13 @@ export const canAccessChat = async (req, res, next) => {
   }
 
   req.chat = await Chat.findById(chatId)
-  .populate({
-    path: "lastMessage",
-    populate: {
-      path: "sender",
-      select: "username email"
-    }
-  });
+    .populate({
+      path: "lastMessage",
+      populate: {
+        path: "sender",
+        select: "username email"
+      }
+    });
   next();
 };
 
@@ -126,7 +128,7 @@ export const isGroupAdmin = (req, res, next) => {
     return res.status(400).json({ message: "Not a group chat" });
   }
 
-  if (req.chat.admin.toString() !== req.user) {
+  if (req.chat.admin.toString() !== req.userId) {
     return res.status(403).json({ message: "Admins only" });
   }
 
@@ -134,18 +136,9 @@ export const isGroupAdmin = (req, res, next) => {
 };
 
 
-export const verifyToken = (req, res, next) => {
-  const token = req.cookies.token;
 
-  if (!token) {
-    return res.status(401).json({ message: "No token provided" });
-  }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.id;
-    next();
-  } catch (error) {
-    return res.status(403).json({ message: "Invalid token" });
-  }
+export const noCache = (req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
 };

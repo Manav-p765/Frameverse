@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { validateuser, isLoggedIn, verifyToken } from "../middleware.js";
+import { validateuser, isLoggedIn} from "../middleware.js";
 import wrapAsync from "../utils/wrapAsync.js";
 import {upload} from "../config/multer.js";
 import { getFeed,followUser, getUserProfile, loginUser, logoutUser, registerUser, searchUsers, updateUserProfile, unfollowUser, authMe } from "../controllers/user.js";
@@ -8,7 +8,7 @@ const router = Router({ mergeParams: true });
 
 router.get("/profile", isLoggedIn, wrapAsync(getUserProfile));
 
-router.get("/profile/:id", verifyToken, getUserProfile);
+router.get("/profile/:id", isLoggedIn, wrapAsync(getUserProfile));
 
 router.post("/register", validateuser, wrapAsync(registerUser));
 
@@ -26,6 +26,6 @@ router.post("/unfollow/:id", isLoggedIn, unfollowUser);
 
 router.get("/feed",isLoggedIn, getFeed);
 
-router.get("/auth/me", isLoggedIn, verifyToken, authMe);
+router.get("/auth/me", isLoggedIn, authMe);
 
 export default router;

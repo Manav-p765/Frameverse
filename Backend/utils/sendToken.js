@@ -7,20 +7,14 @@ export const sendToken = (user, res, statusCode, message) => {
     { expiresIn: "7d" }
   );
 
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-
   res.status(statusCode).json({
     success: true,
     message,
+    token, // ⭐ FRONTEND WILL USE THIS
     user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-      },
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+    },
   });
 };
