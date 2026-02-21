@@ -15,22 +15,41 @@ import postRoute from "./routes/post.js";
 const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
 
-// cors setup
-app.use(cors({
-    origin: "https://frameverse-zeta.vercel.app",
-    methods: ["GET", "POST"],
 
-}))
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://frameverse-zeta.vercel.app",
+];
+
+
+// cors setup
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow Postman or server-to-server
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS blocked"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  })
+);
+
 
 // Socket.io setup
 const io = new Server(server, {
-    cors: {
-        origin: "https://frameverse-zeta.vercel.app",
-        methods: ["GET", "POST"],
-        credentials: true,
-    }
-});
-
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});     
 
 app.set("view engine", "ejs");
 app.use(cookieParser());
