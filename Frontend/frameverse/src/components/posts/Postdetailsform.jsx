@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/post.service"; // your axios instance
+import api from "../../services/post.service"; // your axios instance
 
 const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import PostDetailsForm from '../components/Postdetailsform';
+import PostDetailsForm from '../components/posts/Postdetailsform';
 
 const CreatePost = () => {
   const [selectedImage, setSelectedImage] = useState(null);

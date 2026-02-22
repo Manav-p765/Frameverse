@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Feed from './pages/Feed';
 import Auth from './pages/Auth';
 import ProtectedRoute from "./utils/ProtectedRoute"
-import Logout from './components/logout';
+import Logout from './components/auth/logout';
 import Chats from './pages/Chats'
 import Profile from './pages/Profile'
 import Explore from './pages/Explore';

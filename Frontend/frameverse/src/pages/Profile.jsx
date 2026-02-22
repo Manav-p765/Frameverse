@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/post.service";
-import ProfileHeader from "../components/ProfileHeader";
-import ProfilePosts from "../components/ProfilePosts";
-import ShareProfileModal from "../components/ShareProfileModal";
-import SkeletonLoader from "../components/SkeletonLoader";
-import PostViewer from "../components/PostViewer";
+import ProfileHeader from "../components/profile/ProfileHeader";
+import ProfilePosts from "../components/profile/ProfilePosts";
+import ShareProfileModal from "../components/profile/ShareProfileModal";
+import SkeletonLoader from "../components/profile/SkeletonLoader";
+import PostViewer from "../components/profile/PostViewer";
+
 
 const Profile = () => {
   const { userId } = useParams();
@@ -14,6 +15,7 @@ const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const [posts, setPosts] = useState([]);
   const [displayedPosts, setDisplayedPosts] = useState([]);
@@ -36,13 +38,13 @@ const Profile = () => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      
+
       try {
         setLoading(true);
         setError(null);
 
         const endpoint = userId ? `/user/profile/${userId}` : "/user/profile";
-      
+
         const res = await api.get(endpoint);
 
 
@@ -71,8 +73,16 @@ const Profile = () => {
       }
     };
 
+    setProfile([]);
     fetchProfile();
   }, [userId, isOwnProfile]);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   useEffect(() => {
     if (!posts.length) return;
@@ -140,7 +150,6 @@ const Profile = () => {
     }
   };
 
-
   const handleFollowToggle = async () => {
     if (followLoading) return;
 
@@ -176,26 +185,50 @@ const Profile = () => {
   };
 
   const handleDeletePost = async (postId) => {
-    if (!window.confirm("Delete this post?")) return;
+  if (!window.confirm("Delete this post?")) return;
 
-    const previousPosts = [...posts];
+  const prevPosts = posts;
+  const prevDisplayed = displayedPosts;
 
-    const updatedPosts = posts.filter((p) => p._id !== postId);
-    setPosts(updatedPosts);
+  // 🔥 update BOTH states
+  setPosts(prev => prev.filter(p => p._id !== postId));
+  setDisplayedPosts(prev => prev.filter(p => p._id !== postId));
 
-    try {
-      await api.delete(`/post/${postId}`);
-    } catch (err) {
-      setPosts(previousPosts);
-      console.error("Failed to delete post:", err);
-      alert("Failed to delete post");
-    }
-  };
+  try {
+    await api.delete(`/post/posts/${postId}`);
+  } catch (err) {
+    setPosts(prevPosts);
+    setDisplayedPosts(prevDisplayed);
+    console.error("Failed to delete post:", err);
+    alert("Failed to delete post");
+  }
+};
 
   const handlePostClick = (post) => {
     const index = posts.findIndex(p => p._id === post._id);
     setSelectedIndex(index);
     setViewerOpen(true);
+  };
+
+
+  const onLikeToggle = async (postId) => {
+    try {
+      const res = await api.post(`/post/${postId}/like`);
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId
+            ? {
+              ...post,
+              likesCount: res.data.likesCount,
+              likedByCurrentUser: res.data.liked,
+            }
+            : post
+        )
+      );
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleUserClick = (user) => {
@@ -237,6 +270,7 @@ const Profile = () => {
           onShareClick={() => setShowShareModal(true)}
           onUpdateProfile={handleUpdateProfile}
           onUserClick={handleUserClick}
+
         />
 
         {/* Posts Grid */}
@@ -256,6 +290,9 @@ const Profile = () => {
             initialIndex={selectedIndex}
             profile={profile}
             onClose={() => setViewerOpen(false)}
+            onDeletePost={handleDeletePost}
+            onLikeToggle={onLikeToggle}
+            currentUser={currentUser} // pass current user for editable check
           />
         )}
 

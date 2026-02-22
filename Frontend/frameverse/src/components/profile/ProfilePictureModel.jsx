@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../services/post.service";
+import api from "../../services/post.service";
 
 const ProfilePictureModal = ({ currentAvatar, onClose, onUpdate }) => {
   const [uploading, setUploading] = useState(false);

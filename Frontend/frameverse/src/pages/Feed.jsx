@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import PostCard from "../components/Postcard";
-import PostLightbox from "../components/Postlightbox";
+import PostCard from "../components/posts/PostCard";
+import PostLightbox from "../components/posts/PostLightbox";
 import api from "../services/post.service";
 
 const Feed = () => {
@@ -77,25 +77,11 @@ const Feed = () => {
 
   // Handlers
   const onUserClick = (userId) => {
+
     navigate(`/profile/${userId}`);
   };
 
-  const onDeletePost = async (postId) => {
-    if (!window.confirm("Delete this post?")) return;
-
-    const previousPosts = [...posts];
-
-    const updatedPosts = posts.filter((p) => p._id !== postId);
-    setPosts(updatedPosts);
-
-    try {
-      await api.delete(`/post/${postId}`);
-    } catch (err) {
-      setPosts(previousPosts);
-      console.error("Failed to delete post:", err);
-      alert("Failed to delete post");
-    }
-  };
+  
 
   const handleImageClick = (post, imageIndex = 0) => {
     setSelectedPost(post);
@@ -160,7 +146,6 @@ const Feed = () => {
               onUserClick={onUserClick}
               onImageClick={handleImageClick}
               onLikeToggle={onLikeToggle}
-              onDeletePost={onDeletePost}
             />
           ))}
         </div>

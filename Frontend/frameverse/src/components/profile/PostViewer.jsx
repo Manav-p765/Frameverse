@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import PostCard from "./Postcard";
+import PostCard from "../posts/PostCard";
 
-const PostViewer = ({ posts = [], initialIndex = 0, onClose, profile }) => {
+const PostViewer = ({ posts = [], initialIndex = 0, onClose, profile, onDeletePost, onLikeToggle, currentUser }) => {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
     useEffect(() => {
@@ -64,6 +64,9 @@ const PostViewer = ({ posts = [], initialIndex = 0, onClose, profile }) => {
                 <PostCard
                     post={posts[currentIndex]}
                     profile={profile}
+                    onDeletePost={onDeletePost}
+                    onLikeToggle={onLikeToggle}
+                    currentUser={currentUser} // pass current user for editable check
                 />
             </div>
 

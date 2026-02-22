@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/post.service";
 import Lottie from "lottie-react";
 import animationData from "../assests/authanimation.json";
-import AuthForm from "../components/AuthForm";
+import AuthForm from "../components/auth/AuthForm";
 
 
 // Lazy load animation component

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, ArrowRight } from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal } from "lucide-react";
+import { useParams } from "react-router-dom";
 
 const PostCard = ({
   post,
@@ -8,6 +9,7 @@ const PostCard = ({
   onImageClick,
   onDeletePost,
   onReportPost,
+  currentUser,
   style,
 }) => {
   if (!post) return null;
@@ -33,7 +35,6 @@ const PostCard = ({
     location,
     likes = [],
     commentsCount = 0,
-    editable = false,
     createdAt,
   } = post;
 
@@ -43,6 +44,8 @@ const PostCard = ({
   const profilePic = owner?.profilePic;
   const userId = owner?._id;;
   const { likesCount = 0, likedByCurrentUser = false } = post;
+
+  const isEditable = currentUser?._id && String(userId) === String(currentUser._id);
 
   // Handle double-tap/double-click like
   const handleDoubleTap = useCallback((e) => {
@@ -305,25 +308,27 @@ const PostCard = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowMenu(!showMenu);
+                  setShowMenu((prev) => !prev);
                 }}
                 className="p-1.5 hover:bg-gray-800/50 rounded-lg transition-colors"
+                aria-label="Post options"
               >
-                <ArrowRight className="w-5 h-5 text-gray-500 hover:text-gray-300 transition-colors" />
+                <MoreHorizontal className="w-5 h-5 text-gray-500 hover:text-gray-300 transition-colors" />
               </button>
 
               {showMenu && (
                 <div className="absolute bottom-full right-0 mb-2 bg-gray-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-800 py-1.5 min-w-40 z-50">
-                  {editable ? (
+                  <button
+                    onClick={handleShare}
+                    className="w-full px-4 py-2.5 text-left text-gray-300 text-sm hover:bg-gray-800/50 transition-colors"
+                  >
+                    Share post
+
+                  </button>
+                  {isEditable ? (
                     <>
                       <button
-                        onClick={() => handleMenuAction('edit')}
-                        className="w-full px-4 py-2.5 text-left text-gray-300 text-sm hover:bg-gray-800/50 transition-colors"
-                      >
-                        Edit post
-                      </button>
-                      <button
-                        onClick={() => handleMenuAction('delete')}
+                        onClick={() => onDeletePost(_id)}
                         className="w-full px-4 py-2.5 text-left text-red-400 text-sm hover:bg-gray-800/50 transition-colors"
                       >
                         Delete post
@@ -332,13 +337,7 @@ const PostCard = ({
                   ) : (
                     <>
                       <button
-                        onClick={handleShare}
-                        className="w-full px-4 py-2.5 text-left text-gray-300 text-sm hover:bg-gray-800/50 transition-colors"
-                      >
-                        Share post
-                      </button>
-                      <button
-                        onClick={() => handleMenuAction('report')}
+                        onClick={() => handleMenuAction("report")}
                         className="w-full px-4 py-2.5 text-left text-red-400 text-sm hover:bg-gray-800/50 transition-colors"
                       >
                         Report post
