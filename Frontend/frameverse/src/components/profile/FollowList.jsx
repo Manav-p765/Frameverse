@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const FollowList = ({ type, users, isOpen, onClose, onUserClick }) => {
+const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState(users);
 
@@ -18,6 +18,7 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick }) => {
 
   if (!isOpen) return null;
 
+
   return (
     <>
       {/* Backdrop */}
@@ -32,20 +33,13 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick }) => {
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-800">
             <h2 className="text-lg font-semibold text-white capitalize">
-              {type} {/* followers or following */}
+              {type}
             </h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-800"
             >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
@@ -57,12 +51,7 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick }) => {
             <div className="relative">
               <svg
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
+                width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
               >
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.35-4.35" />
@@ -82,13 +71,8 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick }) => {
             {filteredUsers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <svg
-                  width="48"
-                  height="48"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="mb-3 opacity-50"
+                  width="48" height="48" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="1.5" className="mb-3 opacity-50"
                 >
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
@@ -101,55 +85,63 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick }) => {
               </div>
             ) : (
               <div className="divide-y divide-gray-800">
-                {filteredUsers.map((user) => (
-                  <div
-                    key={user._id}
-                    onClick={() => onUserClick(user)}
-                    className="flex items-center gap-3 p-4 hover:bg-gray-800/50 transition-colors cursor-pointer"
-                  >
-                    {/* Avatar */}
-                    <div className="shrink-0">
-                      {user.avatar && user.avatar.length > 0 ? (
-                        <img
-                          src={user.avatar[0].url}
-                          alt={user.username}
-                          className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-800"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-800">
-                          <span className="text-white font-semibold text-lg">
-                            {user.username?.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                {filteredUsers.map((user) => {
+                  // ✅ FIX: normalize id to string to avoid object comparison issues
+                  const userId = user._id?.toString();
+                  const isSelf = currentUserId && userId === currentUserId.toString();
 
-                    {/* User Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-medium truncate">
-                        {user.username}
-                      </p>
-                      {user.bio && (
-                        <p className="text-gray-400 text-sm truncate">
-                          {user.bio}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Arrow Icon */}
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-gray-600 shrink-0"
+                  return (
+                    <div
+                      key={userId}  // ✅ FIX: was potentially using an ObjectId object as key
+                      onClick={() => onUserClick(user)}
+                      className="flex items-center gap-3 p-4 hover:bg-gray-800/50 transition-colors cursor-pointer"
                     >
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-                ))}
+                      {/* Avatar */}
+                      <div className="shrink-0">
+                        {user.profilePic ? (
+                          <img
+                            src={user.profilePic}
+                            alt={user.username}
+                            className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-800"
+                          />
+                        ) : user.avatar && user.avatar.length > 0 ? (
+                          <img
+                            src={user.avatar[0].url}
+                            alt={user.username}
+                            className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-800"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-800">
+                            <span className="text-white font-semibold text-lg">
+                              {user.username?.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* User Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-medium truncate">
+                          {user.username}
+                          {isSelf && (
+                            <span className="ml-2 text-xs text-gray-500 font-normal">(you)</span>
+                          )}
+                        </p>
+                        {user.bio && (
+                          <p className="text-gray-400 text-sm truncate">{user.bio}</p>
+                        )}
+                      </div>
+
+                      {/* Arrow */}
+                      <svg
+                        width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2" className="text-gray-600 shrink-0"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -163,32 +155,18 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick }) => {
         </div>
       </div>
 
-      {/* Add animations */}
-      <style jsx>{`
+      {/* ✅ FIX: removed jsx attribute — this is plain React (Vite/CRA), not Next.js */}
+      <style>{`
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fadeIn {
-          animation: fadeIn 0.2s ease-out;
-        }
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
-        }
+        .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
+        .animate-slideUp { animation: slideUp 0.3s ease-out; }
       `}</style>
     </>
   );
