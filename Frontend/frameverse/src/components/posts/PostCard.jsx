@@ -46,6 +46,7 @@ const PostCard = ({
   const { likesCount = 0, likedByCurrentUser = false } = post;
 
   const isEditable = currentUser?._id && String(userId) === String(currentUser._id);
+  console.log(isEditable, currentUser?._id, userId);
 
   // Handle double-tap/double-click like
   const handleDoubleTap = useCallback((e) => {
