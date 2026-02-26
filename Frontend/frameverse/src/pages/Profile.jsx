@@ -7,7 +7,6 @@ import ShareProfileModal from "../components/profile/ShareProfileModal";
 import SkeletonLoader from "../components/profile/SkeletonLoader";
 import PostViewer from "../components/profile/PostViewer";
 
-
 const Profile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -34,33 +33,53 @@ const Profile = () => {
   const loadMoreRef = useRef(null);
 
   const POSTS_PER_PAGE = 9;
-  const isOwnProfile = !userId;
+
+  // ✅ FIXED: get current user id from localStorage to compare properly
+  const storedUser = localStorage.getItem("user");
+  const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
+  const loggedInUserId = loggedInUser?._id || loggedInUser?.id;
+
+  // Own profile = no userId param OR the userId matches the logged-in user
+  const isOwnProfile = !userId || userId === loggedInUserId;
+
+  useEffect(() => {
+    if (storedUser) {
+      setCurrentUser(loggedInUser);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
-
       try {
         setLoading(true);
         setError(null);
 
-        const endpoint = userId ? `/user/profile/${userId}` : "/user/profile";
-
+        const endpoint = isOwnProfile ? "/user/profile" : `/user/profile/${userId}`;
         const res = await api.get(endpoint);
-
 
         setProfile(res.data);
 
         const sortedPosts = [...(res.data.posts || [])].sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
-
         setPosts(sortedPosts);
 
+        // Only check following state for OTHER users' profiles
         if (!isOwnProfile) {
-          const currentUser = await api.get("/user/profile");
-          setIsFollowing(currentUser.data.following?.includes(userId) || false);
+          try {
+            const meRes = await api.get("/user/profile");
+            // ✅ FIXED: use .some() with toString() — includes() fails with ObjectIds
+            const following = meRes.data.following || [];
+            setIsFollowing(
+              following.some((entry) => {
+                const id = entry?._id ?? entry; // handles both {_id, username...} AND raw "abc123"
+                return id?.toString() === userId;
+              })
+            );
+          } catch {
+            setIsFollowing(false);
+          }
         }
-
       } catch (err) {
         console.error("Failed to fetch profile:", err);
         setError(
@@ -73,16 +92,14 @@ const Profile = () => {
       }
     };
 
-    setProfile([]);
+    setProfile(null);
+    setPosts([]);
+    setDisplayedPosts([]);
+    setCurrentPage(1);
+    setHasMore(true);
+    setIsFollowing(false);
     fetchProfile();
   }, [userId, isOwnProfile]);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-  }, []);
 
   useEffect(() => {
     if (!posts.length) return;
@@ -125,7 +142,6 @@ const Profile = () => {
   const handleUpdateProfile = async (updateData) => {
     try {
       const formData = new FormData();
-
       formData.append("username", updateData.username);
       formData.append("bio", updateData.bio);
 
@@ -134,14 +150,10 @@ const Profile = () => {
       }
 
       const response = await api.put("/user/updateProfile", formData, {
-        withCredentials: true, // keep if using cookies
+        withCredentials: true,
       });
 
       setProfile(response.data.user);
-
-      console.log("Profile updated successfully!");
-      console.log("Updated profile:", response.data.user);
-
     } catch (error) {
       console.error("Update profile error:", error);
       throw new Error(
@@ -152,32 +164,25 @@ const Profile = () => {
 
   const handleFollowToggle = async () => {
     if (followLoading) return;
-
     setFollowLoading(true);
-    const previousState = isFollowing;
 
-    setIsFollowing(!isFollowing);
-    setProfile({
-      ...profile,
-      followers: isFollowing
-        ? profile.followers.filter((id) => id !== userId)
-        : [...profile.followers, userId],
+    const nextFollowing = !isFollowing;
+    const previousFollowers = profile.followers;
+
+    setIsFollowing(nextFollowing);
+    setProfile((prev) => {
+      const updatedFollowers = nextFollowing
+        ? [...prev.followers, { _id: loggedInUserId, username: loggedInUser?.username, bio: loggedInUser?.bio, profilePic: loggedInUser?.profilePic }]
+        : prev.followers.filter((entry) => (entry?._id ?? entry)?.toString() !== loggedInUserId);
+
+      return { ...prev, followers: updatedFollowers };
     });
 
     try {
-      if (isFollowing) {
-        await api.post(`/user/unfollow/${userId}`);
-      } else {
-        await api.post(`/user/follow/${userId}`);
-      }
+      await api.post(`/user/${nextFollowing ? "follow" : "unfollow"}/${userId}`);
     } catch (err) {
-      setIsFollowing(previousState);
-      setProfile({
-        ...profile,
-        followers: previousState
-          ? [...profile.followers, userId]
-          : profile.followers.filter((id) => id !== userId),
-      });
+      setIsFollowing(!nextFollowing);
+      setProfile((prev) => ({ ...prev, followers: previousFollowers }));
       console.error("Failed to toggle follow:", err);
     } finally {
       setFollowLoading(false);
@@ -185,36 +190,33 @@ const Profile = () => {
   };
 
   const handleDeletePost = async (postId) => {
-  if (!window.confirm("Delete this post?")) return;
+    if (!window.confirm("Delete this post?")) return;
 
-  const prevPosts = posts;
-  const prevDisplayed = displayedPosts;
+    const prevPosts = posts;
+    const prevDisplayed = displayedPosts;
 
-  // 🔥 update BOTH states
-  setPosts(prev => prev.filter(p => p._id !== postId));
-  setDisplayedPosts(prev => prev.filter(p => p._id !== postId));
+    setPosts((prev) => prev.filter((p) => p._id !== postId));
+    setDisplayedPosts((prev) => prev.filter((p) => p._id !== postId));
 
-  try {
-    await api.delete(`/post/posts/${postId}`);
-  } catch (err) {
-    setPosts(prevPosts);
-    setDisplayedPosts(prevDisplayed);
-    console.error("Failed to delete post:", err);
-    alert("Failed to delete post");
-  }
-};
+    try {
+      await api.delete(`/post/posts/${postId}`);
+    } catch (err) {
+      setPosts(prevPosts);
+      setDisplayedPosts(prevDisplayed);
+      console.error("Failed to delete post:", err);
+      alert("Failed to delete post");
+    }
+  };
 
   const handlePostClick = (post) => {
-    const index = posts.findIndex(p => p._id === post._id);
+    const index = posts.findIndex((p) => p._id === post._id);
     setSelectedIndex(index);
     setViewerOpen(true);
   };
 
-
   const onLikeToggle = async (postId) => {
     try {
       const res = await api.post(`/post/${postId}/like`);
-
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post._id === postId
@@ -235,9 +237,7 @@ const Profile = () => {
     navigate(`/profile/${user._id}`);
   };
 
-  if (loading) {
-    return <SkeletonLoader />;
-  }
+  if (loading) return <SkeletonLoader />;
 
   if (error) {
     return (
@@ -245,7 +245,9 @@ const Profile = () => {
         <div className="text-center">
           <div className="text-6xl mb-4">🎬</div>
           <h2 className="text-2xl font-bold text-white mb-2">{error}</h2>
-          <p className="text-gray-400 mb-6">This user may not exist or has been removed</p>
+          <p className="text-gray-400 mb-6">
+            This user may not exist or has been removed
+          </p>
           <button
             onClick={() => navigate("/feed")}
             className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
@@ -259,7 +261,6 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-[#18181c] text-white">
-      {/* Content */}
       <div className="max-w-4xl mx-auto mt-6">
         <ProfileHeader
           profile={profile}
@@ -270,10 +271,10 @@ const Profile = () => {
           onShareClick={() => setShowShareModal(true)}
           onUpdateProfile={handleUpdateProfile}
           onUserClick={handleUserClick}
-
+          // ✅ Pass current user id so FollowList can hide Follow btn for self
+          currentUserId={loggedInUserId}
         />
 
-        {/* Posts Grid */}
         <div className="px-4">
           <ProfilePosts
             posts={displayedPosts}
@@ -286,30 +287,37 @@ const Profile = () => {
 
         {viewerOpen && (
           <PostViewer
-            posts={posts}        // all profile posts
+            posts={posts}
             initialIndex={selectedIndex}
             profile={profile}
             onClose={() => setViewerOpen(false)}
             onDeletePost={handleDeletePost}
             onLikeToggle={onLikeToggle}
-            currentUser={currentUser} // pass current user for editable check
+            currentUser={currentUser}
           />
         )}
 
-        {/* Load More Trigger */}
         {hasMore && (
           <div ref={loadMoreRef} className="flex justify-center py-8">
             {loadingMore && (
               <div className="flex gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0s" }} />
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
+                <div
+                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                  style={{ animationDelay: "0s" }}
+                />
+                <div
+                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.2s" }}
+                />
+                <div
+                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.4s" }}
+                />
               </div>
             )}
           </div>
         )}
 
-        {/* End Message */}
         {!hasMore && displayedPosts.length > 0 && (
           <div className="text-center py-12 text-gray-500">
             <span className="text-3xl mb-2 block">🎬</span>
@@ -318,11 +326,10 @@ const Profile = () => {
         )}
       </div>
 
-      {/* Share Profile Modal */}
       {showShareModal && (
         <ShareProfileModal
           username={profile.username}
-          userId={userId || "me"}
+          userId={userId || loggedInUserId}
           onClose={() => setShowShareModal(false)}
         />
       )}

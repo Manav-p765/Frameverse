@@ -69,7 +69,9 @@ const PostCard = ({
   // Handle like button click
   const handleLikeClick = useCallback((e) => {
     e.stopPropagation();
-    onLikeToggle(_id, likedByCurrentUser);
+    if (onLikeToggle) {
+      onLikeToggle(_id, likedByCurrentUser);
+    }
 
     if (!likedByCurrentUser) {
       setShowHeartAnimation(true);
@@ -104,11 +106,10 @@ const PostCard = ({
     setShowMenu(false);
 
     switch (action) {
-      case 'edit':
-        window.location.href = `/post/${_id}/edit`;
-        break;
       case 'delete':
-        onDeletePost(_id);
+        if (onDeletePost) {
+          onDeletePost(_id);
+        }
         break;
       case 'report':
         onReportPost(_id);
@@ -181,7 +182,7 @@ const PostCard = ({
               />
 
               {/* Multiple images indicator */}
-              {image.length > 1 && (
+              {/* {image.length > 1 && (
                 <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center gap-1.5">
                   <div className="flex gap-1">
                     {images.slice(0, 3).map((_, idx) => (
@@ -194,7 +195,7 @@ const PostCard = ({
                   </div>
                   <span className="text-white text-xs font-medium">+{image.length - 1}</span>
                 </div>
-              )}
+              )} */}
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center">

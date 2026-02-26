@@ -10,6 +10,8 @@ export const getUserProfile = async (req, res) => {
     const userId = req.params.id || req.userId;
 
     const user = await User.findById(userId)
+      .populate("followers", "username bio avatar profilePic")
+      .populate("following", "username bio avatar profilePic")
       .populate("posts").populate({
         path: "posts",
         populate: {
@@ -156,65 +158,112 @@ export const updateUserProfile = async (req, res) => {
 
 
 export const followUser = async (req, res) => {
-  const userId = req.user;
-  const targetUserId = req.params.id;
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const userId = req.userId;           // me
+    const targetUserId = req.params.id;  // them
 
-  // can't follow yourself (narcissism check)
-  if (userId === targetUserId) {
-    return res.status(400).json({ message: "You can't follow yourself" });
+    // 🚫 narcissism prevention
+    if (userId === targetUserId) {
+      return res.status(400).json({ message: "You can't follow yourself" });
+    }
+
+    const targetUser = await User.findById(targetUserId).session(session);
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // ✅ FIXED: was using wrong variable `profile` (frontend var) and `currentUserId` (undefined)
+    const alreadyFollowing = targetUser.followers.some(
+      (id) => id.toString() === userId
+    );
+
+    if (alreadyFollowing) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "Already following this user" });
+    }
+
+    // ✅ atomic updates
+    await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { following: targetUserId } },
+      { session }
+    );
+    await User.findByIdAndUpdate(
+      targetUserId,
+      { $addToSet: { followers: userId } },
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({
+      message: "User followed successfully",
+      isFollowing: true,
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Follow error:", err);
+    return res.status(500).json({ message: "Follow failed" });
   }
-
-  const targetUser = await User.findById(targetUserId);
-  if (!targetUser) {
-    return res.status(404).json({ message: "User not found" });
-  }
-
-  // already following
-  if (targetUser.followers.includes(userId)) {
-    return res.status(400).json({ message: "Already following this user" });
-  }
-
-  // follow
-  await User.findByIdAndUpdate(userId, {
-    $push: { following: targetUserId },
-  });
-
-  await User.findByIdAndUpdate(targetUserId, {
-    $push: { followers: userId },
-  });
-
-  res.status(200).json({ message: "User followed successfully" });
 };
 
 export const unfollowUser = async (req, res) => {
-  const userId = req.user;           // me
-  const targetUserId = req.params.id; // them
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const userId = req.userId;
+    const targetUserId = req.params.id;
 
-  // can't unfollow yourself
-  if (userId === targetUserId) {
-    return res.status(400).json({ message: "You can't unfollow yourself" });
+    if (userId === targetUserId) {
+      return res.status(400).json({ message: "You can't unfollow yourself" });
+    }
+
+    const targetUser = await User.findById(targetUserId).session(session);
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // ✅ ObjectId-safe check
+    const isFollowing = targetUser.followers.some(
+      (id) => id.toString() === userId
+    );
+
+    if (!isFollowing) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "You are not following this user" });
+    }
+
+    // ✅ atomic updates
+    await User.findByIdAndUpdate(
+      userId,
+      { $pull: { following: targetUserId } },
+      { session }
+    );
+    await User.findByIdAndUpdate(
+      targetUserId,
+      { $pull: { followers: userId } },
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({
+      message: "User unfollowed successfully",
+      isFollowing: false,
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Unfollow error:", err);
+    return res.status(500).json({ message: "Unfollow failed" });
   }
-
-  const targetUser = await User.findById(targetUserId);
-  if (!targetUser) {
-    return res.status(404).json({ message: "User not found" });
-  }
-
-  // not following already
-  if (!targetUser.followers.includes(userId)) {
-    return res.status(400).json({ message: "You are not following this user" });
-  }
-
-  // unfollow
-  await User.findByIdAndUpdate(userId, {
-    $pull: { following: targetUserId },
-  });
-
-  await User.findByIdAndUpdate(targetUserId, {
-    $pull: { followers: userId },
-  });
-
-  res.status(200).json({ message: "User unfollowed successfully" });
 };
 
 export const getFeed = async (req, res) => {
