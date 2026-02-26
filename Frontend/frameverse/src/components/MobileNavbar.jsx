@@ -1,12 +1,12 @@
-import { Home, Heart, PlusCircle, User, Bell } from "lucide-react";
+import { Home, PlusCircle, User, Bell, MessageCircle } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const mobileNavItems = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/notifications", label: "Likes", icon: Heart },
+  { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/create", label: "Create", icon: PlusCircle },
+  { to: "/chats", label: "Chats", icon: MessageCircle },
   { to: "/profile", label: "Profile", icon: User },
-  { to: "/messages", label: "Alerts", icon: Bell },
 ];
 
 const MobileNavbar = () => {

@@ -1,161 +1,157 @@
 import Message from "../models/message.js";
 import Chat from "../models/chat.js";
+import User from "../models/user.js";
 
-
-//create chat 1v1
+// Create 1v1 chat
 export const createChat = async (req, res) => {
+  try {
     const { otherUserId } = req.body;
 
-    if (otherUserId === req.user) {
-        return res.status(400).json({ message: "Talking to yourself?" });
-    }
+    if (!otherUserId) return res.status(400).json({ message: "otherUserId required" });
+    if (otherUserId === req.userId) return res.status(400).json({ message: "Cannot chat with yourself" });
+
+    // Check if 1v1 chat already exists
+    const existing = await Chat.findOne({
+      isGroup: false,
+      users: { $all: [req.userId, otherUserId], $size: 2 },
+    })
+      .populate("users", "username profilePic")
+      .populate({ path: "lastMessage", populate: { path: "sender", select: "username" } });
+
+    if (existing) return res.status(200).json(existing);
 
     const chat = await Chat.create({
-        isGroupChat: false,
-        users: [req.userId, otherUserId]
+      isGroup: false,
+      users: [req.userId, otherUserId],
     });
 
-    res.status(201).json(chat);
-}
+    const populated = await Chat.findById(chat._id)
+      .populate("users", "username profilePic")
+      .populate({ path: "lastMessage", populate: { path: "sender", select: "username" } });
+
+    res.status(201).json(populated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 // Create group chat
 export const createGroupChat = async (req, res) => {
-    const { name, usersId } = req.body;
+  try {
+    const { title, usersId, image, description } = req.body;
 
     if (!usersId || usersId.length < 2) {
-        return res.status(400).json({ message: "Group needs 3+ users" });
+      return res.status(400).json({ message: "Group needs at least 3 users" });
     }
 
     const chat = await Chat.create({
-        name,
-        isGroupChat: true,
-        users: [req.userId, ...usersId],
-        admin: req.userId
+      title,
+      isGroup: true,
+      users: [req.userId, ...usersId],
+      admin: [req.userId],
+      image: image || null,
+      description: description || null,
     });
 
-    res.status(201).json(chat);
-}
+    const populated = await Chat.findById(chat._id)
+      .populate("users", "username profilePic")
+      .populate("admin", "username profilePic");
 
-// Get chat (1v1 or group)
+    res.status(201).json(populated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get all chats for current user
+export const getMyChats = async (req, res) => {
+  try {
+    const chats = await Chat.find({ users: req.userId })
+      .populate("users", "username profilePic")
+      .populate("admin", "username profilePic")
+      .populate({
+        path: "lastMessage",
+        populate: { path: "sender", select: "username profilePic" },
+      })
+      .sort({ lastMessageAt: -1 });
+
+    res.status(200).json(chats);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get single chat
 export const getChat = async (req, res) => {
-    res.json(req.chat);
-}
+  try {
+    const chat = await Chat.findOne({ _id: req.params.chatId, users: req.userId })
+      .populate("users", "username profilePic")
+      .populate("admin", "username profilePic")
+      .populate({
+        path: "lastMessage",
+        populate: { path: "sender", select: "username profilePic" },
+      });
+
+    if (!chat) return res.status(404).json({ message: "Chat not found" });
+
+    res.status(200).json(chat);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 // Add user to group
 export const addUserToGroup = async (req, res) => {
+  try {
     const { userId } = req.body;
+    const chat = await Chat.findById(req.params.chatId);
 
-    if (req.chat.participants.includes(userId)) {
-        return res.status(400).json({ message: "User already in group" });
+    if (!chat || !chat.isGroup) return res.status(404).json({ message: "Group chat not found" });
+
+    const isAdmin = chat.admin.some((a) => a.toString() === req.userId);
+    if (!isAdmin) return res.status(403).json({ message: "Not an admin" });
+
+    if (chat.users.some((u) => u.toString() === userId)) {
+      return res.status(400).json({ message: "User already in group" });
     }
 
-    req.chat.participants.push(userId);
-    await req.chat.save();
+    chat.users.push(userId);
+    await chat.save();
 
-    res.json(req.chat);
-}
+    const updated = await Chat.findById(chat._id)
+      .populate("users", "username profilePic")
+      .populate("admin", "username profilePic");
 
-// Send message
-export const sendMessage = async (req, res) => {
-    try {
-        const { chatId, content } = req.body || {};
+    res.status(200).json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
-        if (!chatId || !content) {
-            return res.status(400).json({
-                message: "chatId and content are required"
-            });
-        }
+// Get shared media for a chat
+export const getChatMedia = async (req, res) => {
+  try {
+    const { chatId } = req.params;
 
-        //  Check chat exists
-        const chat = await Chat.findById(chatId);
-        if (!chat) {
-            return res.status(404).json({ message: "Chat not found" });
-        }
+    const chat = await Chat.findOne({ _id: chatId, users: req.userId });
+    if (!chat) return res.status(404).json({ message: "Chat not found" });
 
-        // Ensure user is part of chat
-        const isParticipant = chat.users
-            .some(id => id.toString() === req.userId.toString());
+    const media = await Message.find({
+      chat: chatId,
+      messageType: { $in: ["image", "file"] },
+    })
+      .sort({ createdAt: -1 })
+      .populate("sender", "username profilePic")
+      .limit(50);
 
-        if (!isParticipant) {
-            return res.status(403).json({
-                message: "You are not allowed to send messages in this chat"
-            });
-        }
-
-        // Save message
-        const message = await Message.create({
-            chat: chatId,
-            sender: req.userId,
-            content
-        });
-
-        //  Atomically update chat
-        await Chat.findByIdAndUpdate(chatId, {
-            lastMessage: message._id,
-            lastMessageAt: new Date()
-        });
-
-        // Populate message for sending
-        const fullMessage = await Message.findById(message._id)
-            .populate("sender", "username email")
-            .populate("chat");
-
-        // Emit socket event
-        const io = req.app.get("io");
-
-        // socket connect
-        io.to(chatId).emit("new-message", {
-            message: fullMessage,
-            senderId: req.userId
-        });
-
-        res.status(201).json(fullMessage);
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Internal server error" });
-    }
-}
-
-// Get messages form a chat
-export const getMessages = async (req, res) => {
-    try {
-        const { chatId } = req.params;
-
-        if (!chatId) {
-            return res.status(400).json({ message: "chatId is required" });
-        }
-
-        // 1️⃣ Find chat
-        const chat = await Chat.findById(chatId);
-        if (!chat) {
-            return res.status(404).json({ message: "Chat not found" });
-        }
-
-        // 2️⃣ Ensure user is part of chat
-        if (!Array.isArray(chat.users)) {
-            return res.status(500).json({ message: "Chat users invalid" });
-        }
-
-        const isParticipant = chat.users.some(
-            userId => userId && userId.equals(req.userId)
-        );
-
-        if (!isParticipant) {
-            return res.status(403).json({ message: "Not allowed" });
-        }
-
-        // 3️⃣ Fetch messages
-        const messages = await Message.find({ chat: chatId })
-            .sort({ createdAt: 1 }) // oldest → newest
-            .populate("sender", "username email") // SAFE fields only
-            .exec();
-
-        // 4️⃣ Return messages
-        res.status(200).json(messages);
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Internal server error" });
-    }
-}
+    res.status(200).json(media);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

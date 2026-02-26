@@ -305,3 +305,18 @@ export const authMe = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getFollowing = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId)
+      .populate("following", "username profilePic bio")
+      .lean();
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json(user.following);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -17,7 +17,7 @@ const navItems = [
   { to: "/search", label: "Search", icon: Search },
   { to: "/explore", label: "Explore", icon: Compass },
   { to: "/reels", label: "Reels", icon: Film },
-  { to: "/messages", label: "Messages", icon: MessageCircle },
+  { to: "/chats", label: "chats", icon: MessageCircle },
   { to: "/notifications", label: "Notifications", icon: Heart },
   { to: "/create", label: "Create", icon: PlusSquare },
   { to: "/profile", label: "Profile", icon: User },

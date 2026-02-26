@@ -21,29 +21,30 @@ const Feed = () => {
 
   // Fetch posts
   const fetchPosts = async (page) => {
-    if (loading || !hasMore) return;
+  if (loading || !hasMore) return;
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const res = await api.get(
-        `/user/feed?limit=10&depth=${page}`
-      );
+  try {
+    const res = await api.get(`/user/feed?limit=10&depth=${page}`);
+    const newPosts = res.data.posts || [];
 
-      const newPosts = res.data.posts || [];
+    setPosts((prev) => {
+      const existingIds = new Set(prev.map(p => p._id));
+      const uniquePosts = newPosts.filter(p => !existingIds.has(p._id));
+      return [...prev, ...uniquePosts];
+    });
 
-      setPosts((prev) => [...prev, ...newPosts]);
-
-      if (newPosts.length < 10) {
-        setHasMore(false);
-      }
-    } catch (err) {
-      console.error("Error fetching posts:", err);
-    } finally {
-      setLoading(false);
-      setInitialLoading(false);
+    if (newPosts.length < 10) {
+      setHasMore(false);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching posts:", err);
+  } finally {
+    setLoading(false);
+    setInitialLoading(false);
+  }
+};
 
   // Initial load
   useEffect(() => {
@@ -51,29 +52,36 @@ const Feed = () => {
   }, []);
 
   // Infinite scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          !loading &&
-          hasMore &&
-          posts.length > 0
-        ) {
-          pageRef.current += 1;
-          fetchPosts(pageRef.current);
-        }
-      },
-      { threshold: 1 }
-    );
+  const isFetchingRef = useRef(false);
 
-    const target = observerTarget.current;
-    if (target) observer.observe(target);
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (
+        entries[0].isIntersecting &&
+        !loading &&
+        hasMore &&
+        posts.length > 0 &&
+        !isFetchingRef.current
+      ) {
+        isFetchingRef.current = true; // 🚫 block repeats
+        pageRef.current += 1;
+        fetchPosts(pageRef.current).finally(() => {
+          isFetchingRef.current = false; // ✅ allow next time
+        });
+      }
+    },
+    { rootMargin: "200px", threshold: 0 }
+  );
 
-    return () => {
-      if (target) observer.unobserve(target);
-    };
-  }, [loading, hasMore, posts.length]);
+  const target = observerTarget.current;
+  if (target) observer.observe(target);
+
+  return () => {
+    if (target) observer.disconnect(target);
+  };
+}, [loading, hasMore, posts.length]);
+
 
   // Handlers
   const onUserClick = (userId) => {
@@ -164,7 +172,7 @@ const Feed = () => {
 
         {/* End message */}
         {!hasMore && posts.length > 0 && (
-          <div className="text-center py-8 text-gray-500 text-sm">
+          <div className="text-center py-8 mb-8 text-gray-500 text-sm">
             You've reached the end
           </div>
         )}

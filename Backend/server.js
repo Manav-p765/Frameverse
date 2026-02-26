@@ -11,6 +11,7 @@ import initSocket from "./config/socket.js";
 import userRoute from "./routes/user.js";
 import chatRoute from "./routes/chat.js";
 import postRoute from "./routes/post.js";
+import messageRoute from "./routes/message.js";
 
 const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
@@ -60,7 +61,9 @@ initSocket(io);
 
 app.use("/user", userRoute);
 
-app.use("/chat", chatRoute);
+app.use("/chats/router", chatRoute);
+
+app.use("/chats/router/messages", messageRoute);
 
 app.use("/post", postRoute);
 
