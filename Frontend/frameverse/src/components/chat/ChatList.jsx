@@ -13,7 +13,7 @@ const formatTime = (date) => {
 };
 
 const Avatar = ({ src, name, size = "w-11 h-11" }) => (
-  <div className={`${size} rounded-full overflow-hidden flex-shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
+  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
     {src ? (
       <img src={src} alt={name} className="w-full h-full object-cover" />
     ) : (
@@ -26,7 +26,7 @@ const Avatar = ({ src, name, size = "w-11 h-11" }) => (
 
 const SkeletonItem = () => (
   <div className="flex items-center gap-3 px-4 py-3 animate-pulse">
-    <div className="w-11 h-11 rounded-full bg-[#2a2a30] flex-shrink-0" />
+    <div className="w-11 h-11 rounded-full bg-[#2a2a30] shrink-0" />
     <div className="flex-1 space-y-2">
       <div className="h-3.5 bg-[#2a2a30] rounded w-1/3" />
       <div className="h-3 bg-[#2a2a30] rounded w-2/3" />
@@ -38,10 +38,14 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
+  // Sort by lastMessageAt descending, then filter by search
   const filtered = useMemo(() => {
-    if (!search.trim()) return chats;
+    const sorted = [...chats].sort(
+      (a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt)
+    );
+    if (!search.trim()) return sorted;
     const q = search.toLowerCase();
-    return chats.filter((c) => {
+    return sorted.filter((c) => {
       const name = c.isGroup
         ? c.title
         : c.users.find((u) => u._id !== currentUserId)?.username || "";
@@ -77,9 +81,10 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-[#18181c]">
-      {/* Header */}
-      <div className="px-4 pt-5 pb-3 border-b border-[#2a2a30]">
+    <div className="flex flex-col h-full min-h-0 w-full bg-[#18181c]">
+
+      {/* Header — flex-shrink-0 keeps it fixed, list scrolls below */}
+      <div className="px-4 pt-5 pb-3 border-b border-[#2a2a30] shrink-0 bg-[#18181c]">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-white text-xl font-semibold tracking-tight">Messages</h1>
           <button
@@ -93,6 +98,7 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
             </svg>
           </button>
         </div>
+
         {/* Search */}
         <div className="relative">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5a5a6a]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -107,7 +113,7 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
         </div>
       </div>
 
-      {/* List */}
+      {/* Scrollable list */}
       <div className="flex-1 min-h-0 overflow-y-auto">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => <SkeletonItem key={i} />)
@@ -120,10 +126,11 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
           </div>
         ) : (
           filtered.map((chat) => {
-            const name = getChatName(chat);
-            const avatar = getChatAvatar(chat);
-            const unread = unreadCounts[chat._id] || 0;
+            const name     = getChatName(chat);
+            const avatar   = getChatAvatar(chat);
+            const unread   = unreadCounts[chat._id] || 0;
             const isActive = chat._id === activeChatId;
+            const hasUnread = unread > 0;
 
             return (
               <button
@@ -133,25 +140,35 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
                   isActive ? "bg-[#2a2a30]" : "hover:bg-[#222226]"
                 }`}
               >
-                <div className="relative">
+                {/* Avatar — blue ring when unread */}
+                <div className={`relative rounded-full ${hasUnread ? "ring-2 ring-blue-500" : ""}`}>
                   <Avatar src={avatar} name={name} />
-                  {/* Online dot placeholder */}
                 </div>
+
                 <div className="flex-1 min-w-0">
+                  {/* Name + time row */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-white text-sm font-medium truncate">{name}</span>
-                    <span className="text-[#5a5a6a] text-xs flex-shrink-0">
+                    <span className={`text-sm truncate ${hasUnread ? "font-semibold text-white" : "font-medium text-white"}`}>
+                      {name}
+                    </span>
+                    <span className={`text-xs shrink-0 ${hasUnread ? "text-blue-400 font-medium" : "text-[#5a5a6a]"}`}>
+
                       {formatTime(chat.lastMessageAt)}
                     </span>
                   </div>
+
+                  {/* Last message + badge row */}
                   <div className="flex items-center justify-between gap-2 mt-0.5">
-                    <span className={`text-xs truncate ${unread > 0 ? "text-white" : "text-[#5a5a6a]"}`}>
+                    <span className={`text-xs truncate ${hasUnread ? "text-white font-medium" : "text-[#5a5a6a]"}`}>
                       {getLastMessage(chat)}
                     </span>
-                    {unread > 0 && (
-                      <span className="flex-shrink-0 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                    {hasUnread ? (
+                      <span className="shrink-0 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4.5 h-4.5 flex items-center justify-center px-1 leading-none">
                         {unread > 9 ? "9+" : unread}
                       </span>
+                    ) : (
+                      /* Spacer keeps layout stable when badge disappears */
+                      <span className="shrink-0 w-4.5" />
                     )}
                   </div>
                 </div>

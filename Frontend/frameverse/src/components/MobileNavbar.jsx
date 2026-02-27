@@ -1,5 +1,12 @@
 import { Home, PlusCircle, User, Bell, MessageCircle } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useSocketEvent } from "../hooks/useSocket";
+
+const parseChatId = (pathname) => {
+  const segment = pathname.replace(/^\/chats\/?/, "").split("/")[0];
+  return (!segment || segment === "new") ? null : segment;
+};
 
 const mobileNavItems = [
   { to: "/", label: "Home", icon: Home },
@@ -10,6 +17,23 @@ const mobileNavItems = [
 ];
 
 const MobileNavbar = () => {
+  const location = useLocation();
+  const currentChatId = parseChatId(location.pathname);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useSocketEvent("new-message", useCallback((msg) => {
+    const cId = msg.chat?._id ?? msg.chat;
+    if (cId === currentChatId) return;
+    setUnreadCount((n) => n + 1);
+  }, [currentChatId]));
+
+  // Reset when entering any /chats route
+  useEffect(() => {
+    if (location.pathname.startsWith("/chats")) {
+      setUnreadCount(0);
+    }
+  }, [location.pathname]);
+
   return (
     <nav
       aria-label="Mobile navigation"
@@ -48,7 +72,7 @@ const MobileNavbar = () => {
                 }}
               />
 
-              {/* Umbrella beam — narrow triangle shooting straight down */}
+              {/* Umbrella beam */}
               <span
                 className="absolute pointer-events-none transition-opacity duration-300"
                 style={{
@@ -99,6 +123,13 @@ const MobileNavbar = () => {
                     </linearGradient>
                   </defs>
                 </svg>
+
+                {/* Unread badge — chats only */}
+                {label === "Chats" && unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </span>
             </>
           )}

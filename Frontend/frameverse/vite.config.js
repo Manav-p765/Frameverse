@@ -8,13 +8,26 @@ export default defineConfig({
     react(),
     tailwindcss({
       theme: {
-      extend: {
-        fontFamily: {
-          nunito: ["Nunito", "sans-serif"],
+        extend: {
+          fontFamily: {
+            nunito: ["Nunito", "sans-serif"],
+          },
+        },
+        theme: {
+          extend: {
+            keyframes: {
+              "slide-down": {
+                "0%": { transform: "translateY(-16px)", opacity: "0" },
+                "100%": { transform: "translateY(0)", opacity: "1" },
+              },
+            },
+            animation: {
+              "slide-down": "slide-down 0.2s ease-out",
+            },
+          },
         },
       },
-    },
-  }
+    }
     ),
   ],
   base: "/"

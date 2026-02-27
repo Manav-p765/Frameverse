@@ -14,8 +14,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import ChatList      from "../components/chat/ChatList";
-import ChatWindow    from "../components/chat/ChatWindow";
+import ChatList from "../components/chat/ChatList";
+import ChatWindow from "../components/chat/ChatWindow";
 import ChatInfoPanel from "../components/chat/ChatInfoPanel";
 import FollowingList from "../components/chat/FollowingList";
 
@@ -53,15 +53,18 @@ export default function Chats() {
   const navigate = useNavigate();
 
   // Derived from URL — single source of truth
-  const chatId      = parseChatId(location.pathname);
+  const chatId = parseChatId(location.pathname);
   const currentView = parseView(location.pathname);
 
-  const [currentUser,  setCurrentUser]  = useState(null);
-  const [chats,        setChats]        = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [activeChat,   setActiveChat]   = useState(null);
-  const [showInfo,     setShowInfo]     = useState(false);
-  const [unreadCounts, setUnreadCounts] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeChat, setActiveChat] = useState(null);
+  const [showInfo, setShowInfo] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("unreadCounts") || "{}"); }
+    catch { return {}; }
+  });
 
   // ── 1. Auth: fetch current user, init socket ──────────────────────────────
   useEffect(() => {
@@ -115,8 +118,8 @@ export default function Chats() {
       })
       .catch(() => navigate("/chats", { replace: true }));
 
-  // chats.length as dep so we retry once the list loads
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // chats.length as dep so we retry once the list loads
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId, chats.length, currentUser]);
 
   // ── 4. Clear unread when opening a chat ───────────────────────────────────
@@ -126,12 +129,18 @@ export default function Chats() {
     }
   }, [chatId]);
 
+  // Sync unreadCounts to localStorage
+  useEffect(() => {
+    localStorage.setItem("unreadCounts", JSON.stringify(unreadCounts));
+  }, [unreadCounts]);
+
   // ── 5. Close info panel when switching chats ──────────────────────────────
   useEffect(() => {
     setShowInfo(false);
   }, [chatId]);
 
   // ── Socket: incoming message ───────────────────────────────────────────────
+  // Make sure it looks exactly like this:
   useSocketEvent("new-message", useCallback((msg) => {
     const cId = msg.chat?._id ?? msg.chat;
 
@@ -146,7 +155,8 @@ export default function Chats() {
       );
     });
 
-    if (cId !== chatId && msg.sender?._id !== currentUser?._id) {
+    // Only increment unread if NOT in this chat AND message is from someone else
+    if (cId !== chatId && msg.sender?._id?.toString() !== currentUser?._id?.toString()) {
       setUnreadCounts((prev) => ({ ...prev, [cId]: (prev[cId] || 0) + 1 }));
     }
   }, [chatId, currentUser?._id]));
@@ -226,11 +236,11 @@ export default function Chats() {
         h-[calc(100vh-0px)] with overflow-hidden keeps everything locked
         to the viewport — no page-level scroll possible.
       */}
-      <div className="hidden md:flex -m-4 bg-[#18181c] overflow-hidden"
-           style={{ height: "100vh" }}>
+      <div className="hidden md:flex bg-[#18181c] overflow-hidden"
+        style={{ height: "100vh" }}>
 
         {/* Left — list or new-chat picker. Header fixed, list scrolls inside. */}
-        <div className="w-[320px] flex-shrink-0 border-r border-[#2a2a30] flex flex-col overflow-hidden">
+        <div className="w-[320px] shrink-0 border-r border-[#2a2a30] flex flex-col overflow-hidden">
           {currentView === "new" ? (
             <FollowingList onChatOpen={handleNewChatOpen} />
           ) : (
@@ -245,15 +255,15 @@ export default function Chats() {
 
         {/* Right — info panel. Header fixed, content scrolls inside. */}
         {showInfo && activeChat && (
-          <div className="w-[280px] flex-shrink-0 border-l border-[#2a2a30] flex flex-col overflow-hidden">
+          <div className="w-70 shrink-0 border-l border-[#2a2a30] flex flex-col overflow-hidden">
             <ChatInfoPanel {...infoProps} />
           </div>
         )}
       </div>
 
       {/* ═══════════════ MOBILE ═══════════════ */}
-      <div className="md:hidden -m-4 bg-[#18181c] overflow-hidden"
-           style={{ height: "100vh" }}>
+      <div className="md:hidden bg-[#18181c] overflow-hidden"
+        style={{ height: "100vh" }}>
         {currentView === "new" && (
           <div className="h-full flex flex-col overflow-hidden">
             <FollowingList onChatOpen={handleNewChatOpen} />

@@ -10,6 +10,7 @@ import Explore from "./pages/Explore";
 import Notifications from "./pages/Notifications";
 import Reels from "./pages/Reels";
 import CreatePost from "./pages/createPost";
+import MessageToast from "./components/chat/MessageToast";
 
 const App = () => {
   return (
@@ -38,8 +39,10 @@ const App = () => {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/reels" element={<Reels />} />
           <Route path="/create" element={<CreatePost />} />
+          
         </Route>
       </Routes>
+      <MessageToast />
     </div>
   );
 };

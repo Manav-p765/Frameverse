@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import FollowList from "./FollowList";
+import { useNavigate } from "react-router-dom";
+import { chatAPI } from "../../services/api";
 import UpdateProfileModal from "./UpdateProfileModal";
 
 const ProfileHeader = ({
@@ -18,6 +20,8 @@ const ProfileHeader = ({
   const [showFollowingList, setShowFollowingList] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
+  const navigate = useNavigate();
 
   const postCount = posts?.length || 0;
   const followerCount = followers?.length || 0;
@@ -34,6 +38,19 @@ const ProfileHeader = ({
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
+
+
+  const handleMessageClick = async () => {
+    setChatLoading(true);
+    try {
+      const chat = await chatAPI.createChat(profile._id);
+      navigate(`/chats/${chat._id}`);
+    } catch {
+      // silently fail
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   return (
     <>
@@ -87,24 +104,39 @@ const ProfileHeader = ({
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={onFollowToggle}
-                  disabled={followLoading}
-                  className={`px-6 py-1.5 text-xs font-semibold rounded transition-all ${
-                    isFollowing
+                <>
+                  <button
+                    onClick={onFollowToggle}
+                    disabled={followLoading}
+                    className={`px-6 py-1.5 text-xs font-semibold rounded transition-all ${isFollowing
                       ? "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
                       : "bg-blue-600 hover:bg-blue-700 text-white"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {followLoading ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-                  ) : isFollowing ? (
-                    "Following"
-                  ) : (
-                    "Follow"
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {followLoading ? (
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                    ) : isFollowing ? "Following" : "Follow"}
+                  </button>
+
+                  {isFollowing && (
+                    <button
+                      onClick={handleMessageClick}
+                      disabled={chatLoading}
+                      className="p-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded border border-gray-700 transition-colors disabled:opacity-50"
+                      title="Send message"
+                    >
+                      {chatLoading ? (
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                      )}
+                    </button>
                   )}
-                </button>
+                </>
               )}
+
             </div>
           </div>
 
@@ -170,24 +202,41 @@ const ProfileHeader = ({
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={onFollowToggle}
-                  disabled={followLoading}
-                  className={`px-8 py-2 text-sm font-semibold rounded transition-all ${
-                    isFollowing
-                      ? "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {followLoading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-                  ) : isFollowing ? (
-                    "Following"
-                  ) : (
-                    "Follow"
+                <>
+                  <button
+                    onClick={onFollowToggle}
+                    disabled={followLoading}
+                    className={`px-8 py-2 text-sm font-semibold rounded transition-all ${isFollowing
+                        ? "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {followLoading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                    ) : isFollowing ? "Following" : "Follow"}
+                  </button>
+
+                  {isFollowing && (
+                    <button
+                      onClick={handleMessageClick}
+                      disabled={chatLoading}
+                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded border border-gray-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {chatLoading ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                          Message
+                        </>
+                      )}
+                    </button>
                   )}
-                </button>
+                </>
               )}
+
             </div>
           </div>
         </div>

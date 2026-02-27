@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { userAPI, chatAPI } from "../../services/api";
 
 const Avatar = ({ src, name }) => (
-  <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-[#2a2a30] flex items-center justify-center">
+  <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 bg-[#2a2a30] flex items-center justify-center">
     {src ? (
       <img src={src} alt={name} className="w-full h-full object-cover" />
     ) : (
@@ -108,9 +108,9 @@ export default function FollowingList({ onChatOpen }) {
                   {user.bio && <p className="text-[#5a5a6a] text-xs truncate">{user.bio}</p>}
                 </div>
                 {creating === user._id ? (
-                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                  <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
                 ) : (
-                  <svg className="text-[#5a5a6a] flex-shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg className="text-[#5a5a6a] shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
                 )}

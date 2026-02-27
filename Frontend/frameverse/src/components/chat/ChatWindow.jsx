@@ -5,7 +5,7 @@ import ChatInput from "./ChatInput";
 import ChatHeader from "./ChatHeader";
 
 const Avatar = ({ src, name, size = "w-7 h-7" }) => (
-  <div className={`${size} rounded-full overflow-hidden flex-shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
+  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
     {src ? (
       <img src={src} alt={name} className="w-full h-full object-cover" />
     ) : (
@@ -30,7 +30,7 @@ const formatDateDivider = (date) => {
 
 const SkeletonMsg = ({ right }) => (
   <div className={`flex gap-2 animate-pulse ${right ? "justify-end" : "justify-start"}`}>
-    {!right && <div className="w-7 h-7 rounded-full bg-[#2a2a30] flex-shrink-0" />}
+    {!right && <div className="w-7 h-7 rounded-full bg-[#2a2a30] shrink-0" />}
     <div className={`h-9 rounded-2xl bg-[#2a2a30] ${right ? "w-40" : "w-52"}`} />
   </div>
 );
@@ -98,11 +98,22 @@ export default function ChatWindow({ chat, currentUserId, onInfoClick, onBack })
   // Socket: new message
   useSocketEvent("new-message", useCallback((msg) => {
     if (msg.chat?._id !== chat?._id && msg.chat !== chat?._id) return;
+
+    // Always skip if we've already handled this ID (optimistic replace registers it first)
     if (seenIds.current.has(msg._id)) return;
+
+    // Skip own messages — the optimistic flow handles rendering for the sender.
+    // The sender's socket receives the event too, but optimistic already shows it.
+    const senderId = msg.sender?._id ?? msg.sender;
+    if (senderId === currentUserId) {
+      seenIds.current.add(msg._id); // still register so future checks pass
+      return;
+    }
+
     seenIds.current.add(msg._id);
     setMessages((prev) => [...prev, msg]);
     messageAPI.markAsRead(chat._id).catch(() => {});
-  }, [chat?._id]));
+  }, [chat?._id, currentUserId]));
 
   // Socket: typing
   useSocketEvent("typing", useCallback(({ chatId, userId }) => {
@@ -126,7 +137,7 @@ export default function ChatWindow({ chat, currentUserId, onInfoClick, onBack })
     );
   }, [chat?._id]));
 
-  const handleSend = useCallback(async (content) => {
+  const handleSend = useCallback(async (content, messageType = "text") => {
     if (!chat?._id || sending) return;
 
     // Optimistic
@@ -134,7 +145,7 @@ export default function ChatWindow({ chat, currentUserId, onInfoClick, onBack })
       _id: `optimistic-${Date.now()}`,
       chat: chat._id,
       content,
-      messageType: "text",
+      messageType,
       sender: { _id: currentUserId, username: "You" },
       readBy: [currentUserId],
       createdAt: new Date().toISOString(),
@@ -145,11 +156,23 @@ export default function ChatWindow({ chat, currentUserId, onInfoClick, onBack })
     setSending(true);
 
     try {
-      const real = await messageAPI.sendMessage(chat._id, content);
+      const real = await messageAPI.sendMessage(chat._id, content, messageType);
+
+      // Register real._id BEFORE replacing the optimistic message.
+      // The socket "new-message" event for this message may have already
+      // fired (race condition). Adding real._id here ensures the socket
+      // listener's seenIds check drops it and we don't get a duplicate.
       seenIds.current.add(real._id);
-      setMessages((prev) =>
-        prev.map((m) => (m._id === optimistic._id ? real : m))
-      );
+
+      setMessages((prev) => {
+        // If socket already replaced/added the real message, just remove optimistic
+        const alreadyReal = prev.find((m) => m._id === real._id);
+        if (alreadyReal) {
+          return prev.filter((m) => m._id !== optimistic._id);
+        }
+        // Normal case — swap optimistic for real
+        return prev.map((m) => (m._id === optimistic._id ? real : m));
+      });
     } catch {
       // Remove optimistic on failure
       setMessages((prev) => prev.filter((m) => m._id !== optimistic._id));
@@ -233,7 +256,7 @@ export default function ChatWindow({ chat, currentUserId, onInfoClick, onBack })
             return (
               <div key={msg._id} className={`flex gap-2 ${isOwn ? "justify-end" : "justify-start"} group`}>
                 {!isOwn && (
-                  <div className="w-7 flex-shrink-0 self-end">
+                  <div className="w-7 shrink-0 self-end">
                     {showAvatar && <Avatar src={msg.sender?.profilePic} name={msg.sender?.username} />}
                   </div>
                 )}
@@ -246,7 +269,7 @@ export default function ChatWindow({ chat, currentUserId, onInfoClick, onBack })
                     />
                   ) : (
                     <div
-                      className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
+                      className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed wrap-break-word whitespace-pre-wrap ${
                         isOwn
                           ? `bg-blue-500 text-white rounded-br-sm ${msg.optimistic ? "opacity-70" : ""}`
                           : "bg-[#2a2a30] text-white rounded-bl-sm"

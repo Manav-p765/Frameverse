@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
 const Avatar = ({ src, name, size = "w-9 h-9" }) => (
-  <div className={`${size} rounded-full overflow-hidden flex-shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
+  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
     {src ? (
       <img src={src} alt={name} className="w-full h-full object-cover" />
     ) : (
