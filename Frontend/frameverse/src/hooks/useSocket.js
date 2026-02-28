@@ -1,20 +1,15 @@
-
 import { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
 // ─── Singleton ────────────────────────────────────────────────────────────────
 
 let socketInstance = null;
+const socketReadyListeners = new Set();
 
 export const getSocket = () => socketInstance;
 
-/**
- * Creates the socket connection and emits "setup" with the userId.
- * Safe to call multiple times — re-uses the existing connection if already open.
- */
 export const initSocket = (userId) => {
   if (socketInstance?.connected) {
-    // Already connected, just re-emit setup in case of re-mount
     socketInstance.emit("setup", userId);
     return socketInstance;
   }
@@ -23,7 +18,7 @@ export const initSocket = (userId) => {
 
   socketInstance = io(import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL, {
     transports: ["websocket"],
-    auth: { token }, // passed to socket.io handshake — optional on server side
+    auth: { token },
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1500,
@@ -32,6 +27,8 @@ export const initSocket = (userId) => {
   socketInstance.on("connect", () => {
     console.log("🟢 Socket connected:", socketInstance.id);
     socketInstance.emit("setup", userId);
+    socketReadyListeners.forEach((cb) => cb(socketInstance));
+    socketReadyListeners.clear();
   });
 
   socketInstance.on("connect_error", (err) => {
@@ -45,7 +42,6 @@ export const initSocket = (userId) => {
   return socketInstance;
 };
 
-/** Hard disconnect — call on logout */
 export const disconnectSocket = () => {
   if (socketInstance) {
     socketInstance.disconnect();
@@ -55,35 +51,48 @@ export const disconnectSocket = () => {
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
 
-/**
- * Subscribe to a socket event inside a component.
- * Automatically cleans up the listener on unmount or dependency change.
- *
- * @param {string}   event    Socket event name
- * @param {Function} handler  Callback — always uses latest ref, no stale closure
- */
 export const useSocketEvent = (event, handler) => {
   const handlerRef = useRef(handler);
   handlerRef.current = handler;
 
   useEffect(() => {
-    const socket = socketInstance;
-    if (!socket) return;
-
     const fn = (...args) => handlerRef.current(...args);
-    socket.on(event, fn);
+
+    // ── Case 1: already connected — attach immediately ──
+    if (socketInstance?.connected) {
+      const instance = socketInstance; // capture so cleanup is safe if nulled later
+      instance.on(event, fn);
+      return () => instance?.off(event, fn);
+    }
+
+    // ── Case 2: socket exists but still connecting ──
+    if (socketInstance) {
+      const instance = socketInstance;
+      const onConnect = () => instance.on(event, fn);
+      instance.once("connect", onConnect);
+      return () => {
+        instance?.off("connect", onConnect);
+        instance?.off(event, fn);
+      };
+    }
+
+    // ── Case 3: socket not created yet ──
+    let boundSocket = null;
+    const onReady = (socket) => {
+      boundSocket = socket;
+      socket.on(event, fn);
+    };
+    socketReadyListeners.add(onReady);
 
     return () => {
-      socket.off(event, fn);
+      socketReadyListeners.delete(onReady);
+      boundSocket?.off(event, fn); // safe — only defined if socket was bound
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event]);
 };
 
-/**
- * Join a chat room when chatId changes.
- * The server validates the user is a participant before allowing the join.
- */
 export const useChatRoom = (chatId) => {
   useEffect(() => {
     if (!chatId || !socketInstance) return;
@@ -93,7 +102,5 @@ export const useChatRoom = (chatId) => {
 
 // ─── Emitters ─────────────────────────────────────────────────────────────────
 
-export const emitTyping = (chatId) => socketInstance?.emit("typing", chatId);
+export const emitTyping     = (chatId) => socketInstance?.emit("typing", chatId);
 export const emitStopTyping = (chatId) => socketInstance?.emit("stop-typing", chatId);
-
-

@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSocketEvent } from "../../hooks/useSocket";
 
 const formatTime = (date) => {
   if (!date) return "";
@@ -34,7 +35,7 @@ const SkeletonItem = () => (
   </div>
 );
 
-export default function ChatList({ chats, loading, activeChatId, currentUserId, onChatSelect, unreadCounts = {} }) {
+export default function ChatList({ chats, loading, activeChatId, currentUserId, onChatSelect, unreadCounts = {}, onNewMessage }) {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
@@ -79,6 +80,10 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
     if (messageType === "file") return `${prefix}📎 File`;
     return `${prefix}${content || ""}`;
   };
+
+  useSocketEvent("new-message", (message) => {
+    onNewMessage?.(message); // bubble up to parent
+  });
 
   return (
     <div className="flex flex-col h-full min-h-0 w-full bg-[#18181c]">
@@ -126,9 +131,9 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
           </div>
         ) : (
           filtered.map((chat) => {
-            const name     = getChatName(chat);
-            const avatar   = getChatAvatar(chat);
-            const unread   = unreadCounts[chat._id] || 0;
+            const name = getChatName(chat);
+            const avatar = getChatAvatar(chat);
+            const unread = unreadCounts[chat._id] || 0;
             const isActive = chat._id === activeChatId;
             const hasUnread = unread > 0;
 
@@ -136,9 +141,8 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
               <button
                 key={chat._id}
                 onClick={() => onChatSelect(chat._id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                  isActive ? "bg-[#2a2a30]" : "hover:bg-[#222226]"
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${isActive ? "bg-[#2a2a30]" : "hover:bg-[#222226]"
+                  }`}
               >
                 {/* Avatar — blue ring when unread */}
                 <div className={`relative rounded-full ${hasUnread ? "ring-2 ring-blue-500" : ""}`}>

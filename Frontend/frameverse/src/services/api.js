@@ -34,15 +34,18 @@ export const messageAPI = {
     api.get(`/chats/router/messages/${chatId}?page=${page}`).then((r) => r.data),
 
   /** POST /chats/router/messages  →  send a message */
-  sendMessage: (chatId, content, messageType = "text") =>
-    api
-      .post("/chats/router/messages", { chatId, content, messageType })
+  sendMessage: (chatId, content, messageType, fileName = null) =>
+    api.post("/chats/router/messages", { chatId, content, messageType, fileName })
       .then((r) => r.data),
 
   /** PATCH /chats/router/messages/:chatId/read  →  mark all messages as read */
   markAsRead: (chatId) =>
     api.patch(`/chats/router/messages/${chatId}/read`).then((r) => r.data),
+
+  deleteMessage: (messageId) =>
+  api.delete(`/chats/router/messages/${messageId}`).then((r) => r.data),
 };
+
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 

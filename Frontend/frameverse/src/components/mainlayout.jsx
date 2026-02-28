@@ -24,7 +24,9 @@ const MainLayout = () => {
   return (
     <div className="flex h-screen w-full bg-[#18181c]">
       {/* Desktop sidebar */}
+
       <aside className="w-64 hidden md:block bg-[#18181c]">
+        
         <Navbar />
       </aside>
 

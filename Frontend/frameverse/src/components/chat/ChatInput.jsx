@@ -9,10 +9,24 @@ export default function ChatInput({ chatId, onSend, disabled }) {
   const fileInputRef = useRef(null);
   const imageInputRef = useRef(null);
 
-  // Keep focus on textarea after every render
+  // Reset textarea height to single line
+  const resetTextarea = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = ""; // fully collapse back to CSS default
+    }
+  }, []);
+
   const refocusTextarea = useCallback(() => {
-    // Small timeout so React finishes its state flush before we refocus
-    setTimeout(() => textareaRef.current?.focus(), 0);
+    const ta = textareaRef.current;
+    if (!ta) return;
+
+    // focus without scroll jump
+    ta.focus({ preventScroll: true });
+
+    // place cursor at end
+    const len = ta.value.length;
+    ta.setSelectionRange(len, len);
   }, []);
 
   const handleTyping = useCallback(() => {
@@ -30,24 +44,47 @@ export default function ChatInput({ chatId, onSend, disabled }) {
   const handleChange = (e) => {
     setText(e.target.value);
     handleTyping();
+    // Auto-grow
     const ta = textareaRef.current;
     if (ta) {
       ta.style.height = "auto";
       ta.style.height = `${Math.min(ta.scrollHeight, 120)}px`;
     }
   };
-
   const handleSend = useCallback(() => {
     const trimmed = text.trim();
     if (!trimmed || disabled) return;
+
     onSend(trimmed, "text");
-    setText("");
+
     clearTimeout(typingTimer.current);
     setIsTyping(false);
     emitStopTyping(chatId);
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
-    refocusTextarea();
-  }, [text, disabled, onSend, chatId, refocusTextarea]);
+
+    // just clear text — focus handled by effect
+    setText("");
+  }, [text, disabled, onSend, chatId]);
+
+
+  useEffect(() => {
+    if (text === "") {
+      const ta = textareaRef.current;
+      if (!ta) return;
+
+      // reset height
+      ta.style.height = "auto";
+
+      // focus AFTER DOM commit
+      requestAnimationFrame(() => {
+        ta.focus({ preventScroll: true });
+        ta.setSelectionRange(0, 0);
+      });
+    }
+  }, [text]);
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -55,76 +92,55 @@ export default function ChatInput({ chatId, onSend, disabled }) {
       handleSend();
     }
   };
+  const handleImageChange = useCallback(
+    (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/")) return;
+      if (file.size > 10 * 1024 * 1024) {
+        alert("Image must be under 10MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        onSend(reader.result, "image");
+        refocusTextarea();
+      };
+      reader.readAsDataURL(file);
+      e.target.value = "";
+    },
+    [onSend, refocusTextarea]
+  );
 
-  // Handle image selection
-  const handleImageChange = useCallback((e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Basic validation
-    if (!file.type.startsWith("image/")) return;
-    if (file.size > 10 * 1024 * 1024) {
-      alert("Image must be under 10MB");
-      return;
-    }
-
-    // Convert to base64 data URL and send
-    // In production replace this with a real upload (Cloudinary / S3)
-    const reader = new FileReader();
-    reader.onload = () => {
-      onSend(reader.result, "image");
-      refocusTextarea();
-    };
-    reader.readAsDataURL(file);
-
-    // Reset so same file can be re-selected
-    e.target.value = "";
-  }, [onSend, refocusTextarea]);
-
-  // Handle file selection
-  const handleFileChange = useCallback((e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 25 * 1024 * 1024) {
-      alert("File must be under 25MB");
-      return;
-    }
-
-    // Send filename as content with type "file"
-    // In production replace with a real upload and send the URL back
-    const reader = new FileReader();
-    reader.onload = () => {
-      onSend(reader.result, "file");
-      refocusTextarea();
-    };
-    reader.readAsDataURL(file);
-
-    e.target.value = "";
-  }, [onSend, refocusTextarea]);
+  const handleFileChange = useCallback(
+    (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File must be under 5MB");
+        e.target.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        onSend(reader.result, "file", file.name);
+        refocusTextarea();
+      };
+      reader.readAsDataURL(file);
+      e.target.value = "";
+    },
+    [onSend, refocusTextarea]
+  );
 
   useEffect(() => () => clearTimeout(typingTimer.current), []);
 
   return (
-    <div className="px-4 py-3 border-t border-[#2a2a30] bg-[#18181c] shrink-0">
+    <div className="px-4 py-3 border-t border-[#2a2a30] bg-[#18181c]">
       {/* Hidden file inputs */}
-      <input
-        ref={imageInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleImageChange}
-      />
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="*/*"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+      <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+      <input ref={fileInputRef} type="file" accept="*/*" className="hidden" onChange={handleFileChange} />
 
       <div className="flex items-end gap-2 bg-[#222226] rounded-2xl px-3 py-2 border border-[#2a2a30] focus-within:border-[#3a3a44] transition-colors">
-
         {/* Image picker */}
         <button
           type="button"
@@ -162,8 +178,7 @@ export default function ChatInput({ chatId, onSend, disabled }) {
           placeholder="Type a message..."
           rows={1}
           disabled={disabled}
-          className="flex-1 bg-transparent text-white text-sm placeholder-[#5a5a6a] resize-none focus:outline-none leading-relaxed py-1"
-          style={{ maxHeight: "120px" }}
+          className="flex-1 bg-transparent text-white text-sm placeholder-[#5a5a6a] resize-none focus:outline-none leading-relaxed py-1 caret-white" style={{ maxHeight: "120px" }}
         />
 
         {/* Send */}
@@ -171,11 +186,8 @@ export default function ChatInput({ chatId, onSend, disabled }) {
           type="button"
           onClick={handleSend}
           disabled={!text.trim() || disabled}
-          className={`self-end mb-0.5 shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-            text.trim() && !disabled
-              ? "bg-blue-500 text-white hover:bg-blue-400"
-              : "text-[#5a5a6a]"
-          }`}
+          className={`self-end mb-0.5 shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${text.trim() && !disabled ? "bg-blue-500 text-white hover:bg-blue-400" : "text-[#5a5a6a]"
+            }`}
           aria-label="Send message"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

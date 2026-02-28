@@ -21,16 +21,7 @@ const App = () => {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Feed />} />
-
-          {/*
-           * /chats/*  — the /* is required so nested routes inside
-           * Chats.jsx (e.g. /chats/:id, /chats/:id/info, /chats/new)
-           * are matched correctly by React Router.
-           *
-           * The redundant <Route path="/chats"> redirect has been removed —
-           * navigating to /chats hits /chats/* with no sub-path, which
-           * renders the chat list index route inside Chats.jsx.
-           */}
+          
           <Route path="/chats/*" element={<Chats />} />
 
           <Route path="/profile" element={<Profile />} />

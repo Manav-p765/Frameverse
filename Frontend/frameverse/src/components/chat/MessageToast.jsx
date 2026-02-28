@@ -1,43 +1,45 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSocketEvent } from "../../hooks/useSocket";
+import { useChatStore } from "../../utils/store";
 
 const parseChatId = (pathname) => {
   const segment = pathname.replace(/^\/chats\/?/, "").split("/")[0];
   return (!segment || segment === "new") ? null : segment;
 };
 
-export default function MessageToast() {
+export default function MessageToast({ onNewMessage }) {
   const [toasts, setToasts] = useState([]);
   const navigate = useNavigate();
   const location = useLocation();
+  const updateChatWithMessage = useChatStore((s) => s.updateChatWithMessage);
+
 
   const currentChatId = parseChatId(location.pathname);
 
-  useSocketEvent("new-message", useCallback((msg) => {
-    const cId = msg.chat?._id ?? msg.chat;
+  useSocketEvent("chat-updated", ({ chatId: cId, newMessage }) => {
+    if (!newMessage) return;
 
-    // Don't show toast if already in this chat
+    updateChatWithMessage(newMessage);
+
     if (cId === currentChatId) return;
 
-    const id = `${msg._id}-${Date.now()}`;
-    const senderName = msg.sender?.username || "Someone";
+    const id = `${newMessage._id}-${Date.now()}`;
+    const senderName = newMessage.sender?.username || "Someone";
     const preview =
-      msg.messageType === "image" ? "📷 Photo" :
-      msg.messageType === "file"  ? "📎 File"  :
-      msg.content?.slice(0, 60) || "";
+      newMessage.messageType === "image" ? "📷 Photo" :
+        newMessage.messageType === "file" ? "📎 File" :
+          newMessage.content?.slice(0, 60) || "";
 
     setToasts((prev) => [
-      ...prev.filter((t) => t.chatId !== cId), // one toast per chat
-      { id, chatId: cId, senderName, preview, avatar: msg.sender?.profilePic }
+      ...prev.filter((t) => t.chatId !== cId),
+      { id, chatId: cId, senderName, preview, avatar: newMessage.sender?.profilePic }
     ]);
 
-    // Auto dismiss after 4s
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
-  }, [currentChatId]));
-
+  });
   const dismiss = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
   if (!toasts.length) return null;
@@ -73,7 +75,7 @@ export default function MessageToast() {
             className="text-[#5a5a6a] hover:text-white transition-colors shrink-0"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>

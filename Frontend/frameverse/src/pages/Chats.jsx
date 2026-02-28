@@ -1,16 +1,3 @@
-/**
- * pages/Chats.jsx
- *
- * Root problem that was fixed:
- *   useParams() only works when the component is rendered INSIDE a <Route path=":chatId">.
- *   ChatsInner was rendered by the Chats root (which lives at /chats/*) so useParams()
- *   always returned undefined for chatId.
- *
- * Solution:
- *   Parse chatId directly from useLocation().pathname — always accurate, no Route needed.
- *   URL stays in sync via navigate(). Desktop and mobile share the exact same chatId state.
- */
-
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -22,13 +9,6 @@ import FollowingList from "../components/chat/FollowingList";
 import { chatAPI, userAPI } from "../services/api";
 import { initSocket, disconnectSocket, useSocketEvent } from "../hooks/useSocket";
 
-// ─── Parse chatId from pathname ───────────────────────────────────────────────
-//
-//  /chats           → null
-//  /chats/new       → null  (special route)
-//  /chats/<id>      → "<id>"
-//  /chats/<id>/info → "<id>"
-//
 const parseChatId = (pathname) => {
   const parts = pathname.replace(/^\/chats\/?/, "").split("/");
   const segment = parts[0];
@@ -37,22 +17,16 @@ const parseChatId = (pathname) => {
 };
 
 const parseView = (pathname) => {
-  // "new"  → show FollowingList
-  // "info" → show info panel (mobile)
-  // ""     → default
   const parts = pathname.replace(/^\/chats\/?/, "").split("/");
   if (parts[0] === "new") return "new";
   if (parts[1] === "info") return "info";
   return "chat";
 };
 
-// ─── Main export ──────────────────────────────────────────────────────────────
-
 export default function Chats() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Derived from URL — single source of truth
   const chatId = parseChatId(location.pathname);
   const currentView = parseView(location.pathname);
 
@@ -66,7 +40,7 @@ export default function Chats() {
     catch { return {}; }
   });
 
-  // ── 1. Auth: fetch current user, init socket ──────────────────────────────
+  // ── 1. Auth ───────────────────────────────────────────────────────────────
   useEffect(() => {
     userAPI
       .getMe()
@@ -78,11 +52,10 @@ export default function Chats() {
         localStorage.removeItem("token");
         window.location.href = "/auth";
       });
-
     return () => disconnectSocket();
   }, []);
 
-  // ── 2. Fetch all chats once user is ready ─────────────────────────────────
+  // ── 2. Fetch chats ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!currentUser) return;
     chatAPI
@@ -92,86 +65,49 @@ export default function Chats() {
       .finally(() => setLoading(false));
   }, [currentUser]);
 
-  // ── 3. Resolve activeChat whenever chatId or chats list changes ───────────
+  // ── 3. Resolve activeChat ─────────────────────────────────────────────────
   useEffect(() => {
-    if (!chatId) {
-      setActiveChat(null);
-      return;
-    }
-
-    // Instant — try local list first
+    if (!chatId) { setActiveChat(null); return; }
     const found = chats.find((c) => c._id === chatId);
-    if (found) {
-      setActiveChat(found);
-      return;
-    }
-
-    // Not in list yet (direct URL visit) — fetch it
-    if (!currentUser) return; // wait for auth
+    if (found) { setActiveChat(found); return; }
+    if (!currentUser) return;
     chatAPI
       .getChat(chatId)
       .then((chat) => {
         setActiveChat(chat);
-        setChats((prev) =>
-          prev.find((c) => c._id === chat._id) ? prev : [chat, ...prev]
-        );
+        setChats((prev) => prev.find((c) => c._id === chat._id) ? prev : [chat, ...prev]);
       })
       .catch(() => navigate("/chats", { replace: true }));
-
-    // chats.length as dep so we retry once the list loads
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId, chats.length, currentUser]);
 
-  // ── 4. Clear unread when opening a chat ───────────────────────────────────
+  // ── 4. Clear unread on open ───────────────────────────────────────────────
   useEffect(() => {
-    if (chatId) {
-      setUnreadCounts((prev) => ({ ...prev, [chatId]: 0 }));
-    }
+    if (chatId) setUnreadCounts((prev) => ({ ...prev, [chatId]: 0 }));
   }, [chatId]);
 
-  // Sync unreadCounts to localStorage
   useEffect(() => {
     localStorage.setItem("unreadCounts", JSON.stringify(unreadCounts));
   }, [unreadCounts]);
 
-  // ── 5. Close info panel when switching chats ──────────────────────────────
-  useEffect(() => {
-    setShowInfo(false);
-  }, [chatId]);
+  // ── 5. Close info on chat switch ──────────────────────────────────────────
+  useEffect(() => { setShowInfo(false); }, [chatId]);
 
-  // ── Socket: incoming message ───────────────────────────────────────────────
-  // Make sure it looks exactly like this:
-  useSocketEvent("new-message", useCallback((msg) => {
-    const cId = msg.chat?._id ?? msg.chat;
 
-    setChats((prev) => {
-      const updated = prev.map((c) =>
-        c._id === cId
-          ? { ...c, lastMessage: msg, lastMessageAt: msg.createdAt }
-          : c
-      );
-      return [...updated].sort(
-        (a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt)
-      );
-    });
-
-    // Only increment unread if NOT in this chat AND message is from someone else
-    if (cId !== chatId && msg.sender?._id?.toString() !== currentUser?._id?.toString()) {
-      setUnreadCounts((prev) => ({ ...prev, [cId]: (prev[cId] || 0) + 1 }));
-    }
-  }, [chatId, currentUser?._id]));
-
-  // ── Socket: chat metadata updated ─────────────────────────────────────────
-  useSocketEvent("chat-updated", useCallback(({ chatId: cId, lastMessage, lastMessageAt }) => {
+  // ── Socket: chat-updated ──────────────────────────────────────────────────
+  useSocketEvent("chat-updated", ({ chatId: cId, lastMessage, lastMessageAt, newMessage }) => {
     setChats((prev) => {
       const updated = prev.map((c) =>
         c._id === cId ? { ...c, lastMessage, lastMessageAt } : c
       );
-      return [...updated].sort(
-        (a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt)
-      );
+      return [...updated].sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
     });
-  }, []));
+
+    if (newMessage && cId !== chatId && newMessage.sender?._id?.toString() !== currentUser?._id?.toString()) {
+      setUnreadCounts((prev) => ({ ...prev, [cId]: (prev[cId] || 0) + 1 }));
+    }
+  });
+
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleChatSelect = useCallback((id) => {
@@ -190,7 +126,6 @@ export default function Chats() {
     navigate("/chats");
   }, [navigate]);
 
-  // ── Loading screen ────────────────────────────────────────────────────────
   if (!currentUser) {
     return (
       <div className="h-screen bg-[#18181c] flex items-center justify-center">
@@ -202,10 +137,8 @@ export default function Chats() {
     );
   }
 
-  // ── Shared prop bags ──────────────────────────────────────────────────────
   const listProps = {
-    chats,
-    loading,
+    chats, loading,
     activeChatId: chatId,
     currentUserId: currentUser._id,
     onChatSelect: handleChatSelect,
@@ -225,21 +158,10 @@ export default function Chats() {
     onClose: () => setShowInfo(false),
   };
 
-  // ──────────────────────────────────────────────────────────────────────────
-  //  RENDER
-  // ──────────────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ═══════════════ DESKTOP (md+) ═══════════════ */}
-      {/*
-        -m-4 escapes MainLayout's p-4.
-        h-[calc(100vh-0px)] with overflow-hidden keeps everything locked
-        to the viewport — no page-level scroll possible.
-      */}
-      <div className="hidden md:flex bg-[#18181c] overflow-hidden"
-        style={{ height: "100vh" }}>
-
-        {/* Left — list or new-chat picker. Header fixed, list scrolls inside. */}
+      {/* ═══ DESKTOP (md+) ═══════════════════════════════════════════════════ */}
+      <div className="hidden md:flex bg-[#18181c] overflow-hidden" style={{ height: "100vh" }}>
         <div className="w-[320px] shrink-0 border-r border-[#2a2a30] flex flex-col overflow-hidden">
           {currentView === "new" ? (
             <FollowingList onChatOpen={handleNewChatOpen} />
@@ -248,12 +170,11 @@ export default function Chats() {
           )}
         </div>
 
-        {/* Middle — chat window. Header + input fixed, messages scroll. */}
-        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+        {/* Middle — relative so ChatWindow's absolute inset-0 is scoped here */}
+        <div className="flex-1 min-w-0 relative overflow-hidden">
           <ChatWindow {...windowProps} />
         </div>
 
-        {/* Right — info panel. Header fixed, content scrolls inside. */}
         {showInfo && activeChat && (
           <div className="w-70 shrink-0 border-l border-[#2a2a30] flex flex-col overflow-hidden">
             <ChatInfoPanel {...infoProps} />
@@ -261,9 +182,9 @@ export default function Chats() {
         )}
       </div>
 
-      {/* ═══════════════ MOBILE ═══════════════ */}
-      <div className="md:hidden bg-[#18181c] overflow-hidden"
-        style={{ height: "100vh" }}>
+      {/* ═══ MOBILE ══════════════════════════════════════════════════════════ */}
+      <div className="md:hidden bg-[#18181c] overflow-hidden" style={{ height: "100vh" }}>
+
         {currentView === "new" && (
           <div className="h-full flex flex-col overflow-hidden">
             <FollowingList onChatOpen={handleNewChatOpen} />
@@ -276,8 +197,9 @@ export default function Chats() {
           </div>
         )}
 
+        {/* KEY FIX: relative + overflow-hidden so ChatWindow's absolute inset-0 works */}
         {currentView === "chat" && chatId && (
-          <div className="h-full flex flex-col overflow-hidden">
+          <div className="h-full relative overflow-hidden">
             <ChatWindow
               {...windowProps}
               onInfoClick={() => navigate(`/chats/${chatId}/info`)}
