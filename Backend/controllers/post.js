@@ -1,6 +1,49 @@
 import Post from "../models/post.js";
 import User from "../models/user.js";
+import mongoose from "mongoose";
 import { uploadToCloudinary, deleteFromCloudinary } from "../config/cloudinary.js";
+
+// ─── Explore: random posts ───────────────────────────────────────────────────
+export const getExplorePosts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 30;
+
+    const posts = await Post.aggregate([
+      { $sample: { size: limit } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "owner",
+          foreignField: "_id",
+          as: "owner",
+        },
+      },
+      { $unwind: "$owner" },
+      {
+        $addFields: {
+          likesCount: { $size: "$likes" },
+          likedByCurrentUser: {
+            $in: [new mongoose.Types.ObjectId(req.userId), "$likes"],
+          },
+        },
+      },
+      {
+        $project: {
+          likes: 0,
+          "owner.password": 0,
+          "owner.email": 0,
+          "owner.__v": 0,
+        },
+      },
+    ]);
+
+    return res.status(200).json({ posts });
+  } catch (err) {
+    console.error("Explore error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 export const createPost = async (req, res) => {
   try {

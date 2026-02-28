@@ -89,7 +89,8 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
     <div className="flex flex-col h-full min-h-0 w-full bg-[#18181c]">
 
       {/* Header — flex-shrink-0 keeps it fixed, list scrolls below */}
-      <div className="px-4 pt-5 pb-3 border-b border-[#2a2a30] shrink-0 bg-[#18181c]">
+      {/* Added `md:pt-24` to prevent collision with the global Frameverse logo on desktop */}
+      <div className="px-4 pt-5 md:pt-24 pb-3 border-b border-[#2a2a30] shrink-0 bg-[#18181c]">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-white text-xl font-semibold tracking-tight">Messages</h1>
           <button

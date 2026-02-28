@@ -7,7 +7,7 @@ import ChatInfoPanel from "../components/chat/ChatInfoPanel";
 import FollowingList from "../components/chat/FollowingList";
 
 import { chatAPI, userAPI } from "../services/api";
-import { initSocket, disconnectSocket, useSocketEvent } from "../hooks/useSocket";
+import { useSocketEvent } from "../hooks/useSocket";
 
 const parseChatId = (pathname) => {
   const parts = pathname.replace(/^\/chats\/?/, "").split("/");
@@ -46,13 +46,11 @@ export default function Chats() {
       .getMe()
       .then((user) => {
         setCurrentUser(user);
-        initSocket(user._id);
       })
       .catch(() => {
         localStorage.removeItem("token");
         window.location.href = "/auth";
       });
-    return () => disconnectSocket();
   }, []);
 
   // ── 2. Fetch chats ────────────────────────────────────────────────────────

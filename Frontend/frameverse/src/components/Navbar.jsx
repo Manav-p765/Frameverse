@@ -1,6 +1,5 @@
 import {
   Home,
-  Search,
   Compass,
   Film,
   MessageCircle,
@@ -9,27 +8,53 @@ import {
   User,
   LogOut,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { useSocketEvent } from "../hooks/useSocket";
+
+const parseChatId = (pathname) => {
+  const segment = pathname.replace(/^\/chats\/?/, "").split("/")[0];
+  return (!segment || segment === "new") ? null : segment;
+};
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/search", label: "Search", icon: Search },
   { to: "/explore", label: "Explore", icon: Compass },
   { to: "/reels", label: "Reels", icon: Film },
-  { to: "/chats", label: "chats", icon: MessageCircle },
+  { to: "/chats", label: "Chats", icon: MessageCircle },
   { to: "/notifications", label: "Notifications", icon: Heart },
   { to: "/create", label: "Create", icon: PlusSquare },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
+import AnimatedLogo from "./AnimatedLogo";
+
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentChatId = parseChatId(location.pathname);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Listen for new messages — same logic as MobileNavbar
+  useSocketEvent("new-message", useCallback((msg) => {
+    const cId = msg.chat?._id ?? msg.chat;
+    if (cId === currentChatId) return;
+    setUnreadCount((n) => n + 1);
+  }, [currentChatId]));
+
+  // Reset when entering any /chats route
+  useEffect(() => {
+    if (location.pathname.startsWith("/chats")) {
+      setUnreadCount(0);
+    }
+  }, [location.pathname]);
+
   return (
     // ✅ Only visible on md and above — mobile uses MobileNavbar
     <aside
       className="
         hidden md:flex
+        flex-col
         group
         h-screen
         bg-[#18181c]
@@ -41,22 +66,15 @@ const Navbar = () => {
         text-gray-100
       "
     >
-      <div className="flex h-full w-full flex-col justify-between px-3 py-6">
-        {/* Logo */}
-        <h1
-          className="
-            text-2xl font-bold mb-6
-            overflow-hidden
-            opacity-0 -translate-x-2
-            group-hover:opacity-100 group-hover:translate-x-0
-            transition-all duration-300
-          "
-        >
-          Frameverse
-        </h1>
+      {/* Logo - Always visible, completely independent of the bounding box */}
+      <div className="absolute top-6 left-5 z-50 pointer-events-none">
+        <AnimatedLogo className="w-48" />
+      </div>
 
+      {/* Inner container with overflow-hidden for the nav items */}
+      <div className="flex h-full w-full flex-col justify-between px-3 pt-24 py-6 overflow-hidden">
         {/* Nav */}
-        <nav className="flex flex-col pb-20 gap-1">
+        <nav className="flex flex-col mt-2 pb-20 gap-1">
           {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={label}
@@ -71,7 +89,15 @@ const Navbar = () => {
               `
               }
             >
-              <Icon size={24} className="shrink-0" />
+              <span className="relative shrink-0">
+                <Icon size={24} />
+                {/* Unread badge — Chats only */}
+                {label === "Chats" && unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </span>
               <span
                 className="
                   overflow-hidden whitespace-nowrap

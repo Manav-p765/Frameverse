@@ -1,4 +1,12 @@
-import api from "./post.service"; 
+import api from "./post.service";
+
+// ─── Post ─────────────────────────────────────────────────────────────────────
+
+export const postAPI = {
+  /** GET /post/explore?limit=30  →  { posts: [...] } */
+  getExplorePosts: (limit = 30) =>
+    api.get(`/post/explore?limit=${limit}`).then((r) => r.data),
+};
 
 // ─── Chat ────────────────────────────────────────────────────────────────────
 
@@ -43,7 +51,7 @@ export const messageAPI = {
     api.patch(`/chats/router/messages/${chatId}/read`).then((r) => r.data),
 
   deleteMessage: (messageId) =>
-  api.delete(`/chats/router/messages/${messageId}`).then((r) => r.data),
+    api.delete(`/chats/router/messages/${messageId}`).then((r) => r.data),
 };
 
 
@@ -62,4 +70,8 @@ export const userAPI = {
    * Returns the users the logged-in user follows.
    */
   getFollowing: () => api.get("/user/following").then((r) => r.data),
+
+  /** GET /user/search?q=<query>  →  [{ _id, username, profilePic, bio, ... }] */
+  searchUsers: (query) =>
+    api.get(`/user/search?q=${encodeURIComponent(query)}`).then((r) => r.data),
 };

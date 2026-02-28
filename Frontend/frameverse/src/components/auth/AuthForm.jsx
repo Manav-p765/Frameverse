@@ -1,5 +1,6 @@
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useState } from "react";
+import AnimatedLogo from "../AnimatedLogo";
 
 function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit, toggleMode, loading, serverFieldError }) {
     const [showPassword, setShowPassword] = useState(false);
@@ -11,10 +12,7 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
                 <div className="w-full max-w-md">
                     {/* Logo at top */}
                     <div className="flex items-center gap-3 mb-8">
-
-                        <h1 className="text-xl font-bold text-white tracking-tight">
-                            Frameverse
-                        </h1>
+                        <AnimatedLogo className="w-48 md:w-64" />
                     </div>
 
                     {/* Header */}

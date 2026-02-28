@@ -1,4 +1,4 @@
-import { Home, PlusCircle, User, Bell, MessageCircle } from "lucide-react";
+import { Home, Compass, PlusCircle, User, MessageCircle } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { useSocketEvent } from "../hooks/useSocket";
@@ -10,7 +10,7 @@ const parseChatId = (pathname) => {
 
 const mobileNavItems = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/notifications", label: "Notifications", icon: Bell },
+  { to: "/explore", label: "Explore", icon: Compass },
   { to: "/create", label: "Create", icon: PlusCircle },
   { to: "/chats", label: "Chats", icon: MessageCircle },
   { to: "/profile", label: "Profile", icon: User },
@@ -108,9 +108,9 @@ const MobileNavbar = () => {
                   style={
                     isActive
                       ? {
-                          stroke: "url(#activeGrad)",
-                          filter: "drop-shadow(0 0 6px rgba(239,68,68,0.8))",
-                        }
+                        stroke: "url(#activeGrad)",
+                        filter: "drop-shadow(0 0 6px rgba(239,68,68,0.8))",
+                      }
                       : { color: "#6b7280" }
                   }
                 />

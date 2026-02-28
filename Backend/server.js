@@ -17,12 +17,6 @@ const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
 
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://frameverse-zeta.vercel.app",
-];
-
-
 // cors setup
 
 app.use(cors({
@@ -39,7 +33,7 @@ app.use(cors({
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: ["http://localhost:5173", "https://frameverse-zeta.vercel.app"],
     methods: ["GET", "POST"],
     credentials: true,
   },
