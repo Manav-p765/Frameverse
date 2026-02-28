@@ -48,7 +48,6 @@ export const registerUser = async (req, res, next) => {
     });
 
     sendToken(user, res, 201, "User created");
-    res.status(201).json({ message: "User created" });
 
   } catch (err) {
     // 🔥 HANDLE DUPLICATE KEY ERROR PROPERLY
