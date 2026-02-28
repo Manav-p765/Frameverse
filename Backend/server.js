@@ -26,7 +26,10 @@ const allowedOrigins = [
 // cors setup
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: [
+    "http://localhost:5173",
+    "https://frameverse-zeta.vercel.app"
+  ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -40,7 +43,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-});     
+});
 
 app.set("view engine", "ejs");
 app.use(cookieParser());
@@ -60,16 +63,16 @@ app.use("/post", postRoute);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error("ERROR:", err);
+  console.error("ERROR:", err);
 
-    const statusCode = err.statusCode || 500;
-    const message = err.message || "Something went wrong";
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Something went wrong";
 
-    res.status(statusCode).json({
-        error: message
-    });
+  res.status(statusCode).json({
+    error: message
+  });
 });
 
 server.listen(Port, () => {
-    console.log(`server is listening on port ${Port}`)
+  console.log(`server is listening on port ${Port}`)
 });
