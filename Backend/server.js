@@ -12,6 +12,7 @@ import userRoute from "./routes/user.js";
 import chatRoute from "./routes/chat.js";
 import postRoute from "./routes/post.js";
 import messageRoute from "./routes/message.js";
+import notificationRoute from "./routes/notification.js";
 
 const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
@@ -54,6 +55,8 @@ app.use("/chats/router", chatRoute);
 app.use("/chats/router/messages", messageRoute);
 
 app.use("/post", postRoute);
+
+app.use("/notifications", notificationRoute);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

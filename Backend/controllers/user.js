@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import { sendToken } from "../utils/sendToken.js";
 import bcrypt from "bcrypt";
 import Post from "../models/post.js";
+import Notification from "../models/notification.js";
 import mongoose from "mongoose";
 import cloudinary from "../config/cloudinary.js";
 
@@ -199,6 +200,21 @@ export const followUser = async (req, res) => {
 
     await session.commitTransaction();
     session.endSession();
+
+    // ── Notification: "X started following you" ──
+    try {
+      const notif = await Notification.create({
+        recipient: targetUserId,
+        sender: userId,
+        type: "follow",
+      });
+      const populated = await notif.populate("sender", "username profilePic");
+      const io = req.app.get("io");
+      io.to(targetUserId).emit("new-notification", populated);
+    } catch (notifErr) {
+      // Duplicate or failure — don't block the follow response
+      if (notifErr.code !== 11000) console.error("Notif error:", notifErr);
+    }
 
     return res.status(200).json({
       message: "User followed successfully",

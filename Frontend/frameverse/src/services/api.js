@@ -75,3 +75,19 @@ export const userAPI = {
   searchUsers: (query) =>
     api.get(`/user/search?q=${encodeURIComponent(query)}`).then((r) => r.data),
 };
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export const notificationAPI = {
+  /** GET /notifications?page=n  →  { notifications, unreadCount, page, totalPages } */
+  getNotifications: (page = 1) =>
+    api.get(`/notifications?page=${page}`).then((r) => r.data),
+
+  /** PATCH /notifications/read  →  mark all as read */
+  markAllRead: () =>
+    api.patch("/notifications/read").then((r) => r.data),
+
+  /** GET /notifications/unread-count  →  { count } */
+  getUnreadCount: () =>
+    api.get("/notifications/unread-count").then((r) => r.data),
+};

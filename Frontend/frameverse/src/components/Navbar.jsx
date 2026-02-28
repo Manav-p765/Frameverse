@@ -3,7 +3,6 @@ import {
   Compass,
   Film,
   MessageCircle,
-  Heart,
   PlusSquare,
   User,
   LogOut,
@@ -22,7 +21,6 @@ const navItems = [
   { to: "/explore", label: "Explore", icon: Compass },
   { to: "/reels", label: "Reels", icon: Film },
   { to: "/chats", label: "Chats", icon: MessageCircle },
-  { to: "/notifications", label: "Notifications", icon: Heart },
   { to: "/create", label: "Create", icon: PlusSquare },
   { to: "/profile", label: "Profile", icon: User },
 ];
@@ -35,14 +33,14 @@ const Navbar = () => {
   const currentChatId = parseChatId(location.pathname);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Listen for new messages — same logic as MobileNavbar
+  // Listen for new messages — chat badge
   useSocketEvent("new-message", useCallback((msg) => {
     const cId = msg.chat?._id ?? msg.chat;
     if (cId === currentChatId) return;
     setUnreadCount((n) => n + 1);
   }, [currentChatId]));
 
-  // Reset when entering any /chats route
+  // Reset chat badge when entering any /chats route
   useEffect(() => {
     if (location.pathname.startsWith("/chats")) {
       setUnreadCount(0);
@@ -71,10 +69,10 @@ const Navbar = () => {
         <AnimatedLogo className="w-48" />
       </div>
 
-      {/* Inner container with overflow-hidden for the nav items */}
-      <div className="flex h-full w-full flex-col justify-between px-3 pt-24 py-6 overflow-hidden">
-        {/* Nav */}
-        <nav className="flex flex-col mt-2 pb-20 gap-1">
+      {/* Inner container */}
+      <div className="flex h-full w-full flex-col px-3 overflow-hidden">
+        {/* Nav — offset above center */}
+        <nav className="flex flex-col gap-1 mt-auto mb-[40%]">
           {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={label}
@@ -91,7 +89,7 @@ const Navbar = () => {
             >
               <span className="relative shrink-0">
                 <Icon size={24} />
-                {/* Unread badge — Chats only */}
+                {/* Unread badge — Chats */}
                 {label === "Chats" && unreadCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -112,23 +110,25 @@ const Navbar = () => {
           ))}
         </nav>
 
-        {/* Logout */}
-        <button
-          onClick={() => navigate("/logout")}
-          className="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-black/40 transition text-red-500"
-        >
-          <LogOut size={24} className="shrink-0" />
-          <span
-            className="
-              overflow-hidden whitespace-nowrap
-              opacity-0 -translate-x-2.5
-              group-hover:opacity-100 group-hover:translate-x-0
-              transition-all duration-300
-            "
+        {/* Logout — pushed below the centered nav */}
+        <div className="mt-auto pt-4">
+          <button
+            onClick={() => navigate("/logout")}
+            className="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-black/40 transition text-red-500"
           >
-            Logout
-          </span>
-        </button>
+            <LogOut size={24} className="shrink-0" />
+            <span
+              className="
+                overflow-hidden whitespace-nowrap
+                opacity-0 -translate-x-2.5
+                group-hover:opacity-100 group-hover:translate-x-0
+                transition-all duration-300
+              "
+            >
+              Logout
+            </span>
+          </button>
+        </div>
       </div>
     </aside>
   );

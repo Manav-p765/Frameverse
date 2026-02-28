@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PostCard from "../components/posts/PostCard";
 import PostLightbox from "../components/posts/PostLightbox";
+import NotificationSidebar from "../components/NotificationSidebar";
 import api from "../services/post.service";
 
 const Feed = () => {
@@ -21,30 +22,30 @@ const Feed = () => {
 
   // Fetch posts
   const fetchPosts = async (page) => {
-  if (loading || !hasMore) return;
+    if (loading || !hasMore) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const res = await api.get(`/user/feed?limit=10&depth=${page}`);
-    const newPosts = res.data.posts || [];
+    try {
+      const res = await api.get(`/user/feed?limit=10&depth=${page}`);
+      const newPosts = res.data.posts || [];
 
-    setPosts((prev) => {
-      const existingIds = new Set(prev.map(p => p._id));
-      const uniquePosts = newPosts.filter(p => !existingIds.has(p._id));
-      return [...prev, ...uniquePosts];
-    });
+      setPosts((prev) => {
+        const existingIds = new Set(prev.map(p => p._id));
+        const uniquePosts = newPosts.filter(p => !existingIds.has(p._id));
+        return [...prev, ...uniquePosts];
+      });
 
-    if (newPosts.length < 10) {
-      setHasMore(false);
+      if (newPosts.length < 10) {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error("Error fetching posts:", err);
+    } finally {
+      setLoading(false);
+      setInitialLoading(false);
     }
-  } catch (err) {
-    console.error("Error fetching posts:", err);
-  } finally {
-    setLoading(false);
-    setInitialLoading(false);
-  }
-};
+  };
 
   // Initial load
   useEffect(() => {
@@ -54,33 +55,33 @@ const Feed = () => {
   // Infinite scroll
   const isFetchingRef = useRef(false);
 
-useEffect(() => {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      if (
-        entries[0].isIntersecting &&
-        !loading &&
-        hasMore &&
-        posts.length > 0 &&
-        !isFetchingRef.current
-      ) {
-        isFetchingRef.current = true; // 🚫 block repeats
-        pageRef.current += 1;
-        fetchPosts(pageRef.current).finally(() => {
-          isFetchingRef.current = false; // ✅ allow next time
-        });
-      }
-    },
-    { rootMargin: "200px", threshold: 0 }
-  );
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !loading &&
+          hasMore &&
+          posts.length > 0 &&
+          !isFetchingRef.current
+        ) {
+          isFetchingRef.current = true; // 🚫 block repeats
+          pageRef.current += 1;
+          fetchPosts(pageRef.current).finally(() => {
+            isFetchingRef.current = false; // ✅ allow next time
+          });
+        }
+      },
+      { rootMargin: "200px", threshold: 0 }
+    );
 
-  const target = observerTarget.current;
-  if (target) observer.observe(target);
+    const target = observerTarget.current;
+    if (target) observer.observe(target);
 
-  return () => {
-    if (target) observer.disconnect(target);
-  };
-}, [loading, hasMore, posts.length]);
+    return () => {
+      if (target) observer.disconnect(target);
+    };
+  }, [loading, hasMore, posts.length]);
 
 
   // Handlers
@@ -89,7 +90,7 @@ useEffect(() => {
     navigate(`/profile/${userId}`);
   };
 
-  
+
 
   const handleImageClick = (post, imageIndex = 0) => {
     setSelectedPost(post);
@@ -125,57 +126,72 @@ useEffect(() => {
     <div className="min-h-screen bg-[#18181c] mt-15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Initial loading */}
-        {initialLoading && (
-          <div className="flex justify-center py-20">
-            <div className="w-10 h-10 border-2 border-gray-700 border-t-white rounded-full animate-spin" />
-          </div>
-        )}
+        {/* Two-column layout on desktop: feed left, notifications right */}
+        <div className="flex gap-8">
 
-        {/* No posts */}
-        {!initialLoading && posts.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="text-6xl mb-4">📸</div>
-            <h3 className="text-xl font-semibold text-white mb-2">
-              No posts yet
-            </h3>
-            <p className="text-gray-400 text-center max-w-sm">
-              Follow more users to see their posts in your feed
-            </p>
-          </div>
-        )}
+          {/* Left column — posts */}
+          <div className="flex-1 min-w-0">
+            {/* Initial loading */}
+            {initialLoading && (
+              <div className="flex justify-center py-20">
+                <div className="w-10 h-10 border-2 border-gray-700 border-t-white rounded-full animate-spin" />
+              </div>
+            )}
 
-        {/* Posts */}
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-0 lg:max-w-2xl xl:max-w-2xl">
-          {posts.map((post) => (
-            <PostCard
-              key={post._id}
-              post={post}
-              onUserClick={onUserClick}
-              onImageClick={handleImageClick}
-              onLikeToggle={onLikeToggle}
-            />
-          ))}
+            {/* No posts */}
+            {!initialLoading && posts.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="text-6xl mb-4">📸</div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  No posts yet
+                </h3>
+                <p className="text-gray-400 text-center max-w-sm">
+                  Follow more users to see their posts in your feed
+                </p>
+              </div>
+            )}
+
+            {/* Posts */}
+            <div className="w-full max-w-2xl">
+              {posts.map((post) => (
+                <PostCard
+                  key={post._id}
+                  post={post}
+                  onUserClick={onUserClick}
+                  onImageClick={handleImageClick}
+                  onLikeToggle={onLikeToggle}
+                />
+              ))}
+            </div>
+
+            {/* Loading more */}
+            {loading && !initialLoading && (
+              <div className="flex justify-center py-8">
+                <div className="w-8 h-8 border-2 border-gray-700 border-t-white rounded-full animate-spin" />
+              </div>
+            )}
+
+            {/* Observer target */}
+            {hasMore && !initialLoading && (
+              <div ref={observerTarget} className="h-10" />
+            )}
+
+            {/* End message */}
+            {!hasMore && posts.length > 0 && (
+              <div className="text-center py-8 mb-8 text-gray-500 text-sm">
+                You've reached the end
+              </div>
+            )}
+          </div>
+
+          {/* Right column — Notifications sidebar (desktop only) */}
+          <div className="hidden lg:block w-80 shrink-0">
+            <div className="sticky top-4 pt-4">
+              <NotificationSidebar />
+            </div>
+          </div>
+
         </div>
-
-        {/* Loading more */}
-        {loading && !initialLoading && (
-          <div className="flex justify-center py-8">
-            <div className="w-8 h-8 border-2 border-gray-700 border-t-white rounded-full animate-spin" />
-          </div>
-        )}
-
-        {/* Observer target */}
-        {hasMore && !initialLoading && (
-          <div ref={observerTarget} className="h-10" />
-        )}
-
-        {/* End message */}
-        {!hasMore && posts.length > 0 && (
-          <div className="text-center py-8 mb-8 text-gray-500 text-sm">
-            You've reached the end
-          </div>
-        )}
       </div>
 
       {/* Lightbox */}

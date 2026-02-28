@@ -1,5 +1,6 @@
 import Post from "../models/post.js";
 import User from "../models/user.js";
+import Notification from "../models/notification.js";
 import mongoose from "mongoose";
 import { uploadToCloudinary, deleteFromCloudinary } from "../config/cloudinary.js";
 
@@ -76,6 +77,29 @@ export const createPost = async (req, res) => {
 
     await newPost.populate("owner", "username profilePicture");
 
+    // ── Notification: "X shared a new post" to all followers ──
+    try {
+      const poster = await User.findById(req.userId).select("followers");
+      if (poster?.followers?.length) {
+        const io = req.app.get("io");
+        const notifDocs = poster.followers.map((followerId) => ({
+          recipient: followerId,
+          sender: req.userId,
+          type: "new_post",
+          post: newPost._id,
+        }));
+        const created = await Notification.insertMany(notifDocs, { ordered: false }).catch(() => []);
+        // Emit to each follower's socket room
+        for (const notif of created) {
+          const populated = await notif.populate("sender", "username profilePic");
+          await populated.populate("post", "image description");
+          io.to(notif.recipient.toString()).emit("new-notification", populated);
+        }
+      }
+    } catch (notifErr) {
+      console.error("New post notif error:", notifErr);
+    }
+
     res.status(201).json({
       message: "Post created successfully",
       post: newPost,
@@ -104,22 +128,39 @@ export const likePost = async (req, res) => {
       { new: true }
     );
 
-    console.log(post)
-
     if (post) {
+      // ── Notification: "X liked your post" ──
+      const ownerId = post.owner.toString();
+      if (ownerId !== userId) {
+        try {
+          const notif = await Notification.create({
+            recipient: ownerId,
+            sender: userId,
+            type: "like",
+            post: postId,
+          });
+          const populated = await notif.populate("sender", "username profilePic");
+          await populated.populate("post", "image description");
+          const io = req.app.get("io");
+          io.to(ownerId).emit("new-notification", populated);
+        } catch (notifErr) {
+          if (notifErr.code !== 11000) console.error("Notif error:", notifErr);
+        }
+      }
+
       return res.status(200).json({
         liked: true,
         likesCount: post.likes.length,
       });
     }
 
+    // Unlike — remove like
     const updatedPost = await Post.findOneAndUpdate(
       { _id: postId },
       { $pull: { likes: userId } },
       { new: true }
     );
 
-    console.log('liked added');
     res.status(200).json({
       liked: false,
       likesCount: updatedPost.likes.length,
