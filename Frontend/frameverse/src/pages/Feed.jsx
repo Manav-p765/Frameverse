@@ -79,7 +79,7 @@ const Feed = () => {
     if (target) observer.observe(target);
 
     return () => {
-      if (target) observer.disconnect(target);
+      if (target) observer.unobserve(target);
     };
   }, [loading, hasMore, posts.length]);
 
@@ -186,7 +186,7 @@ const Feed = () => {
 
           {/* Right column — Notifications sidebar (desktop only) */}
           <div className="hidden lg:block w-80 shrink-0">
-            <div className="sticky top-4 pt-4">
+            <div className="sticky top-4 pt-4 space-y-6">
               <NotificationSidebar />
             </div>
           </div>

@@ -23,6 +23,11 @@ const postSchema = new mongoose.Schema(
         description: {
             type: String
         },
+        postType: {
+            type: String,
+            enum: ['user', 'auto-progress'],
+            default: 'user'
+        },
         likes: [
             {
                 type: mongoose.Schema.Types.ObjectId,

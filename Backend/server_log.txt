@@ -1,0 +1,44 @@
+[dotenv@17.2.3] injecting env (7) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+server is listening on port 8080
+[AutoPost] Worker scheduled (every 5 minutes)
+🟢 Socket connected: Vi3ByregUtqDWF4GAAAB
+✅ User setup: 69a30f142f27fea41367a711
+🟢 Socket connected: I6oouf5KgnTy3bCeAAAD
+✅ User setup: 69a496cbb0f80d07d9f7cb0f
+🟢 Socket connected: mEzh7yLHDPZHgQEkAAAF
+✅ User setup: 69a30f142f27fea41367a711
+🟢 Socket connected: F0ia77Fb437ItYOjAAAH
+✅ User setup: 69a30f142f27fea41367a711
+🟢 Socket connected: 6woUYItrXAWY_m4xAAAK
+🟢 Socket connected: S_GaTyOFyWxmSiZMAAAL
+✅ User setup: 69a496cbb0f80d07d9f7cb0f
+✅ User setup: 69a496cbb0f80d07d9f7cb0f
+🟢 Socket connected: I74f0dl0ZfG5tczTAAAN
+🟢 Socket connected: Gxamj7ADJSDHxzObAAAP
+✅ User setup: 6991fcb66f3f2219536afc80
+🟢 Socket connected: LUFConPJ98wZWGaLAAAR
+✅ User setup: 6991fcb66f3f2219536afc80
+🟢 Socket connected: Gn3p37DEJ3U99nr_AAAT
+✅ User setup: 69a30f142f27fea41367a711
+✅ User setup: 69a30f142f27fea41367a711
+[AutoPost] Worker running — 2026-03-01T20:10:00.022Z
+[AutoPost] Enabled users: 1
+🟢 Socket connected: TkvLcAqWhEtpvj-WAAAW
+🟢 Socket connected: QUjQPifZ_wsP57zKAAAX
+✅ User setup: 69a496cbb0f80d07d9f7cb0f
+✅ User setup: 69a496cbb0f80d07d9f7cb0f
+Socket disconnected: TkvLcAqWhEtpvj-WAAAW
+Socket disconnected: QUjQPifZ_wsP57zKAAAX
+🟢 Socket connected: G9ORWc_q48BWQ2FjAAAa
+🟢 Socket connected: JSqVIYDAw9smkwZMAAAb
+✅ User setup: 69a496cbb0f80d07d9f7cb0f
+✅ User setup: 69a496cbb0f80d07d9f7cb0f
+Socket disconnected: Gxamj7ADJSDHxzObAAAP
+Socket disconnected: LUFConPJ98wZWGaLAAAR
+🟢 Socket connected: 8b7snmebefweOSSOAAAe
+🟢 Socket connected: nU1aHyUMgywN36lIAAAf
+✅ User setup: 6991fcb66f3f2219536afc80
+✅ User setup: 6991fcb66f3f2219536afc80
+[AutoPost] Worker running — 2026-03-01T20:15:00.021Z
+[AutoPost] Enabled users: 1

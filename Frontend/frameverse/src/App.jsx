@@ -10,6 +10,7 @@ import Explore from "./pages/Explore";
 import Notifications from "./pages/Notifications";
 import Reels from "./pages/Reels";
 import CreatePost from "./pages/createPost";
+import AutoPostPage from "./pages/AutoPostPage";
 import MessageToast from "./components/chat/MessageToast";
 
 const App = () => {
@@ -21,7 +22,7 @@ const App = () => {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<Feed />} />
-          
+
           <Route path="/chats/*" element={<Chats />} />
 
           <Route path="/profile" element={<Profile />} />
@@ -30,7 +31,8 @@ const App = () => {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/reels" element={<Reels />} />
           <Route path="/create" element={<CreatePost />} />
-          
+          <Route path="/autopost" element={<AutoPostPage />} />
+
         </Route>
       </Routes>
       <MessageToast />

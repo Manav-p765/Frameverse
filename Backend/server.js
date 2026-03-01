@@ -13,10 +13,11 @@ import chatRoute from "./routes/chat.js";
 import postRoute from "./routes/post.js";
 import messageRoute from "./routes/message.js";
 import notificationRoute from "./routes/notification.js";
+import autoPostRoutes from "./routes/autoPostRoutes.js";
+import { startAutoPostWorker } from "./workers/autoPost.worker.js";
 
 const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
-
 
 // cors setup
 
@@ -47,16 +48,12 @@ app.set("io", io);
 connectdb();
 initSocket(io);
 
-
 app.use("/user", userRoute);
-
 app.use("/chats/router", chatRoute);
-
 app.use("/chats/router/messages", messageRoute);
-
 app.use("/post", postRoute);
-
 app.use("/notifications", notificationRoute);
+app.use("/api/autopost", autoPostRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -71,5 +68,6 @@ app.use((err, req, res, next) => {
 });
 
 server.listen(Port, () => {
-  console.log(`server is listening on port ${Port}`)
+  console.log(`server is listening on port ${Port}`);
+  startAutoPostWorker();
 });

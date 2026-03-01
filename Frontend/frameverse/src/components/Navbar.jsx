@@ -7,6 +7,7 @@ import {
   User,
   LogOut,
   Bell,
+  Bot,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
@@ -25,6 +26,7 @@ const navItems = [
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/create", label: "Create", icon: PlusSquare },
   { to: "/profile", label: "Profile", icon: User },
+  { to: "/autopost", label: "AutoPost", icon: Bot },
 ];
 
 import AnimatedLogo from "./AnimatedLogo";

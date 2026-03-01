@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Bell } from "lucide-react";
+import { Bell, Bot } from "lucide-react";
 import AnimatedLogo from "./AnimatedLogo";
 import { useSocketEvent } from "../hooks/useSocket";
 
@@ -37,23 +37,38 @@ const MobileTopNavbar = () => {
         >
             <AnimatedLogo className="w-48" />
 
-            <NavLink
-                to="/notifications"
-                aria-label="Notifications"
-                className={({ isActive }) =>
-                    `relative w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isActive
-                        ? "bg-white/10 text-white"
-                        : "text-[#9a9aaa] hover:text-white hover:bg-white/5"
-                    }`
-                }
-            >
-                <Bell size={20} strokeWidth={1.5} />
-                {notifUnread > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-3.5 h-3.5 flex items-center justify-center px-0.5 leading-none">
-                        {notifUnread > 9 ? "9+" : notifUnread}
-                    </span>
-                )}
-            </NavLink>
+            <div className="flex items-center gap-1">
+                <NavLink
+                    to="/autopost"
+                    aria-label="AutoPost"
+                    className={({ isActive }) =>
+                        `relative w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isActive
+                            ? "bg-white/10 text-white"
+                            : "text-[#9a9aaa] hover:text-white hover:bg-white/5"
+                        }`
+                    }
+                >
+                    <Bot size={20} strokeWidth={1.5} />
+                </NavLink>
+
+                <NavLink
+                    to="/notifications"
+                    aria-label="Notifications"
+                    className={({ isActive }) =>
+                        `relative w-9 h-9 rounded-full flex items-center justify-center transition-colors ${isActive
+                            ? "bg-white/10 text-white"
+                            : "text-[#9a9aaa] hover:text-white hover:bg-white/5"
+                        }`
+                    }
+                >
+                    <Bell size={20} strokeWidth={1.5} />
+                    {notifUnread > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-3.5 h-3.5 flex items-center justify-center px-0.5 leading-none">
+                            {notifUnread > 9 ? "9+" : notifUnread}
+                        </span>
+                    )}
+                </NavLink>
+            </div>
         </header>
     );
 };
