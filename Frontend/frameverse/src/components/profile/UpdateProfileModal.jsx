@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { generateBio } from "../../services/Geminiai";
 
 const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
+  const [bioAiLoading, setBioAiLoading] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -280,6 +282,44 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
               <p className="text-gray-500 text-xs">
                 {formData.bio.length}/160 characters
               </p>
+
+              {/* AI Bio Button */}
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!formData.bio.trim()) {
+                    setErrors((prev) => ({ ...prev, bio: "Type a few keywords first (e.g. \"anime lover, coder, gamer\")" }));
+                    return;
+                  }
+                  setBioAiLoading(true);
+                  setErrors((prev) => ({ ...prev, bio: "" }));
+                  try {
+                    const bio = await generateBio(formData.bio);
+                    handleInputChange("bio", bio.trim().slice(0, 160));
+                  } catch (err) {
+                    console.error("AI bio error:", err);
+                    setErrors((prev) => ({ ...prev, bio: "Failed to generate bio. Try again." }));
+                  } finally {
+                    setBioAiLoading(false);
+                  }
+                }}
+                disabled={bioAiLoading || loading}
+                className="w-full py-2.5 px-3 rounded-lg font-medium text-xs transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-gray-800 border border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 hover:text-purple-200"
+              >
+                {bioAiLoading ? (
+                  <>
+                    <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="31.42" strokeDashoffset="10" strokeLinecap="round" />
+                    </svg>
+                    Generating bio...
+                  </>
+                ) : (
+                  <>
+                    <span>✨</span>
+                    Generate Bio
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Submit Error */}

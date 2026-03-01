@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/post.service"; // your axios instance
+import { generateImageCaption } from "../../services/Geminiai";
 
 const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
   const navigate = useNavigate();
@@ -9,6 +10,24 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
   const [location, setLocation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleAiCaption = async () => {
+    setAiLoading(true);
+    setError("");
+    try {
+      // selectedImage is a data URL like "data:image/jpeg;base64,/9j/4AAQ..."
+      const [header, base64Data] = selectedImage.split(",");
+      const mimeType = header.match(/data:(.*?);/)?.[1] || "image/jpeg";
+      const caption = await generateImageCaption(base64Data, mimeType);
+      setDescription(caption.trim());
+    } catch (err) {
+      console.error("AI caption error:", err);
+      setError("Failed to generate caption. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,6 +72,28 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
             />
           </div>
 
+          {/* AI Caption Button */}
+          <button
+            type="button"
+            onClick={handleAiCaption}
+            disabled={aiLoading || isLoading}
+            className="w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-[#262626] border border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 hover:text-purple-200 active:scale-[0.98]"
+          >
+            {aiLoading ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="31.42" strokeDashoffset="10" strokeLinecap="round" />
+                </svg>
+                Generating caption...
+              </>
+            ) : (
+              <>
+                <span className="text-base">✨</span>
+                AI Caption
+              </>
+            )}
+          </button>
+
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -94,3 +135,4 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
 };
 
 export default PostDetailsForm;
+

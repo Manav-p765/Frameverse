@@ -53,8 +53,10 @@ const MainLayout = () => {
         - All other pages: p-4 + pb-20 on mobile so content clears the fixed navbar
       */}
       <main
-        className={`flex-1 bg-[#18181c] overflow-y-auto scrollbar-hide
-          ${chatOpen ? "p-0" : isChatsPage ? "p-0 pt-14 md:pt-0" : "pt-14 md:pt-0 p-2 pb-20 md:p-4 md:pb-4"}`}
+        className={`flex-1 bg-[#18181c] flex flex-col scrollbar-hide
+          ${isChatsPage ? "overflow-hidden" : "overflow-y-auto"}
+          ${chatOpen ? "p-0" : isChatsPage ? "pt-14 pb-[60px] md:pt-0 md:pb-0" : "pt-14 pb-20 md:pt-0 md:p-4 md:pb-4"}
+        `}
       >
         <Outlet />
       </main>

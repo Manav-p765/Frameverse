@@ -6,6 +6,7 @@ import {
   PlusSquare,
   User,
   LogOut,
+  Bell,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
@@ -21,6 +22,7 @@ const navItems = [
   { to: "/explore", label: "Explore", icon: Compass },
   { to: "/reels", label: "Reels", icon: Film },
   { to: "/chats", label: "Chats", icon: MessageCircle },
+  { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/create", label: "Create", icon: PlusSquare },
   { to: "/profile", label: "Profile", icon: User },
 ];
@@ -32,6 +34,7 @@ const Navbar = () => {
   const location = useLocation();
   const currentChatId = parseChatId(location.pathname);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifUnread, setNotifUnread] = useState(0);
 
   // Listen for new messages — chat badge
   useSocketEvent("new-message", useCallback((msg) => {
@@ -40,10 +43,20 @@ const Navbar = () => {
     setUnreadCount((n) => n + 1);
   }, [currentChatId]));
 
+  // Listen for new notifications
+  useSocketEvent("new-notification", useCallback(() => {
+    if (!location.pathname.startsWith("/notifications")) {
+      setNotifUnread((n) => n + 1);
+    }
+  }, [location.pathname]));
+
   // Reset chat badge when entering any /chats route
   useEffect(() => {
     if (location.pathname.startsWith("/chats")) {
       setUnreadCount(0);
+    }
+    if (location.pathname.startsWith("/notifications")) {
+      setNotifUnread(0);
     }
   }, [location.pathname]);
 
@@ -93,6 +106,12 @@ const Navbar = () => {
                 {label === "Chats" && unreadCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
                     {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+                {/* Unread badge — Notifications */}
+                {label === "Notifications" && notifUnread > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
+                    {notifUnread > 9 ? "9+" : notifUnread}
                   </span>
                 )}
               </span>

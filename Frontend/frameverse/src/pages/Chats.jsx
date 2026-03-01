@@ -181,7 +181,7 @@ export default function Chats() {
       </div>
 
       {/* ═══ MOBILE ══════════════════════════════════════════════════════════ */}
-      <div className="md:hidden bg-[#18181c] overflow-hidden" style={{ height: "100vh" }}>
+      <div className="md:hidden bg-[#18181c] h-full flex flex-col overflow-hidden">
 
         {currentView === "new" && (
           <div className="h-full flex flex-col overflow-hidden">
