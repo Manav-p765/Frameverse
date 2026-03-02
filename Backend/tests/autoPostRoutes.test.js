@@ -6,8 +6,8 @@ import { connectDB, closeDB, clearDB } from "./db.setup.js";
 
 // 1. Mock the auth middleware
 jest.unstable_mockModule("../middleware.js", () => ({
-    authorize: (req, res, next) => {
-        req.user = { id: "000000000000000000000001" }; // Mock user ID
+    isLoggedIn: (req, res, next) => {
+        req.userId = "000000000000000000000001"; // Mock user ID
         next();
     },
 }));

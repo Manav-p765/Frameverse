@@ -25,8 +25,10 @@ export const initSocket = (userId) => {
   });
 
   socketInstance.on("connect", () => {
-    console.log("🟢 Socket connected:", socketInstance.id);
-    socketInstance.emit("setup", userId);
+    console.log("🟢 Socket connected:", socketInstance?.id);
+    if (socketInstance) {
+      socketInstance.emit("setup", userId);
+    }
     socketReadyListeners.forEach((cb) => cb(socketInstance));
     socketReadyListeners.clear();
   });
@@ -89,7 +91,7 @@ export const useSocketEvent = (event, handler) => {
       boundSocket?.off(event, fn); // safe — only defined if socket was bound
     };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event]);
 };
 
@@ -102,5 +104,5 @@ export const useChatRoom = (chatId) => {
 
 // ─── Emitters ─────────────────────────────────────────────────────────────────
 
-export const emitTyping     = (chatId) => socketInstance?.emit("typing", chatId);
+export const emitTyping = (chatId) => socketInstance?.emit("typing", chatId);
 export const emitStopTyping = (chatId) => socketInstance?.emit("stop-typing", chatId);

@@ -123,7 +123,7 @@ const Feed = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#18181c] mt-15">
+    <div className="min-h-screen bg-[#18181c] mt-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Two-column layout on desktop: feed left, notifications right */}
@@ -131,6 +131,12 @@ const Feed = () => {
 
           {/* Left column — posts */}
           <div className="flex-1 min-w-0">
+            {/* Header */}
+            <div className="mb-4 mt-0">
+              <h1 className="text-3xl md:text-3xl font-bold text-white mb-1 tracking-tight">Recent posts</h1>
+              <p className="text-gray-400 text-sm">Updates from the creators you follow</p>
+            </div>
+
             {/* Initial loading */}
             {initialLoading && (
               <div className="flex justify-center py-20">
@@ -151,8 +157,9 @@ const Feed = () => {
               </div>
             )}
 
-            {/* Posts */}
-            <div className="w-full max-w-2xl">
+            {/* Posts Grid - Rendered as two vertical columns on desktop, single on mobile. */}
+            {/* Mobile View (Hidden on md+) */}
+            <div className="flex flex-col gap-6 w-full md:hidden">
               {posts.map((post) => (
                 <PostCard
                   key={post._id}
@@ -162,6 +169,34 @@ const Feed = () => {
                   onLikeToggle={onLikeToggle}
                 />
               ))}
+            </div>
+
+            {/* Desktop View (Hidden on sm) - Split into two distinct columns */}
+            <div className="hidden md:flex gap-6 w-full items-start">
+              {/* Left Column */}
+              <div className="flex flex-col gap-6 flex-1 min-w-0">
+                {posts.filter((_, i) => i % 2 === 0).map((post) => (
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    onUserClick={onUserClick}
+                    onImageClick={handleImageClick}
+                    onLikeToggle={onLikeToggle}
+                  />
+                ))}
+              </div>
+              {/* Right Column */}
+              <div className="flex flex-col gap-6 flex-1 min-w-0">
+                {posts.filter((_, i) => i % 2 !== 0).map((post) => (
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    onUserClick={onUserClick}
+                    onImageClick={handleImageClick}
+                    onLikeToggle={onLikeToggle}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Loading more */}
@@ -185,7 +220,7 @@ const Feed = () => {
           </div>
 
           {/* Right column — Notifications sidebar (desktop only) */}
-          <div className="hidden lg:block w-80 shrink-0">
+          <div className="hidden lg:block w-[30%] max-w-[320px] shrink-0">
             <div className="sticky top-4 pt-4 space-y-6">
               <NotificationSidebar />
             </div>

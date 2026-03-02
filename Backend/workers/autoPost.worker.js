@@ -37,7 +37,7 @@ export async function processUser(userId) {
 
         // Load settings and connected accounts in parallel
         const [settings, accounts] = await Promise.all([
-            AutoPostSettings.findOne({ user: userId }, { selectedApps: 1 }).lean(),
+            AutoPostSettings.findOne({ user: userId }, { selectedApps: 1, timezone: 1 }).lean(),
             ConnectedAccount.find({ user: userId }, { platform: 1, username: 1 }).lean(),
         ]);
 
@@ -47,6 +47,7 @@ export async function processUser(userId) {
         }
 
         const apps = settings?.selectedApps || [];
+        const tz = settings?.timezone || "Asia/Kolkata";
         const stats = { githubCommits: 0, leetcodeSolved: 0 };
 
         // Fetch activity from enabled platforms in parallel
@@ -55,7 +56,7 @@ export async function processUser(userId) {
         if (apps.includes("github")) {
             if (accountMap.github) {
                 fetches.push(
-                    getTodayCommits(accountMap.github).then((n) => { stats.githubCommits = n; })
+                    getTodayCommits(accountMap.github, tz).then((n) => { stats.githubCommits = n; })
                 );
             } else {
                 console.log(`[AutoPost] No GitHub account linked for user: ${userId}`);
@@ -65,7 +66,7 @@ export async function processUser(userId) {
         if (apps.includes("leetcode")) {
             if (accountMap.leetcode) {
                 fetches.push(
-                    getTodayLeetCodeSolved(accountMap.leetcode).then((n) => { stats.leetcodeSolved = n; })
+                    getTodayLeetCodeSolved(accountMap.leetcode, tz).then((n) => { stats.leetcodeSolved = n; })
                 );
             } else {
                 console.log(`[AutoPost] No LeetCode account linked for user: ${userId}`);

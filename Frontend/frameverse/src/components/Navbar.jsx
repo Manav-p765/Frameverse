@@ -29,8 +29,6 @@ const navItems = [
   { to: "/autopost", label: "AutoPost", icon: Bot },
 ];
 
-import AnimatedLogo from "./AnimatedLogo";
-
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -74,20 +72,19 @@ const Navbar = () => {
         transition-all
         duration-300
         ease-in-out
-        w-18
-        hover:w-60
+        w-[76px]
+        hover:w-64
         text-gray-100
+        relative
       "
     >
-      {/* Logo - Always visible, completely independent of the bounding box */}
-      <div className="absolute top-6 left-5 z-50 pointer-events-none">
-        <AnimatedLogo className="w-48" />
-      </div>
-
       {/* Inner container */}
-      <div className="flex h-full w-full flex-col px-3 overflow-hidden">
-        {/* Nav — offset above center */}
-        <nav className="flex flex-col gap-1 mt-auto mb-[40%]">
+      <div className="flex h-full w-full flex-col px-3 relative z-10">
+        {/* Empty spacer for absolute logo */}
+        <div className="h-24 shrink-0"></div>
+
+        {/* Nav — perfectly centered vertically */}
+        <nav className="flex-1 flex flex-col justify-center gap-2">
           {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={label}
@@ -97,53 +94,60 @@ const Navbar = () => {
                 `
                 flex items-center gap-4
                 px-3 py-3 rounded-xl
-                hover:bg-black/40 transition
-                ${isActive ? "bg-black/50 font-semibold" : ""}
+                hover:bg-white/10 transition-colors
+                ${isActive ? "bg-white/10 font-semibold text-white" : "text-gray-400 hover:text-white"}
               `
               }
             >
-              <span className="relative shrink-0">
-                <Icon size={24} />
-                {/* Unread badge — Chats */}
-                {label === "Chats" && unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
-                    {unreadCount > 9 ? "9+" : unreadCount}
+              {({ isActive }) => (
+                <>
+                  <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
+                    <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                    {/* Unread badge — Chats */}
+                    {label === "Chats" && unreadCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                    {/* Unread badge — Notifications */}
+                    {label === "Notifications" && notifUnread > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
+                        {notifUnread > 9 ? "9+" : notifUnread}
+                      </span>
+                    )}
                   </span>
-                )}
-                {/* Unread badge — Notifications */}
-                {label === "Notifications" && notifUnread > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
-                    {notifUnread > 9 ? "9+" : notifUnread}
+                  <span
+                    className="
+                          overflow-hidden whitespace-nowrap
+                          max-w-0 opacity-0 -translate-x-2
+                          group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0
+                          transition-all duration-300 ease-in-out
+                        "
+                  >
+                    {label}
                   </span>
-                )}
-              </span>
-              <span
-                className="
-                  overflow-hidden whitespace-nowrap
-                  opacity-0 -translate-x-2.5
-                  group-hover:opacity-100 group-hover:translate-x-0
-                  transition-all duration-300
-                "
-              >
-                {label}
-              </span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
 
-        {/* Logout — pushed below the centered nav */}
-        <div className="mt-auto pt-4">
+        {/* Logout — pushed to bottom */}
+        <div className="mt-auto shrink-0 pb-6 pt-4 border-t border-white/5">
           <button
             onClick={() => navigate("/logout")}
-            className="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-black/40 transition text-red-500"
+            className="flex items-center gap-4 px-3 py-3 w-full rounded-xl hover:bg-red-500/10 transition-colors text-red-500/80 hover:text-red-500"
           >
-            <LogOut size={24} className="shrink-0" />
+            <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
+              <LogOut size={24} />
+            </span>
             <span
               className="
                 overflow-hidden whitespace-nowrap
-                opacity-0 -translate-x-2.5
-                group-hover:opacity-100 group-hover:translate-x-0
-                transition-all duration-300
+                max-w-0 opacity-0 -translate-x-2
+                group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0
+                transition-all duration-300 ease-in-out
+                font-medium
               "
             >
               Logout

@@ -20,7 +20,7 @@ export default function AutoPostWidget({ hideSettingsLink = false }) {
     }, [getTodayStats]);
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-5">
             <div className="flex items-center justify-between pb-2 border-b border-white/10">
                 <h2 className="text-xl font-bold text-white">Your Progress</h2>
                 {!hideSettingsLink && (

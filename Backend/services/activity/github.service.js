@@ -1,3 +1,10 @@
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 /**
  * GitHub Activity Service
  *
@@ -7,9 +14,10 @@
 /**
  * Get the number of commits a user made today.
  * @param {string} username — GitHub username
+ * @param {string} tz - Timezone string (default: Asia/Kolkata)
  * @returns {Promise<number>}
  */
-export async function getTodayCommits(username) {
+export async function getTodayCommits(username, tz = "Asia/Kolkata") {
     try {
         const res = await fetch(
             `https://api.github.com/users/${encodeURIComponent(username)}/events/public?per_page=100`,
@@ -27,15 +35,17 @@ export async function getTodayCommits(username) {
         }
 
         const events = await res.json();
-        const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const todayStr = dayjs().tz(tz).format("YYYY-MM-DD");
 
         let commits = 0;
         for (const event of events) {
-            if (
-                event.type === "PushEvent" &&
-                event.created_at?.startsWith(todayStr)
-            ) {
-                commits += event.payload?.commits?.length || 0;
+            if (event.type === "PushEvent" && event.created_at) {
+                // event.created_at is UTC, convert it to target timezone
+                const eventDate = dayjs(event.created_at).tz(tz).format("YYYY-MM-DD");
+                if (eventDate === todayStr) {
+                    const commitCount = event.payload?.size || event.payload?.commits?.length || 1;
+                    commits += commitCount;
+                }
             }
         }
 

@@ -2,6 +2,7 @@ import Navbar from "./Navbar";
 import MobileNavbar from "./MobileNavbar";
 import MobileTopNavbar from "./MobileTopNavbar";
 import { Outlet, useLocation } from "react-router-dom";
+import AnimatedLogo from "./AnimatedLogo";
 
 /**
  * Hide the mobile navbar when a specific chat is open.
@@ -40,10 +41,15 @@ const MainLayout = () => {
           <div className="w-18" />
         </div>
       ) : (
-        <aside className="w-64 hidden md:block bg-[#18181c]">
+        <aside className="w-64 hidden md:block bg-[#18181c] relative z-40">
           <Navbar />
         </aside>
       )}
+
+      {/* Global Logo - Pinned to Top Left on Desktop */}
+      <div className="hidden md:block fixed top-6 left-6 z-50 pointer-events-none">
+        <AnimatedLogo className="w-40" />
+      </div>
 
       {/*
         Content area.

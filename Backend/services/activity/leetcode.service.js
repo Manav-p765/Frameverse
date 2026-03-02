@@ -1,3 +1,10 @@
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 /**
  * LeetCode Activity Service
  *
@@ -8,9 +15,10 @@
 /**
  * Get the number of problems a user solved today.
  * @param {string} username — LeetCode username
+ * @param {string} tz - Timezone string (default: Asia/Kolkata)
  * @returns {Promise<number>}
  */
-export async function getTodayLeetCodeSolved(username) {
+export async function getTodayLeetCodeSolved(username, tz = "Asia/Kolkata") {
     try {
         const query = `{
       recentAcSubmissionList(username: "${username}", limit: 50) {
@@ -35,14 +43,12 @@ export async function getTodayLeetCodeSolved(username) {
         const data = await res.json();
         const submissions = data?.data?.recentAcSubmissionList || [];
 
-        // Filter to today's submissions (UTC)
-        const todayStart = new Date();
-        todayStart.setUTCHours(0, 0, 0, 0);
-        const todayTimestamp = Math.floor(todayStart.getTime() / 1000);
+        // Filter to today's submissions (in user's timezone)
+        const todayStart = dayjs().tz(tz).startOf("day").unix(); // Unix seconds
 
         let solved = 0;
         for (const sub of submissions) {
-            if (Number(sub.timestamp) >= todayTimestamp) {
+            if (Number(sub.timestamp) >= todayStart) {
                 solved++;
             }
         }
