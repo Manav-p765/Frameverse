@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { validateuser, isLoggedIn} from "../middleware.js";
+import { validateuser, isLoggedIn } from "../middleware.js";
 import wrapAsync from "../utils/wrapAsync.js";
-import {upload} from "../config/multer.js";
+import { upload } from "../config/multer.js";
 import { getFollowing, getFeed, followUser, getUserProfile, loginUser, logoutUser, registerUser, searchUsers, updateUserProfile, unfollowUser, authMe } from "../controllers/user.js";
 import { get } from "http";
 
@@ -19,13 +19,13 @@ router.post("/logout", isLoggedIn, logoutUser);
 
 router.get("/search", wrapAsync(searchUsers));
 
-router.put("/updateProfile", isLoggedIn, validateuser,  upload.single("profilePic"), wrapAsync(updateUserProfile));
+router.put("/updateProfile", isLoggedIn, validateuser, upload.single("profilePic"), wrapAsync(updateUserProfile));
 
 router.post("/follow/:id", isLoggedIn, followUser);
 
 router.post("/unfollow/:id", isLoggedIn, unfollowUser);
 
-router.get("/feed",isLoggedIn, getFeed);
+router.get("/feed", isLoggedIn, getFeed);
 
 router.get("/auth/me", isLoggedIn, authMe);
 

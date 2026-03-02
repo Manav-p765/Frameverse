@@ -12,10 +12,11 @@ import Reels from "./pages/Reels";
 import CreatePost from "./pages/createPost";
 import AutoPostPage from "./pages/AutoPostPage";
 import MessageToast from "./components/chat/MessageToast";
+import CallProvider from "./components/call/CallProvider";
 
 const App = () => {
   return (
-    <div>
+    <CallProvider>
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/logout" element={<Logout />} />
@@ -36,7 +37,7 @@ const App = () => {
         </Route>
       </Routes>
       <MessageToast />
-    </div>
+    </CallProvider>
   );
 };
 

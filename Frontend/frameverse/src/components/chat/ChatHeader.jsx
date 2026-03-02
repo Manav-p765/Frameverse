@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { useCallStore } from "../../store/useCallStore";
+import { useWebRTC } from "../../hooks/useWebRTC";
 
 const Avatar = ({ src, name, size = "w-9 h-9" }) => (
   <div className={`${size} rounded-full overflow-hidden shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
@@ -14,6 +16,8 @@ const Avatar = ({ src, name, size = "w-9 h-9" }) => (
 
 export default function ChatHeader({ chat, currentUserId, typingUsers = [], onInfoClick, onBack }) {
   const navigate = useNavigate();
+  const { initiateCall } = useCallStore();
+  const { startCall } = useWebRTC();
 
   if (!chat) return null;
 
@@ -21,6 +25,14 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
   const otherUser = !isGroup ? chat.users?.find((u) => u._id !== currentUserId) : null;
   const name = isGroup ? chat.title || "Group Chat" : otherUser?.username || "Unknown";
   const avatar = isGroup ? chat.image : otherUser?.avatar;
+
+  const handleStartCall = async (type) => {
+    if (!otherUser) return;
+    initiateCall(otherUser, type);
+    setTimeout(() => {
+      startCall();
+    }, 100); // Small delay to let store update so useWebRTC accesses fresh state
+  };
 
   const typingText = (() => {
     if (!typingUsers.length) return null;
@@ -61,22 +73,28 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
 
       {/* Actions */}
       <div className="flex items-center gap-1">
-        <button
-          className="w-9 h-9 rounded-full flex items-center justify-center text-[#9a9aaa] hover:bg-[#2a2a30] hover:text-white transition-colors"
-          aria-label="Voice call"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
-          </svg>
-        </button>
-        <button
-          className="w-9 h-9 rounded-full flex items-center justify-center text-[#9a9aaa] hover:bg-[#2a2a30] hover:text-white transition-colors"
-          aria-label="Video call"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-          </svg>
-        </button>
+        {!isGroup && (
+          <>
+            <button
+              onClick={() => handleStartCall("audio")}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-[#9a9aaa] hover:bg-[#2a2a30] hover:text-white transition-colors"
+              aria-label="Voice call"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => handleStartCall("video")}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-[#9a9aaa] hover:bg-[#2a2a30] hover:text-white transition-colors"
+              aria-label="Video call"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+              </svg>
+            </button>
+          </>
+        )}
         <button
           onClick={onInfoClick}
           className="w-9 h-9 rounded-full flex items-center justify-center text-[#9a9aaa] hover:bg-[#2a2a30] hover:text-white transition-colors"

@@ -37,8 +37,8 @@ const Navbar = () => {
   const [notifUnread, setNotifUnread] = useState(0);
 
   // Listen for new messages — chat badge
-  useSocketEvent("new-message", useCallback((msg) => {
-    const cId = msg.chat?._id ?? msg.chat;
+  useSocketEvent("chat-updated", useCallback(({ chatId: cId, newMessage }) => {
+    if (!newMessage) return;
     if (cId === currentChatId) return;
     setUnreadCount((n) => n + 1);
   }, [currentChatId]));

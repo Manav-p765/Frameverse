@@ -21,8 +21,8 @@ const MobileNavbar = () => {
   const currentChatId = parseChatId(location.pathname);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useSocketEvent("new-message", useCallback((msg) => {
-    const cId = msg.chat?._id ?? msg.chat;
+  useSocketEvent("chat-updated", useCallback(({ chatId: cId, newMessage }) => {
+    if (!newMessage) return;
     if (cId === currentChatId) return;
     setUnreadCount((n) => n + 1);
   }, [currentChatId]));

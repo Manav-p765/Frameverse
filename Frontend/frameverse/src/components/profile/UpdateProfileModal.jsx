@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { generateBio } from "../../services/Geminiai";
+import CropImageModal from "./CropImageModal";
 
 const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,10 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
   const [bioAiLoading, setBioAiLoading] = useState(false);
+
+  // Cropper states
+  const [photoForCrop, setPhotoForCrop] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -42,15 +47,36 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
       return;
     }
 
-    setSelectedFile(file);
-
-    // instant preview
-    setProfilePicPreview(URL.createObjectURL(file));
+    // Read file for cropper
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPhotoForCrop(reader.result);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
 
     setErrors((prev) => ({
       ...prev,
       profilePic: "",
     }));
+  };
+
+  const handleCropComplete = (croppedFile) => {
+    setSelectedFile(croppedFile);
+
+    // Create preview for display
+    const previewUrl = URL.createObjectURL(croppedFile);
+    setProfilePicPreview(previewUrl);
+
+    setShowCropper(false);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setPhotoForCrop(null);
+    if (fileInputRef.current && !selectedFile) {
+      fileInputRef.current.value = "";
+    }
   };
 
 
@@ -375,6 +401,14 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
           }
         }
       `}</style>
+
+      {showCropper && photoForCrop && (
+        <CropImageModal
+          image={photoForCrop}
+          onCropComplete={handleCropComplete}
+          onClose={handleCropCancel}
+        />
+      )}
     </>
   );
 };

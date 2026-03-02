@@ -4,7 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ChatList from "../components/chat/ChatList";
 import ChatWindow from "../components/chat/ChatWindow";
 import ChatInfoPanel from "../components/chat/ChatInfoPanel";
-import FollowingList from "../components/chat/FollowingList";
 
 import { chatAPI, userAPI } from "../services/api";
 import { useSocketEvent } from "../hooks/useSocket";
@@ -12,13 +11,12 @@ import { useSocketEvent } from "../hooks/useSocket";
 const parseChatId = (pathname) => {
   const parts = pathname.replace(/^\/chats\/?/, "").split("/");
   const segment = parts[0];
-  if (!segment || segment === "new") return null;
+  if (!segment) return null;
   return segment;
 };
 
 const parseView = (pathname) => {
   const parts = pathname.replace(/^\/chats\/?/, "").split("/");
-  if (parts[0] === "new") return "new";
   if (parts[1] === "info") return "info";
   return "chat";
 };
@@ -92,7 +90,6 @@ export default function Chats() {
   useEffect(() => { setShowInfo(false); }, [chatId]);
 
 
-  // ── Socket: chat-updated ──────────────────────────────────────────────────
   useSocketEvent("chat-updated", ({ chatId: cId, lastMessage, lastMessageAt, newMessage }) => {
     setChats((prev) => {
       const updated = prev.map((c) =>
@@ -106,14 +103,35 @@ export default function Chats() {
     }
   });
 
+  // ── Socket: new-message (fallback for local updates on send) ───────────────
+  useSocketEvent("new-message", (msg) => {
+    const msgChatId = msg.chat?._id ?? msg.chat;
+    setChats((prev) => {
+      const chatExists = prev.find((c) => c._id === msgChatId);
+      if (!chatExists) return prev; // handled by fetch or chat-updated if brand new
+
+      const updated = prev.map((c) => {
+        if (c._id === msgChatId) {
+          // Only update if this message is newer than the current lastMessageAt
+          const msgTime = new Date(msg.createdAt).getTime();
+          const chatTime = new Date(c.lastMessageAt || 0).getTime();
+          if (msgTime >= chatTime) {
+            return {
+              ...c,
+              lastMessage: msg,
+              lastMessageAt: msg.createdAt,
+            };
+          }
+        }
+        return c;
+      });
+      return [...updated].sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt));
+    });
+  });
+
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleChatSelect = useCallback((id) => {
-    setShowInfo(false);
-    navigate(`/chats/${id}`);
-  }, [navigate]);
-
-  const handleNewChatOpen = useCallback((id) => {
     setShowInfo(false);
     navigate(`/chats/${id}`);
   }, [navigate]);
@@ -161,11 +179,7 @@ export default function Chats() {
       {/* ═══ DESKTOP (md+) ═══════════════════════════════════════════════════ */}
       <div className="hidden md:flex bg-[#18181c] overflow-hidden" style={{ height: "100vh" }}>
         <div className="w-[320px] shrink-0 border-r border-[#2a2a30] flex flex-col overflow-hidden">
-          {currentView === "new" ? (
-            <FollowingList onChatOpen={handleNewChatOpen} />
-          ) : (
-            <ChatList {...listProps} />
-          )}
+          <ChatList {...listProps} />
         </div>
 
         {/* Middle — relative so ChatWindow's absolute inset-0 is scoped here */}
@@ -182,12 +196,6 @@ export default function Chats() {
 
       {/* ═══ MOBILE ══════════════════════════════════════════════════════════ */}
       <div className="md:hidden bg-[#18181c] h-full flex flex-col overflow-hidden">
-
-        {currentView === "new" && (
-          <div className="h-full flex flex-col overflow-hidden">
-            <FollowingList onChatOpen={handleNewChatOpen} />
-          </div>
-        )}
 
         {currentView === "chat" && !chatId && (
           <div className="h-full flex flex-col overflow-hidden">

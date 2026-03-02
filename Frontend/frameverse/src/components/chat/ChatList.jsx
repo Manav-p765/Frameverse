@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSocketEvent } from "../../hooks/useSocket";
+import { userAPI, chatAPI } from "../../services/api";
 
 const formatTime = (date) => {
   if (!date) return "";
@@ -38,9 +39,22 @@ const SkeletonItem = () => (
 export default function ChatList({ chats, loading, activeChatId, currentUserId, onChatSelect, unreadCounts = {}, onNewMessage }) {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const [following, setFollowing] = useState([]);
+  const [creatingChatId, setCreatingChatId] = useState(null);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  // Fetch following list so we can search it
+  useEffect(() => {
+    userAPI
+      .getFollowing()
+      .then(setFollowing)
+      .catch((err) => console.error("Failed to load following list", err));
+  }, []);
 
   // Sort by lastMessageAt descending, then filter by search
-  const filtered = useMemo(() => {
+  const filteredChats = useMemo(() => {
+    if (isSearchFocused && !search.trim()) return [];
+
     const sorted = [...chats].sort(
       (a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt)
     );
@@ -52,7 +66,42 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
         : c.users.find((u) => u._id !== currentUserId)?.username || "";
       return name.toLowerCase().includes(q);
     });
-  }, [chats, search, currentUserId]);
+  }, [chats, search, currentUserId, isSearchFocused]);
+
+  // Filter following users who matching the search AND who don't already have a 1-on-1 chat
+  const filteredFollowing = useMemo(() => {
+    if (!search.trim() && !isSearchFocused) return [];
+
+    // Find IDs of users we already have 1-on-1 chats with
+    const existingChatUserIds = new Set();
+    chats.forEach(chat => {
+      if (!chat.isGroup && chat.users.length === 2) {
+        const otherUser = chat.users.find(u => u._id !== currentUserId);
+        if (otherUser) existingChatUserIds.add(otherUser._id.toString());
+      }
+    });
+
+    const q = search.toLowerCase();
+    return following.filter((u) => {
+      const matchesSearch = u.username.toLowerCase().includes(q);
+      const notInExistingChat = search.trim() ? !existingChatUserIds.has(u._id.toString()) : true;
+      return matchesSearch && notInExistingChat;
+    });
+  }, [following, search, chats, currentUserId, isSearchFocused]);
+
+  const handleStartNewChat = async (userId) => {
+    if (creatingChatId) return;
+    setCreatingChatId(userId);
+    try {
+      const chat = await chatAPI.createChat(userId);
+      onChatSelect(chat._id);
+    } catch (e) {
+      console.error("Failed to create chat", e);
+    } finally {
+      setCreatingChatId(null);
+      setSearch(""); // Clear search after successful creation
+    }
+  };
 
   const getChatName = useCallback(
     (chat) => {
@@ -93,16 +142,6 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
       <div className="px-4 pt-5 md:pt-24 pb-3 border-b border-[#2a2a30] shrink-0 bg-[#18181c]">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-white text-xl font-semibold tracking-tight">Messages</h1>
-          <button
-            onClick={() => navigate("/chats/new")}
-            className="w-8 h-8 rounded-full bg-[#2a2a30] flex items-center justify-center text-[#9a9aaa] hover:bg-[#34343c] hover:text-white transition-colors"
-            aria-label="New chat"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-          </button>
         </div>
 
         {/* Search */}
@@ -113,7 +152,9 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search"
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+            placeholder="Search or start new chat"
             className="w-full bg-[#2a2a30] text-white text-sm pl-9 pr-3 py-2 rounded-xl border border-transparent focus:border-[#3a3a44] focus:outline-none placeholder-[#5a5a6a] transition-colors"
           />
         </div>
@@ -123,7 +164,7 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
       <div className="flex-1 min-h-0 overflow-y-auto">
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => <SkeletonItem key={i} />)
-        ) : filtered.length === 0 ? (
+        ) : filteredChats.length === 0 && filteredFollowing.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 gap-2">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#5a5a6a" strokeWidth="1.5">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -131,55 +172,91 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
             <p className="text-[#5a5a6a] text-sm">{search ? "No results" : "No conversations yet"}</p>
           </div>
         ) : (
-          filtered.map((chat) => {
-            const name = getChatName(chat);
-            const avatar = getChatAvatar(chat);
-            const unread = unreadCounts[chat._id] || 0;
-            const isActive = chat._id === activeChatId;
-            const hasUnread = unread > 0;
+          <div className="pb-4">
+            {/* Existing Chats */}
+            {filteredChats.length > 0 && (
+              <div className="mb-2">
+                {search && <p className="text-[#5a5a6a] text-xs px-4 pt-4 pb-2 uppercase tracking-wider">Chats</p>}
+                {filteredChats.map((chat) => {
+                  const name = getChatName(chat);
+                  const avatar = getChatAvatar(chat);
+                  const unread = unreadCounts[chat._id] || 0;
+                  const isActive = chat._id === activeChatId;
+                  const hasUnread = unread > 0;
 
-            return (
-              <button
-                key={chat._id}
-                onClick={() => onChatSelect(chat._id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${isActive ? "bg-[#2a2a30]" : "hover:bg-[#222226]"
-                  }`}
-              >
-                {/* Avatar — blue ring when unread */}
-                <div className={`relative rounded-full ${hasUnread ? "ring-2 ring-blue-500" : ""}`}>
-                  <Avatar src={avatar} name={name} />
-                </div>
+                  return (
+                    <button
+                      key={chat._id}
+                      onClick={() => onChatSelect(chat._id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${isActive ? "bg-[#2a2a30]" : "hover:bg-[#222226]"
+                        }`}
+                    >
+                      {/* Avatar — blue ring when unread */}
+                      <div className={`relative rounded-full ${hasUnread ? "ring-2 ring-blue-500" : ""}`}>
+                        <Avatar src={avatar} name={name} />
+                      </div>
 
-                <div className="flex-1 min-w-0">
-                  {/* Name + time row */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`text-sm truncate ${hasUnread ? "font-semibold text-white" : "font-medium text-white"}`}>
-                      {name}
-                    </span>
-                    <span className={`text-xs shrink-0 ${hasUnread ? "text-blue-400 font-medium" : "text-[#5a5a6a]"}`}>
+                      <div className="flex-1 min-w-0">
+                        {/* Name + time row */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-sm truncate ${hasUnread ? "font-semibold text-white" : "font-medium text-white"}`}>
+                            {name}
+                          </span>
+                          <span className={`text-xs shrink-0 ${hasUnread ? "text-blue-400 font-medium" : "text-[#5a5a6a]"}`}>
+                            {formatTime(chat.lastMessageAt)}
+                          </span>
+                        </div>
 
-                      {formatTime(chat.lastMessageAt)}
-                    </span>
-                  </div>
+                        {/* Last message + badge row */}
+                        <div className="flex items-center justify-between gap-2 mt-0.5">
+                          <span className={`text-xs truncate ${hasUnread ? "text-white font-medium" : "text-[#5a5a6a]"}`}>
+                            {getLastMessage(chat)}
+                          </span>
+                          {hasUnread ? (
+                            <span className="shrink-0 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4.5 h-4.5 flex items-center justify-center px-1 leading-none">
+                              {unread > 9 ? "9+" : unread}
+                            </span>
+                          ) : (
+                            /* Spacer keeps layout stable when badge disappears */
+                            <span className="shrink-0 w-4.5" />
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-                  {/* Last message + badge row */}
-                  <div className="flex items-center justify-between gap-2 mt-0.5">
-                    <span className={`text-xs truncate ${hasUnread ? "text-white font-medium" : "text-[#5a5a6a]"}`}>
-                      {getLastMessage(chat)}
-                    </span>
-                    {hasUnread ? (
-                      <span className="shrink-0 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4.5 h-4.5 flex items-center justify-center px-1 leading-none">
-                        {unread > 9 ? "9+" : unread}
-                      </span>
+            {/* New Chats (Following list) */}
+            {filteredFollowing.length > 0 && (
+              <div>
+                <p className="text-[#5a5a6a] text-xs px-4 pt-4 pb-2 uppercase tracking-wider">Start New Chat</p>
+                {filteredFollowing.map((user) => (
+                  <button
+                    key={user._id}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleStartNewChat(user._id)}
+                    disabled={creatingChatId === user._id}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#222226] transition-colors text-left"
+                  >
+                    <Avatar src={user.profilePic} name={user.username} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-medium">{user.username}</p>
+                      {user.bio && <p className="text-[#5a5a6a] text-xs truncate">{user.bio}</p>}
+                    </div>
+                    {creatingChatId === user._id ? (
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
                     ) : (
-                      /* Spacer keeps layout stable when badge disappears */
-                      <span className="shrink-0 w-4.5" />
+                      <svg className="text-[#5a5a6a] shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     )}
-                  </div>
-                </div>
-              </button>
-            );
-          })
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
