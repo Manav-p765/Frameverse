@@ -20,6 +20,8 @@ dayjs.extend(timezone);
  */
 export async function getTodayLeetCodeSolved(username, tz = "Asia/Kolkata") {
     try {
+        console.log(`[LeetCode] Fetching solved for username: "${username}" (tz: ${tz})`);
+
         const query = `{
       recentAcSubmissionList(username: "${username}", limit: 50) {
         timestamp
@@ -36,15 +38,16 @@ export async function getTodayLeetCodeSolved(username, tz = "Asia/Kolkata") {
         });
 
         if (!res.ok) {
-            console.error(`[LeetCode] API error for ${username}: ${res.status}`);
+            const body = await res.text();
+            console.error(`[LeetCode] API error for "${username}": ${res.status} — ${body}`);
             return 0;
         }
 
         const data = await res.json();
         const submissions = data?.data?.recentAcSubmissionList || [];
+        const todayStart = dayjs().tz(tz).startOf("day").unix();
 
-        // Filter to today's submissions (in user's timezone)
-        const todayStart = dayjs().tz(tz).startOf("day").unix(); // Unix seconds
+        console.log(`[LeetCode] Total submissions returned: ${submissions.length}, todayStart unix: ${todayStart}`);
 
         let solved = 0;
         for (const sub of submissions) {
@@ -53,9 +56,10 @@ export async function getTodayLeetCodeSolved(username, tz = "Asia/Kolkata") {
             }
         }
 
+        console.log(`[LeetCode] Final solved count for "${username}": ${solved}`);
         return solved;
     } catch (err) {
-        console.error(`[LeetCode] Failed to fetch solved for ${username}:`, err.message);
+        console.error(`[LeetCode] Failed to fetch solved for "${username}":`, err.message);
         return 0;
     }
 }

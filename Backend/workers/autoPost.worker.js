@@ -54,6 +54,9 @@ export async function processUser(userId, options = { isManual: false }) {
         const tz = settings?.timezone || "Asia/Kolkata";
         const stats = { githubCommits: 0, leetcodeSolved: 0 };
 
+        console.log(`[AutoPost] selectedApps: [${apps.join(", ")}]`);
+        console.log(`[AutoPost] accountMap:`, JSON.stringify(accountMap));
+
         // Fetch activity from enabled platforms in parallel
         const fetches = [];
 
