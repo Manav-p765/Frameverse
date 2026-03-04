@@ -4,7 +4,7 @@ import AutoPostWidget from "../components/profile/AutoPostWidget";
 
 export default function AutoPostPage() {
     return (
-        <div className="min-h-screen bg-[#18181c] pt-5 pb-20">
+        <div className="min-h-screen bg-bg-primary pt-5 pb-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
                     {/* Left: Progress & Preview Summary */}

@@ -123,7 +123,7 @@ const Feed = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#18181c] mt-10">
+    <div className="min-h-screen bg-bg-primary mt-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Two-column layout on desktop: feed left, notifications right */}
@@ -132,15 +132,17 @@ const Feed = () => {
           {/* Left column — posts */}
           <div className="flex-1 min-w-0">
             {/* Header */}
-            <div className="mb-4 mt-0">
-              <h1 className="text-3xl md:text-3xl font-bold text-white mb-1 tracking-tight">Recent posts</h1>
-              <p className="text-gray-400 text-sm">Updates from the creators you follow</p>
+            <div className="mb-6 mt-2">
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-2 tracking-tight bg-clip-text text-transparent bg-linear-to-r from-brand-purple to-brand-pink">
+                Recent posts
+              </h1>
+              <p className="text-text-secondary text-base">Updates from the creators you follow</p>
             </div>
 
             {/* Initial loading */}
             {initialLoading && (
               <div className="flex justify-center py-20">
-                <div className="w-10 h-10 border-2 border-gray-700 border-t-white rounded-full animate-spin" />
+                <div className="w-10 h-10 border-2 border-border-color border-t-white rounded-full animate-spin" />
               </div>
             )}
 
@@ -148,10 +150,10 @@ const Feed = () => {
             {!initialLoading && posts.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20">
                 <div className="text-6xl mb-4">📸</div>
-                <h3 className="text-xl font-semibold text-white mb-2">
+                <h3 className="text-xl font-semibold text-text-primary mb-2">
                   No posts yet
                 </h3>
-                <p className="text-gray-400 text-center max-w-sm">
+                <p className="text-text-secondary text-center max-w-sm">
                   Follow more users to see their posts in your feed
                 </p>
               </div>
@@ -202,7 +204,7 @@ const Feed = () => {
             {/* Loading more */}
             {loading && !initialLoading && (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-2 border-gray-700 border-t-white rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-border-color border-t-white rounded-full animate-spin" />
               </div>
             )}
 
@@ -213,7 +215,7 @@ const Feed = () => {
 
             {/* End message */}
             {!hasMore && posts.length > 0 && (
-              <div className="text-center py-8 mb-8 text-gray-500 text-sm">
+              <div className="text-center py-8 mb-8 text-text-secondary text-sm">
                 You've reached the end
               </div>
             )}

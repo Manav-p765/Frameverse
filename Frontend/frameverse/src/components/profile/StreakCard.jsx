@@ -18,7 +18,7 @@ export default function StreakCard({ streakCount = 0, longestStreak = 0 }) {
         transition-all duration-300
         ${isActive
                     ? 'border-orange-500/30 bg-gradient-to-br from-[#18181c] to-[#18181c] shadow-[0_0_25px_rgba(249,115,22,0.1)]'
-                    : 'border-white/10'
+                    : 'border-border-color'
                 }
       `}
         >
@@ -33,26 +33,26 @@ export default function StreakCard({ streakCount = 0, longestStreak = 0 }) {
                     <div className="flex items-baseline gap-2">
                         <span
                             className={`text-5xl font-black tracking-tight ${isActive
-                                    ? 'bg-gradient-to-br from-orange-400 to-red-500 bg-clip-text text-transparent'
-                                    : 'text-gray-100'
+                                    ? 'bg-gradient-to-br from-brand-orange to-red-500 bg-clip-text text-transparent'
+                                    : 'text-text-primary'
                                 }`}
                         >
                             {streakCount}
                         </span>
-                        <span className={`text-lg font-medium ${isActive ? 'text-orange-400/80' : 'text-gray-400'}`}>
+                        <span className={`text-lg font-medium ${isActive ? 'text-brand-orange/80' : 'text-text-secondary'}`}>
                             day streak
                         </span>
                     </div>
 
                     {/* Motivational micro text */}
-                    <p className="mt-1 text-sm text-gray-400">
+                    <p className="mt-1 text-sm text-text-secondary">
                         {motivation}
                     </p>
 
                     {/* Longest streak */}
-                    <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1 text-xs font-semibold text-gray-300 border border-white/5">
-                        <span className="text-gray-500">Longest:</span>
-                        <span className="text-gray-200">{longestStreak} days</span>
+                    <div className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-bg-primary/40 px-3 py-1 text-xs font-semibold text-text-secondary border border-border-color">
+                        <span className="text-text-secondary">Longest:</span>
+                        <span className="text-text-primary">{longestStreak} days</span>
                     </div>
                 </div>
 
@@ -66,7 +66,7 @@ export default function StreakCard({ streakCount = 0, longestStreak = 0 }) {
           `}
                 >
                     <Flame
-                        className={`h-8 w-8 ${isActive ? 'fill-orange-500 text-orange-500' : 'text-gray-500'
+                        className={`h-8 w-8 ${isActive ? 'fill-orange-500 text-brand-orange' : 'text-text-secondary'
                             }`}
                         strokeWidth={1.5}
                     />

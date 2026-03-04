@@ -11,10 +11,10 @@ const ProfilePosts = ({ posts, isOwnProfile, onDeletePost, profile, onPostClick 
 
   if (posts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-100 text-gray-400">
+      <div className="flex flex-col items-center justify-center min-h-100 text-text-secondary">
         <div className="text-6xl mb-4">📽️</div>
-        <h3 className="text-xl font-semibold text-white mb-2">No posts yet</h3>
-        <p className="text-gray-500 text-center max-w-sm">
+        <h3 className="text-xl font-semibold text-text-primary mb-2">No posts yet</h3>
+        <p className="text-text-secondary text-center max-w-sm">
           {isOwnProfile
             ? "Start sharing your favorite movie & anime moments!"
             : "This user hasn't posted anything yet"}
@@ -32,7 +32,7 @@ const ProfilePosts = ({ posts, isOwnProfile, onDeletePost, profile, onPostClick 
           onClick={() => onPostClick(post)}
         >
           {/* Post Image */}
-          <div className="relative w-full aspect-square overflow-hidden bg-gray-900">
+          <div className="relative w-full aspect-square overflow-hidden bg-bg-primary">
             {imageErrors[post._id] ? (
               // Fallback UI when image fails to load
               <div className="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-gray-800 to-gray-900">
@@ -49,7 +49,7 @@ const ProfilePosts = ({ posts, isOwnProfile, onDeletePost, profile, onPostClick 
                   <circle cx="8.5" cy="8.5" r="1.5" />
                   <path d="M21 15l-5-5L5 21" />
                 </svg>
-                <p className="text-gray-500 text-xs text-center px-2">Image not available</p>
+                <p className="text-text-secondary text-xs text-center px-2">Image not available</p>
               </div>
             ) : (
               <img
@@ -62,7 +62,7 @@ const ProfilePosts = ({ posts, isOwnProfile, onDeletePost, profile, onPostClick 
 
             {/* Multiple Images Indicator */}
             {post.images && post.images.length > 1 && !imageErrors[post._id] && (
-              <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm rounded-md p-1">
+              <div className="absolute top-2 right-2 bg-bg-primary/70 backdrop-blur-sm rounded-md p-1">
                 <svg
                   width="16"
                   height="16"
@@ -70,7 +70,7 @@ const ProfilePosts = ({ posts, isOwnProfile, onDeletePost, profile, onPostClick 
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
-                  className="text-white"
+                  className="text-text-primary"
                 >
                   <rect x="8" y="8" width="12" height="12" rx="2" />
                   <path d="M4 16V4h12" />
@@ -79,7 +79,7 @@ const ProfilePosts = ({ posts, isOwnProfile, onDeletePost, profile, onPostClick 
             )}
 
             {/* Hover Overlay */}
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            <div className="absolute inset-0 bg-bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
           </div>
         </div>
       ))}

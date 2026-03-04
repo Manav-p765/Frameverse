@@ -11,7 +11,7 @@ import AuthForm from "../components/auth/AuthForm";
 const AnimatedBackground = lazy(() =>
   Promise.resolve({
     default: () => (
-      <div className="min-h-screen w-full flex justify-center bg-black items-center ml-5">
+      <div className="min-h-screen w-full flex justify-center bg-bg-primary items-center ml-5">
         <div className=" w-[95%] h-[92vh] overflow-hidden  rounded-xl">
           <Lottie
             animationData={animationData}
@@ -126,11 +126,11 @@ const Auth = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-black flex">
+    <div className="h-screen overflow-hidden bg-bg-primary flex">
       {/* LEFT SIDE - Decorative Image (Hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
         <Suspense fallback={
-          <div className="min-h-screen w-full flex justify-center bg-black items-center ml-5 animate-pulse"></div>
+          <div className="min-h-screen w-full flex justify-center bg-bg-primary items-center ml-5 animate-pulse"></div>
         }>
           <AnimatedBackground />
         </Suspense>

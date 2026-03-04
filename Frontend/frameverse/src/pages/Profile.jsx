@@ -255,16 +255,16 @@ const Profile = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#18181c] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-bg-primary flex items-center justify-center p-4">
         <div className="text-center">
           <div className="text-6xl mb-4">🎬</div>
-          <h2 className="text-2xl font-bold text-white mb-2">{error}</h2>
-          <p className="text-gray-400 mb-6">
+          <h2 className="text-2xl font-bold text-text-primary mb-2">{error}</h2>
+          <p className="text-text-secondary mb-6">
             This user may not exist or has been removed
           </p>
           <button
             onClick={() => navigate("/feed")}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="px-6 py-2.5 bg-brand-purple hover:opacity-90 text-text-primary rounded-lg font-medium transition-colors"
           >
             ← Back to Feed
           </button>
@@ -274,7 +274,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#18181c] text-white">
+    <div className="min-h-screen bg-bg-primary text-text-primary">
       <div className="max-w-4xl mx-auto mt-6">
         <ProfileHeader
           profile={profile}
@@ -290,12 +290,12 @@ const Profile = () => {
         />
 
         {/* ── Tab Bar ── */}
-        <div className="flex border-b border-gray-800 px-4 mb-1">
+        <div className="flex border-b border-border-color px-4 mb-1">
           <button
             onClick={() => setActiveTab("posts")}
             className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${activeTab === "posts"
-              ? "text-white"
-              : "text-gray-500 hover:text-gray-300"
+              ? "text-text-primary"
+              : "text-text-secondary hover:text-text-secondary"
               }`}
           >
             <span className="flex items-center justify-center gap-1.5">
@@ -307,7 +307,7 @@ const Profile = () => {
               </svg>
               Posts
               {userPosts.length > 0 && (
-                <span className="text-xs text-gray-500">({userPosts.length})</span>
+                <span className="text-xs text-text-secondary">({userPosts.length})</span>
               )}
             </span>
             {activeTab === "posts" && (
@@ -317,19 +317,19 @@ const Profile = () => {
           <button
             onClick={() => setActiveTab("auto")}
             className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${activeTab === "auto"
-              ? "text-white"
-              : "text-gray-500 hover:text-gray-300"
+              ? "text-text-primary"
+              : "text-text-secondary hover:text-text-secondary"
               }`}
           >
             <span className="flex items-center justify-center gap-1.5">
               <span className="text-sm">⚡</span>
               Auto-Progress
               {autoPosts.length > 0 && (
-                <span className="text-xs text-gray-500">({autoPosts.length})</span>
+                <span className="text-xs text-text-secondary">({autoPosts.length})</span>
               )}
             </span>
             {activeTab === "auto" && (
-              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-amber-500 to-brand-orange rounded-full" />
             )}
           </button>
         </div>
@@ -368,15 +368,15 @@ const Profile = () => {
             {loadingMore && (
               <div className="flex gap-2">
                 <div
-                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                  className="w-2 h-2 bg-brand-purple rounded-full animate-bounce"
                   style={{ animationDelay: "0s" }}
                 />
                 <div
-                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                  className="w-2 h-2 bg-brand-purple rounded-full animate-bounce"
                   style={{ animationDelay: "0.2s" }}
                 />
                 <div
-                  className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                  className="w-2 h-2 bg-brand-purple rounded-full animate-bounce"
                   style={{ animationDelay: "0.4s" }}
                 />
               </div>
@@ -385,7 +385,7 @@ const Profile = () => {
         )}
 
         {!hasMore && displayedPosts.length > 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-text-secondary">
             <span className="text-3xl mb-2 block">🎬</span>
             <p className="text-sm">You've reached the end</p>
           </div>

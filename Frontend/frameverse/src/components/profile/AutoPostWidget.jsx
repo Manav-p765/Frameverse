@@ -21,12 +21,12 @@ export default function AutoPostWidget({ hideSettingsLink = false }) {
 
     return (
         <div className="space-y-5">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                <h2 className="text-xl font-bold text-white">Your Progress</h2>
+            <div className="flex items-center justify-between pb-2 border-b border-border-color">
+                <h2 className="text-xl font-bold text-text-primary">Your Progress</h2>
                 {!hideSettingsLink && (
                     <Link
                         to="/autopost"
-                        className="p-2 -mr-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+                        className="p-2 -mr-2 rounded-full text-text-secondary hover:text-text-primary hover:bg-white/10 transition-all active:scale-95"
                         title="AutoPost Settings"
                     >
                         <Settings className="h-5 w-5" />

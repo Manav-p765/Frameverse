@@ -30,7 +30,7 @@ const MainLayout = () => {
   const isChatsPage = useIsChatsPage();
 
   return (
-    <div className="flex h-screen w-full bg-[#18181c] overflow-hidden">
+    <div className="flex h-screen w-full bg-bg-primary overflow-hidden">
       {/* Desktop sidebar — on chat page: fixed overlay so it doesn't push content.
           On other pages: normal flow with w-18 reserved space. */}
       {isChatsPage ? (
@@ -41,7 +41,7 @@ const MainLayout = () => {
           <div className="w-18" />
         </div>
       ) : (
-        <aside className="w-64 hidden md:block bg-[#18181c] relative z-40">
+        <aside className="w-64 hidden md:block bg-bg-primary relative z-40">
           <Navbar />
         </aside>
       )}
@@ -59,7 +59,7 @@ const MainLayout = () => {
         - All other pages: p-4 + pb-20 on mobile so content clears the fixed navbar
       */}
       <main
-        className={`flex-1 min-h-0 bg-[#18181c] flex flex-col scrollbar-hide
+        className={`flex-1 min-h-0 bg-bg-primary flex flex-col scrollbar-hide
           ${isChatsPage ? "overflow-hidden" : "overflow-y-auto"}
           ${chatOpen ? "" : isChatsPage ? "pt-14 pb-[56px] md:pt-0 md:pb-0" : "pt-14 pb-20 md:pt-0 md:p-4 md:pb-4"}
         `}

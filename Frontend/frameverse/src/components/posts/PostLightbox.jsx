@@ -123,32 +123,32 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
   return (
     <div
       ref={lightboxRef}
-      className="fixed inset-0 z-9999 bg-black/95 backdrop-blur-md"
+      className="fixed inset-0 z-9999 bg-bg-primary/95 backdrop-blur-md"
       style={{ animation: 'fadeIn 0.2s ease-out' }}
       onTouchStart={handleVerticalSwipe}
     >
       {/* Close button */}
       <button
         onClick={onClose}
-        className="fixed top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-all backdrop-blur-sm md:top-6 md:right-6"
+        className="fixed top-4 right-4 z-50 p-2 bg-bg-primary/50 hover:bg-bg-primary/70 rounded-full transition-all backdrop-blur-sm md:top-6 md:right-6"
         aria-label="Close"
       >
-        <X className="w-6 h-6 text-white md:w-7 md:h-7" />
+        <X className="w-6 h-6 text-text-primary md:w-7 md:h-7" />
       </button>
 
       {/* Download button */}
       <button
         onClick={handleDownload}
-        className="fixed top-4 right-16 z-50 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-all backdrop-blur-sm md:top-6 md:right-20"
+        className="fixed top-4 right-16 z-50 p-2 bg-bg-primary/50 hover:bg-bg-primary/70 rounded-full transition-all backdrop-blur-sm md:top-6 md:right-20"
         aria-label="Download"
       >
-        <Download className="w-5 h-5 text-white md:w-6 md:h-6" />
+        <Download className="w-5 h-5 text-text-primary md:w-6 md:h-6" />
       </button>
 
       {/* Image counter */}
       {totalImages > 1 && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-black/50 rounded-full backdrop-blur-sm md:top-6">
-          <span className="text-white text-sm font-medium">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-bg-primary/50 rounded-full backdrop-blur-sm md:top-6">
+          <span className="text-text-primary text-sm font-medium">
             {currentIndex + 1} / {totalImages}
           </span>
         </div>
@@ -172,7 +172,7 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
             >
               {/* Loading skeleton */}
               {!imageLoaded && (
-                <div className="absolute inset-0 bg-gray-900 animate-pulse rounded-lg" />
+                <div className="absolute inset-0 bg-bg-primary animate-pulse rounded-lg" />
               )}
 
               {/* Main image */}
@@ -195,20 +195,20 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
                 {currentIndex > 0 && (
                   <button
                     onClick={handlePrevious}
-                    className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-black/70 rounded-full transition-all backdrop-blur-sm z-10"
+                    className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-bg-primary/50 hover:bg-bg-primary/70 rounded-full transition-all backdrop-blur-sm z-10"
                     aria-label="Previous image"
                   >
-                    <ChevronLeft className="w-8 h-8 text-white" />
+                    <ChevronLeft className="w-8 h-8 text-text-primary" />
                   </button>
                 )}
 
                 {currentIndex < totalImages - 1 && (
                   <button
                     onClick={handleNext}
-                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-black/70 rounded-full transition-all backdrop-blur-sm z-10"
+                    className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-bg-primary/50 hover:bg-bg-primary/70 rounded-full transition-all backdrop-blur-sm z-10"
                     aria-label="Next image"
                   >
-                    <ChevronRight className="w-8 h-8 text-white" />
+                    <ChevronRight className="w-8 h-8 text-text-primary" />
                   </button>
                 )}
               </>
@@ -223,16 +223,16 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
           <div className="flex items-start gap-3">
             {/* User info */}
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm mb-1">
+              <p className="text-text-primary font-semibold text-sm mb-1">
                 {post.user?.username}
               </p>
               {post.description && (
-                <p className="text-gray-300 text-sm line-clamp-2">
+                <p className="text-text-secondary text-sm line-clamp-2">
                   {post.description}
                 </p>
               )}
               {post.location && (
-                <p className="text-gray-400 text-xs mt-1 flex items-center gap-1">
+                <p className="text-text-secondary text-xs mt-1 flex items-center gap-1">
                   <span>📍</span>
                   {post.location}
                 </p>
@@ -265,13 +265,13 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
       {/* Swipe indicator - Mobile */}
       {totalImages > 1 && currentIndex < totalImages - 1 && (
         <div className="md:hidden fixed right-4 top-1/2 -translate-y-1/2 opacity-50">
-          <ChevronRight className="w-6 h-6 text-white animate-pulse" />
+          <ChevronRight className="w-6 h-6 text-text-primary animate-pulse" />
         </div>
       )}
 
       {totalImages > 1 && currentIndex > 0 && (
         <div className="md:hidden fixed left-4 top-1/2 -translate-y-1/2 opacity-50">
-          <ChevronLeft className="w-6 h-6 text-white animate-pulse" />
+          <ChevronLeft className="w-6 h-6 text-text-primary animate-pulse" />
         </div>
       )}
 

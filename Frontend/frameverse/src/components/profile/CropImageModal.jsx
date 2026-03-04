@@ -89,13 +89,13 @@ const CropImageModal = ({ image, onCropComplete, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-800 flex flex-col h-[80vh] max-h-[600px]">
-                <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900 z-10">
-                    <h2 className="text-xl font-bold text-white">Crop Photo</h2>
+        <div className="fixed inset-0 bg-bg-primary/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+            <div className="bg-bg-primary rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-border-color flex flex-col h-[80vh] max-h-[600px]">
+                <div className="p-4 border-b border-border-color flex justify-between items-center bg-bg-primary z-10">
+                    <h2 className="text-xl font-bold text-text-primary">Crop Photo</h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-800"
+                        className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded-lg hover:bg-bg-secondary"
                     >
                         <svg
                             width="24"
@@ -111,7 +111,7 @@ const CropImageModal = ({ image, onCropComplete, onClose }) => {
                     </button>
                 </div>
 
-                <div className="relative flex-1 w-full bg-black">
+                <div className="relative flex-1 w-full bg-bg-primary">
                     <Cropper
                         image={image}
                         crop={crop}
@@ -125,9 +125,9 @@ const CropImageModal = ({ image, onCropComplete, onClose }) => {
                     />
                 </div>
 
-                <div className="p-6 bg-gray-900 border-t border-gray-800">
+                <div className="p-6 bg-bg-primary border-t border-border-color">
                     <div className="mb-6">
-                        <label className="text-sm text-gray-400 mb-2 block font-medium">Zoom</label>
+                        <label className="text-sm text-text-secondary mb-2 block font-medium">Zoom</label>
                         <input
                             type="range"
                             value={zoom}
@@ -145,13 +145,13 @@ const CropImageModal = ({ image, onCropComplete, onClose }) => {
                     <div className="flex justify-end gap-3">
                         <button
                             onClick={onClose}
-                            className="px-5 py-2.5 rounded-lg font-medium text-gray-300 hover:bg-gray-800 transition-colors"
+                            className="px-5 py-2.5 rounded-lg font-medium text-text-secondary hover:bg-bg-secondary transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleCrop}
-                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                            className="px-5 py-2.5 bg-brand-purple hover:opacity-90 text-text-primary rounded-lg font-medium transition-colors"
                         >
                             Apply Crop
                         </button>

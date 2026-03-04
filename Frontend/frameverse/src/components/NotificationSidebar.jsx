@@ -16,8 +16,8 @@ const timeAgo = (dateStr) => {
 };
 
 const notifMeta = {
-    follow: { icon: UserPlus, text: "followed you", color: "text-blue-400", bg: "bg-blue-500/10" },
-    like: { icon: Heart, text: "liked your post", color: "text-pink-400", bg: "bg-pink-500/10" },
+    follow: { icon: UserPlus, text: "followed you", color: "text-brand-purple", bg: "bg-brand-purple/10" },
+    like: { icon: Heart, text: "liked your post", color: "text-pink-400", bg: "bg-brand-pink/10" },
     new_post: { icon: ImagePlus, text: "new post", color: "text-green-400", bg: "bg-green-500/10" },
 };
 
@@ -56,10 +56,10 @@ const NotificationSidebar = () => {
                 <div className="space-y-3 px-2">
                     {[...Array(4)].map((_, i) => (
                         <div key={i} className="flex items-center gap-2.5 animate-pulse">
-                            <div className="w-8 h-8 rounded-full bg-[#2a2a30]" />
+                            <div className="w-8 h-8 rounded-full bg-bg-secondary" />
                             <div className="flex-1 space-y-1.5">
-                                <div className="h-3 bg-[#2a2a30] rounded w-3/4" />
-                                <div className="h-2.5 bg-[#2a2a30] rounded w-1/2" />
+                                <div className="h-3 bg-bg-secondary rounded w-3/4" />
+                                <div className="h-2.5 bg-bg-secondary rounded w-1/2" />
                             </div>
                         </div>
                     ))}
@@ -91,7 +91,7 @@ const NotificationSidebar = () => {
                                             className="w-8 h-8 rounded-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-8 h-8 rounded-full bg-[#2a2a30] flex items-center justify-center text-white text-xs font-medium uppercase">
+                                        <div className="w-8 h-8 rounded-full bg-bg-secondary flex items-center justify-center text-text-primary text-xs font-medium uppercase">
                                             {notif.sender?.username?.[0] || "?"}
                                         </div>
                                     )}
@@ -102,7 +102,7 @@ const NotificationSidebar = () => {
 
                                 {/* Text */}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-xs text-white leading-snug truncate">
+                                    <p className="text-xs text-text-primary leading-snug truncate">
                                         <span className="font-semibold">{notif.sender?.username}</span>{" "}
                                         <span className="text-[#7a7a8a]">{meta.text}</span>
                                     </p>
@@ -115,7 +115,7 @@ const NotificationSidebar = () => {
                                 )}
 
                                 {/* Unread */}
-                                {!notif.read && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
+                                {!notif.read && <div className="w-1.5 h-1.5 rounded-full bg-brand-purple shrink-0" />}
                             </button>
                         );
                     })}

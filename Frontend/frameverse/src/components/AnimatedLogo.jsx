@@ -54,14 +54,14 @@ const AnimatedLogo = ({ className = "" }) => {
         <div ref={rootRef} className={`relative h-8 flex items-center overflow-hidden ${className}`}>
             {/* English */}
             <h1
-                className="logo-en absolute whitespace-nowrap text-white font-bold tracking-tight text-xl md:text-2xl drop-shadow-md"
+                className="logo-en absolute whitespace-nowrap text-text-primary font-bold tracking-tight text-xl md:text-2xl drop-shadow-md"
                 style={{ opacity: 1, transform: 'translateY(0px)' }}
             >
                 Frameverse
             </h1>
             {/* Japanese */}
             <h1
-                className="logo-ja absolute whitespace-nowrap text-white font-bold tracking-wide text-lg md:text-[21px] drop-shadow-md"
+                className="logo-ja absolute whitespace-nowrap text-text-primary font-bold tracking-wide text-lg md:text-[21px] drop-shadow-md"
                 style={{ opacity: 0, transform: 'translateY(25px)' }}
             >
                 フレームバース

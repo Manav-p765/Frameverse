@@ -54,7 +54,7 @@ const ProfileHeader = ({
 
   return (
     <>
-      <div className="w-full px-4 sm:px-6 py-8 border-b border-gray-800">
+      <div className="w-full px-4 sm:px-6 py-8 border-b border-border-color">
 
         {/* ── Mobile layout: avatar row + info stacked ── */}
         <div className="flex flex-col sm:flex-row sm:gap-10">
@@ -68,10 +68,10 @@ const ProfileHeader = ({
                   src={profilePic}
                   alt={`${username}'s profile`}
                   onClick={() => setShowImagePreview(true)}
-                  className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full object-cover cursor-pointer ring-2 ring-gray-700 hover:ring-gray-500 transition-all"
+                  className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full object-cover cursor-pointer ring-2 ring-transparent hover:ring-brand-purple/50 transition-all shadow-lg"
                 />
               ) : (
-                <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full bg-linear-to-br from-brand-purple to-brand-pink flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-2xl sm:text-4xl">
                     {username?.charAt(0).toUpperCase()}
                   </span>
@@ -85,13 +85,13 @@ const ProfileHeader = ({
                 <>
                   <button
                     onClick={() => setShowUpdateModal(true)}
-                    className="px-4 py-1.5 bg-gray-800 hover:bg-gray-700 text-white text-xs font-medium rounded border border-gray-700 transition-colors"
+                    className="px-4 py-1.5 bg-bg-secondary hover:bg-gray-700 text-text-primary text-xs font-medium rounded border border-border-color transition-colors"
                   >
                     Edit profile
                   </button>
                   <button
                     onClick={onShareClick}
-                    className="p-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded border border-gray-700 transition-colors"
+                    className="p-1.5 bg-bg-secondary hover:bg-gray-700 text-text-primary rounded border border-border-color transition-colors"
                     title="Share profile"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -109,8 +109,8 @@ const ProfileHeader = ({
                     onClick={onFollowToggle}
                     disabled={followLoading}
                     className={`px-6 py-1.5 text-xs font-semibold rounded transition-all ${isFollowing
-                      ? "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                      ? "bg-bg-secondary hover:bg-gray-700 text-text-primary border border-border-color"
+                      : "bg-brand-purple hover:opacity-90 text-text-primary"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {followLoading ? (
@@ -122,7 +122,7 @@ const ProfileHeader = ({
                     <button
                       onClick={handleMessageClick}
                       disabled={chatLoading}
-                      className="p-1.5 bg-gray-800 hover:bg-gray-700 text-white rounded border border-gray-700 transition-colors disabled:opacity-50"
+                      className="p-1.5 bg-bg-secondary hover:bg-gray-700 text-text-primary rounded border border-border-color transition-colors disabled:opacity-50"
                       title="Send message"
                     >
                       {chatLoading ? (
@@ -144,35 +144,35 @@ const ProfileHeader = ({
           <div className="flex-1 min-w-0 mt-4 sm:mt-0">
 
             {/* Username row */}
-            <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-3 truncate">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-brand-orange to-brand-pink mb-3 truncate">
               {username}
             </h1>
 
             {/* Stats — scrollable row on mobile to avoid overflow */}
             <div className="flex gap-6 sm:gap-10 mb-4 overflow-x-auto no-scrollbar pb-1">
               <div className="shrink-0 text-center sm:text-left">
-                <span className="font-semibold text-white text-base sm:text-xl mr-1">{postCount}</span>
-                <span className="text-gray-400 text-sm">posts</span>
+                <span className="font-semibold text-text-primary text-base sm:text-xl mr-1">{postCount}</span>
+                <span className="text-text-secondary text-sm">posts</span>
               </div>
               <button
                 onClick={() => setShowFollowersList(true)}
                 className="shrink-0 hover:opacity-80 transition-opacity text-center sm:text-left"
               >
-                <span className="font-semibold text-white text-base sm:text-xl mr-1">{followerCount}</span>
-                <span className="text-gray-400 text-sm">followers</span>
+                <span className="font-semibold text-text-primary text-base sm:text-xl mr-1">{followerCount}</span>
+                <span className="text-text-secondary text-sm">followers</span>
               </button>
               <button
                 onClick={() => setShowFollowingList(true)}
                 className="shrink-0 hover:opacity-80 transition-opacity text-center sm:text-left"
               >
-                <span className="font-semibold text-white text-base sm:text-xl mr-1">{followingCount}</span>
-                <span className="text-gray-400 text-sm">following</span>
+                <span className="font-semibold text-text-primary text-base sm:text-xl mr-1">{followingCount}</span>
+                <span className="text-text-secondary text-sm">following</span>
               </button>
             </div>
 
             {/* Bio */}
             {bio && (
-              <p className="text-sm sm:text-base text-gray-300 mb-4 leading-relaxed wrap-break-word">
+              <p className="text-sm sm:text-base text-text-secondary mb-4 leading-relaxed wrap-break-word">
                 {bio}
               </p>
             )}
@@ -183,13 +183,13 @@ const ProfileHeader = ({
                 <>
                   <button
                     onClick={() => setShowUpdateModal(true)}
-                    className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded border border-gray-700 transition-colors"
+                    className="px-6 py-2 bg-bg-secondary hover:bg-gray-700 text-text-primary text-sm font-medium rounded border border-border-color transition-colors"
                   >
                     Edit profile
                   </button>
                   <button
                     onClick={onShareClick}
-                    className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded border border-gray-700 transition-colors"
+                    className="px-3 py-2 bg-bg-secondary hover:bg-gray-700 text-text-primary rounded border border-border-color transition-colors"
                     title="Share profile"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline">
@@ -207,8 +207,8 @@ const ProfileHeader = ({
                     onClick={onFollowToggle}
                     disabled={followLoading}
                     className={`px-8 py-2 text-sm font-semibold rounded transition-all ${isFollowing
-                        ? "bg-gray-800 hover:bg-gray-700 text-white border border-gray-700"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                      ? "bg-bg-secondary hover:bg-gray-700 text-text-primary border border-border-color"
+                      : "bg-brand-purple hover:opacity-90 text-text-primary"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {followLoading ? (
@@ -220,7 +220,7 @@ const ProfileHeader = ({
                     <button
                       onClick={handleMessageClick}
                       disabled={chatLoading}
-                      className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded border border-gray-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 bg-bg-secondary hover:bg-gray-700 text-text-primary text-sm font-medium rounded border border-border-color transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                       {chatLoading ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -245,7 +245,7 @@ const ProfileHeader = ({
       {/* Image Preview Modal */}
       {showImagePreview && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-bg-primary/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setShowImagePreview(false)}
         >
           <div
@@ -254,7 +254,7 @@ const ProfileHeader = ({
           >
             <button
               onClick={() => setShowImagePreview(false)}
-              className="absolute -top-9 right-0 text-white text-2xl hover:opacity-70 transition-opacity"
+              className="absolute -top-9 right-0 text-text-primary text-2xl hover:opacity-70 transition-opacity"
             >
               ✕
             </button>

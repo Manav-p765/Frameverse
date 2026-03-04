@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { chatAPI } from "../../services/api";
 
 const Avatar = ({ src, name, size = "w-16 h-16" }) => (
-  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
+  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-bg-secondary flex items-center justify-center`}>
     {src ? (
       <img src={src} alt={name} className="w-full h-full object-cover" />
     ) : (
-      <span className="text-[#9a9aaa] text-xl font-medium">
+      <span className="text-text-secondary text-xl font-medium">
         {name?.charAt(0)?.toUpperCase() || "?"}
       </span>
     )}
@@ -42,13 +42,13 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
   if (!chat) return null;
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-[#18181c]">
+    <div className="flex flex-col h-full min-h-0 bg-bg-primary">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a30] shrink-0 bg-[#18181c] z-10">
-        <h2 className="text-white text-sm font-semibold">Info</h2>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a30] shrink-0 bg-bg-primary z-10">
+        <h2 className="text-text-primary text-sm font-semibold">Info</h2>
         <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-[#9a9aaa] hover:bg-[#2a2a30] hover:text-white transition-colors"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors"
           aria-label="Close"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -61,7 +61,7 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
       <div className="flex flex-col items-center gap-3 px-4 pt-6 pb-5 border-b border-[#2a2a30]">
         <Avatar src={avatar} name={name} size="w-20 h-20" />
         <div className="text-center">
-          <p className="text-white font-semibold text-base">{name}</p>
+          <p className="text-text-primary font-semibold text-base">{name}</p>
           {!isGroup && otherUser?.email && (
             <p className="text-[#5a5a6a] text-xs mt-0.5">{otherUser.email}</p>
           )}
@@ -79,7 +79,7 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
               { label: "Video", icon: <><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></> },
             ].map(({ label, icon }) => (
               <button key={label} className="flex flex-col items-center gap-1.5 group">
-                <div className="w-10 h-10 rounded-full bg-[#2a2a30] flex items-center justify-center text-[#9a9aaa] group-hover:bg-[#34343c] group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-full bg-bg-secondary flex items-center justify-center text-text-secondary group-hover:bg-[#34343c] group-hover:text-text-primary transition-colors">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {icon}
                   </svg>
@@ -99,7 +99,7 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
           </svg>
           <div>
             <p className="text-[#5a5a6a] text-xs">Created</p>
-            <p className="text-white text-sm">{formatDate(chat.createdAt)}</p>
+            <p className="text-text-primary text-sm">{formatDate(chat.createdAt)}</p>
           </div>
         </div>
         {isGroup && chat.description && (
@@ -109,7 +109,7 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
             </svg>
             <div>
               <p className="text-[#5a5a6a] text-xs">Description</p>
-              <p className="text-white text-sm">{chat.description}</p>
+              <p className="text-text-primary text-sm">{chat.description}</p>
             </div>
           </div>
         )}
@@ -121,17 +121,17 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
           <p className="text-[#5a5a6a] text-xs px-4 pt-4 pb-2 uppercase tracking-wider">Members</p>
           {chat.users?.map((user) => (
             <div key={user._id} className="flex items-center gap-3 px-4 py-2.5">
-              <div className="w-9 h-9 rounded-full bg-[#2a2a30] overflow-hidden flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-full bg-bg-secondary overflow-hidden flex items-center justify-center shrink-0">
                 {user.profilePic ? (
                   <img src={user.profilePic} alt={user.username} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-[#9a9aaa] text-sm">{user.username?.charAt(0)?.toUpperCase()}</span>
+                  <span className="text-text-secondary text-sm">{user.username?.charAt(0)?.toUpperCase()}</span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm truncate">{user.username}</p>
+                <p className="text-text-primary text-sm truncate">{user.username}</p>
                 {chat.admin?.some((a) => a._id === user._id || a === user._id) && (
-                  <p className="text-blue-400 text-xs">Admin</p>
+                  <p className="text-brand-purple text-xs">Admin</p>
                 )}
               </div>
             </div>
@@ -141,15 +141,15 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
 
       {/* Media tabs */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="flex border-b border-[#2a2a30] bg-[#18181c]">
+        <div className="flex border-b border-[#2a2a30] bg-bg-primary">
           {["media", "files"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex-1 py-3 text-xs font-medium capitalize transition-colors ${
                 activeTab === tab
-                  ? "text-white border-b-2 border-blue-500"
-                  : "text-[#5a5a6a] hover:text-[#9a9aaa]"
+                  ? "text-text-primary border-b-2 border-blue-500"
+                  : "text-[#5a5a6a] hover:text-text-secondary"
               }`}
             >
               {tab} {tab === "media" ? `(${images.length})` : `(${files.length})`}
@@ -161,7 +161,7 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
           {loadingMedia ? (
             <div className="grid grid-cols-3 gap-1.5">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="aspect-square bg-[#2a2a30] rounded-lg animate-pulse" />
+                <div key={i} className="aspect-square bg-bg-secondary rounded-lg animate-pulse" />
               ))}
             </div>
           ) : activeTab === "media" ? (
@@ -201,13 +201,13 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
                     href={msg.content}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-3 p-3 bg-[#2a2a30] rounded-xl hover:bg-[#34343c] transition-colors"
+                    className="flex items-center gap-3 p-3 bg-bg-secondary rounded-xl hover:bg-[#34343c] transition-colors"
                   >
-                    <svg className="text-[#9a9aaa] shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg className="text-text-secondary shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><polyline points="13 2 13 9 20 9" />
                     </svg>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-xs truncate">{msg.content.split("/").pop()}</p>
+                      <p className="text-text-primary text-xs truncate">{msg.content.split("/").pop()}</p>
                       <p className="text-[#5a5a6a] text-xs">{new Date(msg.createdAt).toLocaleDateString()}</p>
                     </div>
                   </a>

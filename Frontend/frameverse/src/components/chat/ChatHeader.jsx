@@ -3,11 +3,11 @@ import { useCallStore } from "../../store/useCallStore";
 import { useCallActions } from "../call/CallProvider";
 
 const Avatar = ({ src, name, size = "w-9 h-9" }) => (
-  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
+  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-bg-secondary flex items-center justify-center`}>
     {src ? (
       <img src={src} alt={name} className="w-full h-full object-cover" />
     ) : (
-      <span className="text-[#9a9aaa] text-sm font-medium">
+      <span className="text-text-secondary text-sm font-medium">
         {name?.charAt(0)?.toUpperCase() || "?"}
       </span>
     )}
@@ -41,11 +41,11 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
   })();
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-[#2a2a30] bg-[#18181c]">
+    <div className="flex items-center gap-3 px-4 py-3 border-b border-border-color bg-brand-purple/10 dark:bg-bg-primary transition-colors">
       {/* Back button — mobile only */}
       <button
         onClick={onBack || (() => navigate("/chats"))}
-        className="md:hidden text-[#9a9aaa] hover:text-white transition-colors p-1 -ml-1"
+        className="md:hidden text-text-secondary hover:text-text-primary transition-colors p-1 -ml-1"
         aria-label="Back"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -60,9 +60,9 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
       >
         <Avatar src={avatar} name={name} />
         <div className="min-w-0">
-          <p className="text-white text-sm font-medium truncate">{name}</p>
+          <p className="text-text-primary text-sm font-medium truncate">{name}</p>
           {typingText ? (
-            <p className="text-blue-400 text-xs truncate">{typingText}</p>
+            <p className="text-brand-purple text-xs truncate">{typingText}</p>
           ) : (
             <p className="text-[#5a5a6a] text-xs truncate">
               {isGroup ? `${chat.users?.length || 0} members` : "Tap to view info"}
@@ -77,7 +77,7 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
           <>
             <button
               onClick={() => handleStartCall("audio")}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[#9a9aaa] hover:bg-[#2a2a30] hover:text-white transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors"
               aria-label="Voice call"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -86,7 +86,7 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
             </button>
             <button
               onClick={() => handleStartCall("video")}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[#9a9aaa] hover:bg-[#2a2a30] hover:text-white transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors"
               aria-label="Video call"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -97,7 +97,7 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
         )}
         <button
           onClick={onInfoClick}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-[#9a9aaa] hover:bg-[#2a2a30] hover:text-white transition-colors"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors"
           aria-label="Chat info"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

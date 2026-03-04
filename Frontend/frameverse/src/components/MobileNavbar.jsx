@@ -42,8 +42,8 @@ const MobileNavbar = () => {
         fixed bottom-0 left-0 right-0
         z-50
         px-4
-        bg-[#18181c]
-        border-t border-white/5
+        light:bg-[#f7567c] dark:bg-[#18181c]
+        border-t border-border-color
         shadow-[0_-4px_24px_rgba(0,0,0,0.4)]
         flex items-center justify-around
       "
@@ -66,8 +66,8 @@ const MobileNavbar = () => {
                 style={{
                   width: isActive ? 28 : 0,
                   height: 3,
-                  background: "linear-gradient(90deg, #fca5a5, #ec4899)",
-                  boxShadow: isActive ? "0 0 10px 3px rgba(239,68,68,0.9)" : "none",
+                  background: "linear-gradient(90deg, var(--color-brand-orange), var(--color-brand-pink))",
+                  boxShadow: isActive ? "0 0 10px 3px rgba(247, 86, 124, 0.4)" : "none",
                   opacity: isActive ? 1 : 0,
                 }}
               />
@@ -84,8 +84,8 @@ const MobileNavbar = () => {
                   opacity: isActive ? 1 : 0,
                   background: `radial-gradient(
                     ellipse 40% 100% at 50% 0%,
-                    rgba(220, 38, 38, 0.35) 0%,
-                    rgba(220, 38, 38, 0.12) 40%,
+                    rgba(247, 86, 124, 0.2) 0%,
+                    rgba(247, 86, 124, 0.05) 40%,
                     transparent 100%
                   )`,
                 }}
@@ -109,7 +109,7 @@ const MobileNavbar = () => {
                     isActive
                       ? {
                         stroke: "url(#activeGrad)",
-                        filter: "drop-shadow(0 0 6px rgba(239,68,68,0.8))",
+                        filter: "drop-shadow(0 0 6px rgba(247, 86, 124, 0.4))",
                       }
                       : { color: "#6b7280" }
                   }
@@ -118,15 +118,15 @@ const MobileNavbar = () => {
                 <svg width="0" height="0" className="absolute">
                   <defs>
                     <linearGradient id="activeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#fca5a5" />
-                      <stop offset="100%" stopColor="#ec4899" />
+                      <stop offset="0%" stopColor="var(--color-brand-orange)" />
+                      <stop offset="100%" stopColor="var(--color-brand-pink)" />
                     </linearGradient>
                   </defs>
                 </svg>
 
                 {/* Unread badge — chats only */}
                 {label === "Chats" && unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
+                  <span className="absolute -top-0.5 -right-0.5 bg-brand-purple text-text-primary text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}

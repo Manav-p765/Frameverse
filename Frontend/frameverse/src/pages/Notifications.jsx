@@ -43,14 +43,14 @@ const notifMeta = {
   follow: {
     icon: UserPlus,
     text: "started following you",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
+    color: "text-brand-purple",
+    bg: "bg-brand-purple/10",
   },
   like: {
     icon: Heart,
     text: "liked your post",
     color: "text-pink-400",
-    bg: "bg-pink-500/10",
+    bg: "bg-brand-pink/10",
   },
   new_post: {
     icon: ImagePlus,
@@ -64,10 +64,10 @@ const notifMeta = {
 
 const SkeletonItem = () => (
   <div className="flex items-center gap-3 px-4 py-3 animate-pulse">
-    <div className="w-11 h-11 rounded-full bg-[#2a2a30] shrink-0" />
+    <div className="w-11 h-11 rounded-full bg-bg-secondary shrink-0" />
     <div className="flex-1 space-y-2">
-      <div className="h-3.5 bg-[#2a2a30] rounded w-2/3" />
-      <div className="h-3 bg-[#2a2a30] rounded w-1/3" />
+      <div className="h-3.5 bg-bg-secondary rounded w-2/3" />
+      <div className="h-3 bg-bg-secondary rounded w-1/3" />
     </div>
   </div>
 );
@@ -138,11 +138,11 @@ const Notifications = () => {
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-white text-xl font-semibold tracking-tight">Notifications</h1>
+        <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-brand-orange to-brand-pink">Notifications</h1>
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAllRead}
-            className="flex items-center gap-1.5 text-sm text-[#9a9aaa] hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
           >
             <Check size={16} />
             Mark all read
@@ -160,7 +160,7 @@ const Notifications = () => {
       ) : notifications.length === 0 ? (
         /* Empty state */
         <div className="flex flex-col items-center justify-center h-64 gap-3">
-          <div className="w-16 h-16 rounded-full bg-[#2a2a30] flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-bg-secondary flex items-center justify-center">
             <Heart size={28} className="text-[#5a5a6a]" />
           </div>
           <p className="text-[#5a5a6a] text-sm">No notifications yet</p>
@@ -198,7 +198,7 @@ const Notifications = () => {
                             className="w-11 h-11 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-11 h-11 rounded-full bg-[#2a2a30] flex items-center justify-center text-white text-sm font-medium uppercase">
+                          <div className="w-11 h-11 rounded-full bg-bg-secondary flex items-center justify-center text-text-primary text-sm font-medium uppercase">
                             {notif.sender?.username?.[0] || "?"}
                           </div>
                         )}
@@ -212,11 +212,11 @@ const Notifications = () => {
 
                       {/* Text */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white leading-snug">
+                        <p className="text-sm text-text-primary leading-snug">
                           <span className="font-semibold">
                             {notif.sender?.username || "Someone"}
                           </span>{" "}
-                          <span className="text-[#9a9aaa]">{meta.text}</span>
+                          <span className="text-text-secondary">{meta.text}</span>
                         </p>
                         <p className="text-xs text-[#5a5a6a] mt-0.5">
                           {timeAgo(notif.createdAt)}
@@ -234,7 +234,7 @@ const Notifications = () => {
 
                       {/* Unread dot */}
                       {!notif.read && (
-                        <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                        <div className="w-2 h-2 rounded-full bg-brand-purple shrink-0" />
                       )}
                     </button>
                   );
@@ -248,7 +248,7 @@ const Notifications = () => {
             <div className="flex justify-center py-4">
               <button
                 onClick={() => setPage((p) => p + 1)}
-                className="text-sm text-[#9a9aaa] hover:text-white transition-colors"
+                className="text-sm text-text-secondary hover:text-text-primary transition-colors"
               >
                 Load more
               </button>

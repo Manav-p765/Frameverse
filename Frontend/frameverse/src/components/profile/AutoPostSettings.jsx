@@ -112,13 +112,13 @@ export default function AutoPostSettings() {
     if (initialLoad) {
         return (
             <div className="flex justify-center py-20">
-                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-brand-purple animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 text-white space-y-8 animate-in fade-in duration-500 pb-32 sm:pb-8">
+        <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 text-text-primary space-y-8 animate-in fade-in duration-500 pb-32 sm:pb-8">
 
             {/* Header */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -126,33 +126,33 @@ export default function AutoPostSettings() {
                     <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent mb-2">
                         AutoPost Settings
                     </h1>
-                    <p className="text-sm sm:text-base text-gray-400 max-w-lg">
+                    <p className="text-sm sm:text-base text-text-secondary max-w-lg">
                         Automate your progress tracking. We'll generate a stunning daily summary card and post it to your feed.
                     </p>
                 </div>
             </div>
 
             {error && (
-                <div className="bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-400 p-4 rounded-2xl flex items-center gap-3 shadow-lg shadow-red-500/5 animate-in slide-in-from-top-4">
+                <div className="bg-brand-pink/10 backdrop-blur-md border border-red-500/20 text-brand-pink p-4 rounded-2xl flex items-center gap-3 shadow-lg shadow-red-500/5 animate-in slide-in-from-top-4">
                     <AlertCircle className="w-5 h-5 flex-shrink-0" />
                     <p className="text-sm font-medium">{error}</p>
                 </div>
             )}
 
             {/* SECTION 1: Master Toggle */}
-            <div className={`relative overflow-hidden border p-6 sm:p-8 rounded-3xl flex flex-col sm:flex-row gap-6 sm:items-center justify-between shadow-2xl transition-all duration-500 ${formData.enabled ? 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/30' : 'bg-white/5 border-white/10 backdrop-blur-xl'}`}>
+            <div className={`relative overflow-hidden border p-6 sm:p-8 rounded-3xl flex flex-col sm:flex-row gap-6 sm:items-center justify-between shadow-2xl transition-all duration-500 ${formData.enabled ? 'bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-blue-500/30' : 'bg-white/5 border-border-color backdrop-blur-xl'}`}>
                 {formData.enabled && (
-                    <div className="absolute top-[-50%] left-[-10%] w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] pointer-events-none"></div>
+                    <div className="absolute top-[-50%] left-[-10%] w-64 h-64 bg-brand-purple/20 rounded-full blur-[80px] pointer-events-none"></div>
                 )}
 
                 <div className="relative z-10 w-full sm:w-auto">
                     <h2 className="text-xl sm:text-2xl font-bold mb-2">Enable Automation</h2>
-                    <p className="text-sm text-gray-400 max-w-sm">
+                    <p className="text-sm text-text-secondary max-w-sm">
                         Toggle to activate the background job that runs on your configured schedule.
                     </p>
                 </div>
                 <div className="relative z-10 flex items-center justify-between sm:justify-end shrink-0 w-full sm:w-auto">
-                    <span className="sm:hidden text-sm font-semibold text-gray-300">Status</span>
+                    <span className="sm:hidden text-sm font-semibold text-text-secondary">Status</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input
                             type="checkbox"
@@ -160,7 +160,7 @@ export default function AutoPostSettings() {
                             checked={formData.enabled}
                             onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
                         />
-                        <div className="w-14 h-8 bg-black/40 border border-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-gray-300 peer-checked:after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-500 peer-checked:to-purple-600 shadow-inner"></div>
+                        <div className="w-14 h-8 bg-bg-primary/40 border border-border-color peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-gray-300 peer-checked:after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-blue-500 peer-checked:to-purple-600 shadow-inner"></div>
                     </label>
                 </div>
             </div>
@@ -168,36 +168,36 @@ export default function AutoPostSettings() {
             <div className={`space-y-8 transition-all duration-500 ${!formData.enabled ? 'opacity-40 grayscale-[50%] pointer-events-none' : ''}`}>
 
                 {/* SECTION 2: Schedule */}
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 sm:p-8 rounded-3xl shadow-xl">
-                    <h2 className="text-lg font-semibold flex items-center gap-2 mb-6 text-gray-200">
-                        <Clock className="w-5 h-5 text-blue-400" />
+                <div className="bg-white/5 backdrop-blur-xl border border-border-color p-6 sm:p-8 rounded-3xl shadow-xl">
+                    <h2 className="text-lg font-semibold flex items-center gap-2 mb-6 text-text-primary">
+                        <Clock className="w-5 h-5 text-brand-purple" />
                         Posting Schedule
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-400">Time (24h format)</label>
+                            <label className="block text-sm font-medium text-text-secondary">Time (24h format)</label>
                             <div className="relative">
                                 <input
                                     type="time"
                                     value={formData.postTime}
                                     onChange={(e) => setFormData({ ...formData, postTime: e.target.value })}
-                                    className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-3.5 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/50 transition-all text-white placeholder-gray-500"
+                                    className="w-full bg-bg-primary/50 border border-border-color rounded-2xl px-5 py-3.5 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/50 transition-all text-text-primary placeholder-gray-500"
                                 />
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-400">Timezone</label>
+                            <label className="block text-sm font-medium text-text-secondary">Timezone</label>
                             <div className="relative">
                                 <select
                                     value={formData.timezone}
                                     onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                                    className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-3.5 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/50 transition-all text-white appearance-none cursor-pointer"
+                                    className="w-full bg-bg-primary/50 border border-border-color rounded-2xl px-5 py-3.5 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400/50 transition-all text-text-primary appearance-none cursor-pointer"
                                 >
                                     {timezones.map(tz => (
-                                        <option key={tz} value={tz} className="bg-gray-900">{tz}</option>
+                                        <option key={tz} value={tz} className="bg-bg-primary">{tz}</option>
                                     ))}
                                 </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-text-secondary">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </div>
                             </div>
@@ -207,23 +207,23 @@ export default function AutoPostSettings() {
 
                 {/* SECTION 3: App Connections & Data Selection */}
                 <div>
-                    <h2 className="text-lg font-semibold mb-4 text-gray-200 ml-2">Connected Platforms</h2>
+                    <h2 className="text-lg font-semibold mb-4 text-text-primary ml-2">Connected Platforms</h2>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                         {/* GitHub Card */}
-                        <div className={`relative overflow-hidden group bg-white/5 backdrop-blur-xl border ${formData.selectedApps.includes('github') ? 'border-purple-500/40 bg-purple-500/5' : 'border-white/10'} p-6 sm:p-8 rounded-3xl shadow-xl transition-all duration-300 hover:border-purple-500/60`}>
+                        <div className={`relative overflow-hidden group bg-white/5 backdrop-blur-xl border ${formData.selectedApps.includes('github') ? 'border-purple-500/40 bg-purple-500/5' : 'border-border-color'} p-6 sm:p-8 rounded-3xl shadow-xl transition-all duration-300 hover:border-purple-500/60`}>
                             {formData.selectedApps.includes('github') && (
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/20 rounded-full blur-[60px] pointer-events-none transition-opacity"></div>
                             )}
 
                             <div className="relative z-10 flex flex-row items-center justify-between mb-6 sm:mb-8 gap-4">
                                 <div className="flex items-center gap-3 sm:gap-4 shrink overflow-hidden">
-                                    <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-2xl bg-gradient-to-br from-[#24292e] to-black flex items-center justify-center shadow-lg shadow-black/50 border border-white/10">
-                                        <Github className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-2xl bg-gradient-to-br from-[#24292e] to-black flex items-center justify-center shadow-lg shadow-black/50 border border-border-color">
+                                        <Github className="w-5 h-5 sm:w-6 sm:h-6 text-text-primary" />
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-bold text-base sm:text-lg truncate">GitHub</h3>
-                                        <p className="text-xs sm:text-sm text-gray-400 truncate">Track daily commits</p>
+                                        <p className="text-xs sm:text-sm text-text-secondary truncate">Track daily commits</p>
                                     </div>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer shrink-0">
@@ -233,25 +233,25 @@ export default function AutoPostSettings() {
                                         checked={formData.selectedApps.includes('github')}
                                         onChange={() => handleToggleApp('github')}
                                     />
-                                    <div className="w-12 h-7 bg-black/50 border border-white/10 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-gray-300 peer-checked:after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                                    <div className="w-12 h-7 bg-bg-primary/50 border border-border-color rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-gray-300 peer-checked:after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
                                 </label>
                             </div>
 
                             <div className="relative z-10 space-y-2">
-                                <label className="text-sm font-medium text-gray-400">GitHub Username</label>
+                                <label className="text-sm font-medium text-text-secondary">GitHub Username</label>
                                 <input
                                     type="text"
                                     placeholder="e.g. eng-manav"
                                     value={githubUsername}
                                     onChange={(e) => setGithubUsername(e.target.value)}
                                     disabled={!formData.selectedApps.includes('github')}
-                                    className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-3.5 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 disabled:opacity-40 transition-all font-mono text-sm"
+                                    className="w-full bg-bg-primary/50 border border-border-color rounded-2xl px-5 py-3.5 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 disabled:opacity-40 transition-all font-mono text-sm"
                                 />
                             </div>
                         </div>
 
                         {/* LeetCode Card */}
-                        <div className={`relative overflow-hidden group bg-white/5 backdrop-blur-xl border ${formData.selectedApps.includes('leetcode') ? 'border-amber-500/40 bg-amber-500/5' : 'border-white/10'} p-6 sm:p-8 rounded-3xl shadow-xl transition-all duration-300 hover:border-amber-500/60`}>
+                        <div className={`relative overflow-hidden group bg-white/5 backdrop-blur-xl border ${formData.selectedApps.includes('leetcode') ? 'border-amber-500/40 bg-amber-500/5' : 'border-border-color'} p-6 sm:p-8 rounded-3xl shadow-xl transition-all duration-300 hover:border-amber-500/60`}>
                             {formData.selectedApps.includes('leetcode') && (
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/20 rounded-full blur-[60px] pointer-events-none transition-opacity"></div>
                             )}
@@ -263,7 +263,7 @@ export default function AutoPostSettings() {
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-bold text-base sm:text-lg truncate">LeetCode</h3>
-                                        <p className="text-xs sm:text-sm text-gray-400 truncate">Track solved problems</p>
+                                        <p className="text-xs sm:text-sm text-text-secondary truncate">Track solved problems</p>
                                     </div>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer shrink-0">
@@ -273,19 +273,19 @@ export default function AutoPostSettings() {
                                         checked={formData.selectedApps.includes('leetcode')}
                                         onChange={() => handleToggleApp('leetcode')}
                                     />
-                                    <div className="w-12 h-7 bg-black/50 border border-white/10 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-gray-300 peer-checked:after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                                    <div className="w-12 h-7 bg-bg-primary/50 border border-border-color rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-gray-300 peer-checked:after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                                 </label>
                             </div>
 
                             <div className="relative z-10 space-y-2">
-                                <label className="text-sm font-medium text-gray-400">LeetCode Username</label>
+                                <label className="text-sm font-medium text-text-secondary">LeetCode Username</label>
                                 <input
                                     type="text"
                                     placeholder="e.g. manav_leetcode"
                                     value={leetcodeUsername}
                                     onChange={(e) => setLeetcodeUsername(e.target.value)}
                                     disabled={!formData.selectedApps.includes('leetcode')}
-                                    className="w-full bg-black/50 border border-white/10 rounded-2xl px-5 py-3.5 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 disabled:opacity-40 transition-all font-mono text-sm"
+                                    className="w-full bg-bg-primary/50 border border-border-color rounded-2xl px-5 py-3.5 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 disabled:opacity-40 transition-all font-mono text-sm"
                                 />
                             </div>
                         </div>
@@ -296,7 +296,7 @@ export default function AutoPostSettings() {
             </div>
 
             {/* SECTION 4: Actions */}
-            <div className="sticky bottom-4 z-40 bg-black/80 backdrop-blur-2xl border border-white/10 p-4 rounded-3xl mt-8 flex flex-col sm:flex-row gap-4 items-center justify-between shadow-2xl">
+            <div className="sticky bottom-4 z-40 bg-bg-primary/80 backdrop-blur-2xl border border-border-color p-4 rounded-3xl mt-8 flex flex-col sm:flex-row gap-4 items-center justify-between shadow-2xl">
                 {runStats ? (
                     <div className="text-sm text-green-400 font-medium flex items-center gap-2 px-2">
                         <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
@@ -306,7 +306,7 @@ export default function AutoPostSettings() {
                     <button
                         onClick={handleRunNow}
                         disabled={loading || !formData.enabled}
-                        className="group flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-medium border border-white/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-auto hover:shadow-lg hover:shadow-white/5"
+                        className="group flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/10 text-text-primary font-medium border border-border-color transition-all disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-auto hover:shadow-lg hover:shadow-white/5"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 group-hover:scale-110 transition-transform" />}
                         Generate Now

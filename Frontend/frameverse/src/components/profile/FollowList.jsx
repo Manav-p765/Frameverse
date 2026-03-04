@@ -23,21 +23,21 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-fadeIn"
+        className="fixed inset-0 bg-bg-primary/60 backdrop-blur-sm z-40 animate-fadeIn"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-gray-900 rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col animate-slideUp shadow-2xl border border-gray-800">
+        <div className="bg-bg-primary rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col animate-slideUp shadow-2xl border border-border-color">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-800">
-            <h2 className="text-lg font-semibold text-white capitalize">
+          <div className="flex items-center justify-between p-4 border-b border-border-color">
+            <h2 className="text-lg font-semibold text-text-primary capitalize">
               {type}
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-800"
+              className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded-lg hover:bg-bg-secondary"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -47,10 +47,10 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }
           </div>
 
           {/* Search Bar */}
-          <div className="p-4 border-b border-gray-800">
+          <div className="p-4 border-b border-border-color">
             <div className="relative">
               <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
                 width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
               >
                 <circle cx="11" cy="11" r="8" />
@@ -61,7 +61,7 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-800 text-white pl-10 pr-4 py-2.5 rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none transition-colors"
+                className="w-full bg-bg-secondary text-text-primary pl-10 pr-4 py-2.5 rounded-lg border border-border-color focus:border-blue-500 focus:outline-none transition-colors"
               />
             </div>
           </div>
@@ -69,7 +69,7 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }
           {/* Users List */}
           <div className="flex-1 overflow-y-auto">
             {filteredUsers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+              <div className="flex flex-col items-center justify-center py-12 text-text-secondary">
                 <svg
                   width="48" height="48" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="1.5" className="mb-3 opacity-50"
@@ -94,7 +94,7 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }
                     <div
                       key={userId}  // ✅ FIX: was potentially using an ObjectId object as key
                       onClick={() => onUserClick(user)}
-                      className="flex items-center gap-3 p-4 hover:bg-gray-800/50 transition-colors cursor-pointer"
+                      className="flex items-center gap-3 p-4 hover:bg-bg-secondary/50 transition-colors cursor-pointer"
                     >
                       {/* Avatar */}
                       <div className="shrink-0">
@@ -112,7 +112,7 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }
                           />
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-800">
-                            <span className="text-white font-semibold text-lg">
+                            <span className="text-text-primary font-semibold text-lg">
                               {user.username?.charAt(0).toUpperCase()}
                             </span>
                           </div>
@@ -121,14 +121,14 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }
 
                       {/* User Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-medium truncate">
+                        <p className="text-text-primary font-medium truncate">
                           {user.username}
                           {isSelf && (
-                            <span className="ml-2 text-xs text-gray-500 font-normal">(you)</span>
+                            <span className="ml-2 text-xs text-text-secondary font-normal">(you)</span>
                           )}
                         </p>
                         {user.bio && (
-                          <p className="text-gray-400 text-sm truncate">{user.bio}</p>
+                          <p className="text-text-secondary text-sm truncate">{user.bio}</p>
                         )}
                       </div>
 
@@ -147,8 +147,8 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }
           </div>
 
           {/* Footer - Count */}
-          <div className="p-4 border-t border-gray-800 bg-gray-900/50">
-            <p className="text-center text-sm text-gray-400">
+          <div className="p-4 border-t border-border-color bg-bg-primary/50">
+            <p className="text-center text-sm text-text-secondary">
               {filteredUsers.length} {type}
             </p>
           </div>

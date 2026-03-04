@@ -86,9 +86,9 @@ export default function SearchBar() {
                     onFocus={() => results.length && setShowDropdown(true)}
                     placeholder="Search users..."
                     autoComplete="off"
-                    className="w-full pl-11 pr-10 py-3 rounded-xl bg-[#1e1e24] border border-[#2a2a30]
-                     text-white placeholder-[#5a5a6a] text-sm
-                     focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/25
+                    className="w-full pl-11 pr-10 py-3 rounded-xl bg-bg-secondary border border-border-color
+                     text-text-primary placeholder-text-secondary text-sm
+                     focus:outline-none focus:border-brand-purple/50 focus:ring-1 focus:ring-brand-purple/25
                      transition-all duration-200"
                 />
 
@@ -96,7 +96,7 @@ export default function SearchBar() {
                 {query && (
                     <button
                         onClick={handleClear}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5a5a6a] hover:text-white transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5a5a6a] hover:text-text-primary transition-colors"
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -107,11 +107,11 @@ export default function SearchBar() {
 
             {/* Dropdown */}
             {showDropdown && (
-                <div className="absolute z-50 mt-2 w-full rounded-xl bg-[#1e1e24] border border-[#2a2a30]
+                <div className="absolute z-50 mt-2 w-full rounded-xl bg-bg-secondary border border-border-color
                         shadow-2xl overflow-hidden animate-fade-in max-h-80 overflow-y-auto scrollbar-hide">
                     {loading ? (
                         <div className="flex items-center justify-center py-8">
-                            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-brand-purple border-t-transparent rounded-full animate-spin" />
                         </div>
                     ) : results.length === 0 ? (
                         <div className="py-8 text-center text-[#5a5a6a] text-sm">
@@ -125,11 +125,11 @@ export default function SearchBar() {
                                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#26262e] transition-colors text-left"
                             >
                                 {/* Avatar */}
-                                <div className="w-10 h-10 rounded-full bg-[#2a2a30] shrink-0 overflow-hidden flex items-center justify-center">
+                                <div className="w-10 h-10 rounded-full bg-bg-secondary shrink-0 overflow-hidden flex items-center justify-center">
                                     {user.profilePic ? (
                                         <img src={user.profilePic} alt={user.username} className="w-full h-full object-cover" />
                                     ) : (
-                                        <span className="text-white text-sm font-semibold">
+                                        <span className="text-text-primary text-sm font-semibold">
                                             {user.username?.charAt(0).toUpperCase()}
                                         </span>
                                     )}
@@ -137,7 +137,7 @@ export default function SearchBar() {
 
                                 {/* Info */}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-white text-sm font-medium truncate">{user.username}</p>
+                                    <p className="text-text-primary text-sm font-medium truncate">{user.username}</p>
                                     {user.bio && (
                                         <p className="text-[#5a5a6a] text-xs truncate">{user.bio}</p>
                                     )}

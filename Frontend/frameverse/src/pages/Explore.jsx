@@ -47,7 +47,7 @@ const Explore = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#18181c] text-white">
+    <div className="min-h-screen bg-bg-primary text-text-primary">
       <div className="max-w-5xl mx-auto pt-4 px-4">
         {/* Search */}
         <SearchBar />

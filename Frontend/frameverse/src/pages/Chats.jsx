@@ -144,7 +144,7 @@ export default function Chats() {
 
   if (!currentUser) {
     return (
-      <div className="h-screen bg-[#18181c] flex items-center justify-center">
+      <div className="h-screen bg-bg-primary flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-[#5a5a6a] text-sm">Loading chats...</p>
@@ -177,8 +177,8 @@ export default function Chats() {
   return (
     <>
       {/* ═══ DESKTOP (md+) ═══════════════════════════════════════════════════ */}
-      <div className="hidden md:flex bg-[#18181c] overflow-hidden" style={{ height: "100vh" }}>
-        <div className="w-[320px] shrink-0 border-r border-[#2a2a30] flex flex-col overflow-hidden">
+      <div className="hidden md:flex bg-bg-primary overflow-hidden" style={{ height: "100vh" }}>
+        <div className="w-[320px] shrink-0 border-r border-border-color flex flex-col overflow-hidden">
           <ChatList {...listProps} />
         </div>
 
@@ -188,14 +188,14 @@ export default function Chats() {
         </div>
 
         {showInfo && activeChat && (
-          <div className="w-70 shrink-0 border-l border-[#2a2a30] flex flex-col overflow-hidden">
+          <div className="w-70 shrink-0 border-l border-border-color flex flex-col overflow-hidden">
             <ChatInfoPanel {...infoProps} />
           </div>
         )}
       </div>
 
       {/* ═══ MOBILE ══════════════════════════════════════════════════════════ */}
-      <div className="md:hidden bg-[#18181c] h-full flex flex-col overflow-hidden">
+      <div className="md:hidden bg-bg-primary h-full flex flex-col overflow-hidden">
 
         {currentView === "chat" && !chatId && (
           <div className="h-full flex flex-col overflow-hidden">

@@ -37,14 +37,14 @@ const PostViewer = ({ posts = [], initialIndex = 0, onClose, profile, onDeletePo
         <div className="fixed inset-0
   z-50
   flex flex-col items-center justify-center
-  bg-black/40
+  bg-bg-primary/40
   backdrop-blur-md
   transition-all duration-300">
 
             {/* Close Button */}
             <button
                 onClick={onClose}
-                className="absolute top-6 right-6 text-white text-2xl"
+                className="absolute top-6 right-6 text-text-primary text-2xl"
             >
                 ✕
             </button>
@@ -53,7 +53,7 @@ const PostViewer = ({ posts = [], initialIndex = 0, onClose, profile, onDeletePo
             {currentIndex > 0 && (
                 <button
                     onClick={prevPost}
-                    className="absolute left-5 text-white text-3xl"
+                    className="absolute left-5 text-text-primary text-3xl"
                 >
                     ‹
                 </button>
@@ -74,7 +74,7 @@ const PostViewer = ({ posts = [], initialIndex = 0, onClose, profile, onDeletePo
             {currentIndex < posts.length - 1 && (
                 <button
                     onClick={nextPost}
-                    className="absolute right-5 text-white text-3xl"
+                    className="absolute right-5 text-text-primary text-3xl"
                 >
                     ›
                 </button>

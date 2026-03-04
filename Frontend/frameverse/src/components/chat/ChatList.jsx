@@ -15,11 +15,11 @@ const formatTime = (date) => {
 };
 
 const Avatar = ({ src, name, size = "w-11 h-11" }) => (
-  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
+  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-bg-secondary flex items-center justify-center`}>
     {src ? (
       <img src={src} alt={name} className="w-full h-full object-cover" />
     ) : (
-      <span className="text-[#9a9aaa] text-sm font-medium">
+      <span className="text-text-secondary text-sm font-medium">
         {name?.charAt(0)?.toUpperCase() || "?"}
       </span>
     )}
@@ -28,10 +28,10 @@ const Avatar = ({ src, name, size = "w-11 h-11" }) => (
 
 const SkeletonItem = () => (
   <div className="flex items-center gap-3 px-4 py-3 animate-pulse">
-    <div className="w-11 h-11 rounded-full bg-[#2a2a30] shrink-0" />
+    <div className="w-11 h-11 rounded-full bg-bg-secondary shrink-0" />
     <div className="flex-1 space-y-2">
-      <div className="h-3.5 bg-[#2a2a30] rounded w-1/3" />
-      <div className="h-3 bg-[#2a2a30] rounded w-2/3" />
+      <div className="h-3.5 bg-bg-secondary rounded w-1/3" />
+      <div className="h-3 bg-bg-secondary rounded w-2/3" />
     </div>
   </div>
 );
@@ -135,13 +135,13 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
   });
 
   return (
-    <div className="flex flex-col h-full min-h-0 w-full bg-[#18181c]">
+    <div className="flex flex-col h-full min-h-0 w-full bg-bg-primary">
 
       {/* Header — flex-shrink-0 keeps it fixed, list scrolls below */}
       {/* Added `md:pt-24` to prevent collision with the global Frameverse logo on desktop */}
-      <div className="px-4 pt-5 md:pt-24 pb-3 border-b border-[#2a2a30] shrink-0 bg-[#18181c]">
+      <div className="px-4 pt-5 md:pt-24 pb-3 border-b border-border-color shrink-0 bg-brand-purple/10 dark:bg-bg-primary transition-colors">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-white text-xl font-semibold tracking-tight">Messages</h1>
+          <h1 className="text-text-primary text-xl font-semibold tracking-tight">Messages</h1>
         </div>
 
         {/* Search */}
@@ -155,7 +155,7 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
             placeholder="Search or start new chat"
-            className="w-full bg-[#2a2a30] text-white text-sm pl-9 pr-3 py-2 rounded-xl border border-transparent focus:border-[#3a3a44] focus:outline-none placeholder-[#5a5a6a] transition-colors"
+            className="w-full bg-bg-secondary text-text-primary text-sm pl-9 pr-3 py-2 rounded-xl border border-transparent focus:border-brand-purple/50 focus:outline-none placeholder-text-secondary transition-colors"
           />
         </div>
       </div>
@@ -188,32 +188,31 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
                     <button
                       key={chat._id}
                       onClick={() => onChatSelect(chat._id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${isActive ? "bg-[#2a2a30]" : "hover:bg-[#222226]"
-                        }`}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${isActive ? "bg-bg-secondary" : "hover:bg-bg-secondary/50"}`}
                     >
                       {/* Avatar — blue ring when unread */}
-                      <div className={`relative rounded-full ${hasUnread ? "ring-2 ring-blue-500" : ""}`}>
+                      <div className={`relative rounded-full ${hasUnread ? "ring-2 ring-brand-purple" : ""}`}>
                         <Avatar src={avatar} name={name} />
                       </div>
 
                       <div className="flex-1 min-w-0">
                         {/* Name + time row */}
                         <div className="flex items-center justify-between gap-2">
-                          <span className={`text-sm truncate ${hasUnread ? "font-semibold text-white" : "font-medium text-white"}`}>
+                          <span className={`text-sm truncate ${hasUnread ? "font-semibold text-text-primary" : "font-medium text-text-primary"}`}>
                             {name}
                           </span>
-                          <span className={`text-xs shrink-0 ${hasUnread ? "text-blue-400 font-medium" : "text-[#5a5a6a]"}`}>
+                          <span className={`text-xs shrink-0 ${hasUnread ? "text-brand-purple font-medium" : "text-[#5a5a6a]"}`}>
                             {formatTime(chat.lastMessageAt)}
                           </span>
                         </div>
 
                         {/* Last message + badge row */}
                         <div className="flex items-center justify-between gap-2 mt-0.5">
-                          <span className={`text-xs truncate ${hasUnread ? "text-white font-medium" : "text-[#5a5a6a]"}`}>
+                          <span className={`text-xs truncate ${hasUnread ? "text-text-primary font-medium" : "text-[#5a5a6a]"}`}>
                             {getLastMessage(chat)}
                           </span>
                           {hasUnread ? (
-                            <span className="shrink-0 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4.5 h-4.5 flex items-center justify-center px-1 leading-none">
+                            <span className="shrink-0 bg-brand-purple text-text-primary text-[10px] font-bold rounded-full min-w-4.5 h-4.5 flex items-center justify-center px-1 leading-none">
                               {unread > 9 ? "9+" : unread}
                             </span>
                           ) : (
@@ -238,15 +237,15 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => handleStartNewChat(user._id)}
                     disabled={creatingChatId === user._id}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#222226] transition-colors text-left"
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-bg-secondary/50 transition-colors text-left"
                   >
                     <Avatar src={user.profilePic} name={user.username} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium">{user.username}</p>
+                      <p className="text-text-primary text-sm font-medium">{user.username}</p>
                       {user.bio && <p className="text-[#5a5a6a] text-xs truncate">{user.bio}</p>}
                     </div>
                     {creatingChatId === user._id ? (
-                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                      <div className="w-4 h-4 border-2 border-brand-purple border-t-transparent rounded-full animate-spin shrink-0" />
                     ) : (
                       <svg className="text-[#5a5a6a] shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <polyline points="9 18 15 12 9 6" />
@@ -259,6 +258,6 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }

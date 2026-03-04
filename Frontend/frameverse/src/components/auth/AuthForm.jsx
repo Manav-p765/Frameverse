@@ -17,10 +17,10 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
 
                     {/* Header */}
                     <div className="mb-6">
-                        <h2 className="text-3xl font-semibold text-white mb-3">
+                        <h2 className="text-3xl font-semibold text-text-primary mb-3">
                             {mode === "login" ? "Welcome back" : "Create your account"}
                         </h2>
-                        <p className="text-gray-400 text-sm leading-relaxed">
+                        <p className="text-text-secondary text-sm leading-relaxed">
                             {mode === "login"
                                 ? "Sign in to continue your conversations"
                                 : "Register to chat, share and connect."}
@@ -29,8 +29,8 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
 
                     {/* Server Error */}
                     {serverError && (
-                        <div className="mb-5 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                            <p className="text-red-400 text-sm text-center">{serverError}</p>
+                        <div className="mb-5 p-3 bg-brand-pink/10 border border-red-500/30 rounded-lg">
+                            <p className="text-brand-pink text-sm text-center">{serverError}</p>
                         </div>
                     )}
 
@@ -39,7 +39,7 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
                         {/* Username (Register only) */}
                         {mode === "register" && (
                             <div>
-                                <label className="block text-gray-300 text-sm font-medium mb-2">
+                                <label className="block text-text-secondary text-sm font-medium mb-2">
                                     Username*
                                 </label>
                                 <input
@@ -49,12 +49,12 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
                                     value={form.username}
                                     onChange={handleChange}
                                     required={mode === "register"}
-                                    className="w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-white/10
+                                    className="w-full px-4 py-3 rounded-lg bg-white/5 text-text-primary border border-border-color
                            placeholder-gray-500 focus:outline-none focus:border-white/30
-                           transition-all duration-200 cursor-text hover:border-white/20"
+                           transition-all duration-200 cursor-text hover:border-border-color"
                                 />
                                 {(errors.username || serverFieldError.username) && (
-                                    <p className="text-red-400 text-xs mt-2">
+                                    <p className="text-brand-pink text-xs mt-2">
                                         {errors.username || serverFieldError.username}
                                     </p>
                                 )}
@@ -63,7 +63,7 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
 
                         {/* Email */}
                         <div>
-                            <label className="block text-gray-300 text-sm font-medium mb-2">
+                            <label className="block text-text-secondary text-sm font-medium mb-2">
                                 Email address*
                             </label>
                             <input
@@ -73,12 +73,12 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
                                 value={form.email}
                                 onChange={handleChange}
                                 required
-                                className="w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-white/10
+                                className="w-full px-4 py-3 rounded-lg bg-white/5 text-text-primary border border-border-color
                          placeholder-gray-500 focus:outline-none focus:border-white/30
-                         transition-all duration-200 cursor-text hover:border-white/20"
+                         transition-all duration-200 cursor-text hover:border-border-color"
                             />
                             {(errors.email || serverFieldError.email) && (
-                                <p className="text-red-400 text-xs mt-2">
+                                <p className="text-brand-pink text-xs mt-2">
                                     {errors.email || serverFieldError.email}
                                 </p>
                             )}
@@ -88,7 +88,7 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {/* Password */}
                             <div className="relative">
-                                <label className="block text-gray-300 text-sm font-medium mb-2">
+                                <label className="block text-text-secondary text-sm font-medium mb-2">
                                     Password*
                                 </label>
 
@@ -99,23 +99,23 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
                                     value={form.password}
                                     onChange={handleChange}
                                     required
-                                    className="w-full px-4 py-3 pr-12 rounded-lg bg-white/5 text-white 
-               border border-white/10 placeholder-gray-400 
+                                    className="w-full px-4 py-3 pr-12 rounded-lg bg-white/5 text-text-primary 
+               border border-border-color placeholder-gray-400 
                focus:outline-none focus:border-white/30
-               transition-all duration-200 cursor-text hover:border-white/20"
+               transition-all duration-200 cursor-text hover:border-border-color"
                                 />
 
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-4 top-[70%] -translate-y-1/2 
-               text-gray-400 hover:text-white transition"
+               text-text-secondary hover:text-text-primary transition"
                                 >
                                     {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                                 </button>
 
                                 {errors.password && (
-                                    <p className="text-red-400 text-xs mt-2">{errors.password}</p>
+                                    <p className="text-brand-pink text-xs mt-2">{errors.password}</p>
                                 )}
                             </div>
 
@@ -123,7 +123,7 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
                             {/* Confirm Password (Register only) */}
                             {mode === "register" && (
                                 <div className="relative">
-                                    <label className="block text-gray-300 text-sm font-medium mb-2">
+                                    <label className="block text-text-secondary text-sm font-medium mb-2">
                                         Confirm Password*
                                     </label>
                                     <input
@@ -133,20 +133,20 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
                                         value={form.confirmPassword}
                                         onChange={handleChange}
                                         required={mode === "register"}
-                                        className="w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-white/10
+                                        className="w-full px-4 py-3 rounded-lg bg-white/5 text-text-primary border border-border-color
                              placeholder-gray-400 focus:outline-none focus:border-white/30
-                             transition-all duration-200 cursor-text hover:border-white/20"
+                             transition-all duration-200 cursor-text hover:border-border-color"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                         className="absolute right-4 top-[70%] -translate-y-1/2 
-               text-gray-400 hover:text-white transition"
+               text-text-secondary hover:text-text-primary transition"
                                     >
                                         {showConfirmPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                                     </button>
                                     {errors.confirmPassword && (
-                                        <p className="text-red-400 text-xs mt-2">
+                                        <p className="text-brand-pink text-xs mt-2">
                                             {errors.confirmPassword}
                                         </p>
                                     )}
@@ -156,7 +156,7 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
 
                         {/* Security Message (Register only) */}
                         {mode === "register" && (
-                            <p className="text-gray-500 text-xs">
+                            <p className="text-text-secondary text-xs">
                                 Your security is our priority. Use a strong password to protect your account.
                             </p>
                         )}
@@ -182,14 +182,14 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
 
                     {/* Toggle Mode */}
                     <div className="mt-5 text-center">
-                        <p className="text-gray-400 text-sm">
+                        <p className="text-text-secondary text-sm">
                             {mode === "login"
                                 ? "Don't have an account?"
                                 : "Already have an account?"}{" "}
                             <button
                                 type="button"
                                 onClick={toggleMode}
-                                className="text-white font-medium hover:underline transition-all cursor-pointer hover:text-green-400"
+                                className="text-text-primary font-medium hover:underline transition-all cursor-pointer hover:text-green-400"
                             >
                                 {mode === "login" ? "Sign Up" : "Sign In"}
                             </button>
@@ -198,13 +198,13 @@ function AuthForm({ mode, form, serverError, errors, handleChange, handleSubmit,
 
                     {/* Terms (Register only) */}
                     {mode === "register" && (
-                        <p className="mt-5 text-center text-gray-500 text-xs">
+                        <p className="mt-5 text-center text-text-secondary text-xs">
                             By signing up, you agree to our{" "}
-                            <a href="#" className="text-gray-400 hover:text-gray-300 cursor-pointer hover:underline">
+                            <a href="#" className="text-text-secondary hover:text-text-secondary cursor-pointer hover:underline">
                                 Terms of Service
                             </a>{" "}
                             and{" "}
-                            <a href="#" className="text-gray-400 hover:text-gray-300 cursor-pointer hover:underline">
+                            <a href="#" className="text-text-secondary hover:text-text-secondary cursor-pointer hover:underline">
                                 Privacy Policy
                             </a>
                             .

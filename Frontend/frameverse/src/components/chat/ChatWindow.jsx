@@ -216,14 +216,14 @@ export default function ChatWindow({
 
   if (!chat) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#18181c]">
+      <div className="flex-1 flex items-center justify-center bg-bg-primary">
         <p className="text-[#5a5a6a] text-sm">Select a conversation</p>
       </div>
     );
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col bg-[#18181c] overflow-hidden">
+    <div className="absolute inset-0 flex flex-col bg-bg-primary overflow-hidden">
       {/* Header */}
       <div className="shrink-0 z-10">
         <ChatHeader
@@ -243,7 +243,7 @@ export default function ChatWindow({
             Loading messages…
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center h-full text-red-400 text-sm">
+          <div className="flex items-center justify-center h-full text-brand-pink text-sm">
             {error}
           </div>
         ) : (
@@ -257,11 +257,11 @@ export default function ChatWindow({
               if (item.type === "divider") {
                 return (
                   <div className="flex items-center gap-3 py-3 px-4">
-                    <div className="flex-1 h-px bg-[#2a2a30]" />
+                    <div className="flex-1 h-px bg-bg-secondary" />
                     <span className="text-[#5a5a6a] text-xs">
                       {item.label}
                     </span>
-                    <div className="flex-1 h-px bg-[#2a2a30]" />
+                    <div className="flex-1 h-px bg-bg-secondary" />
                   </div>
                 );
               }

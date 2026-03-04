@@ -60,11 +60,11 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#18181c] pb-safe">
+    <div className="min-h-screen bg-bg-primary pb-safe">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          <div className="aspect-square w-full rounded-2xl overflow-hidden bg-black">
+          <div className="aspect-square w-full rounded-2xl overflow-hidden bg-bg-primary">
             <img
               src={selectedImage}
               alt="Selected"
@@ -101,7 +101,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
             rows={4}
             maxLength={2200}
             disabled={isLoading}
-            className="w-full px-4 py-3 bg-[#262626] border border-gray-700 rounded-xl text-white"
+            className="w-full px-4 py-3 bg-[#262626] border border-border-color rounded-xl text-text-primary"
           />
 
           <input
@@ -111,11 +111,11 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
             placeholder="Add location"
             maxLength={100}
             disabled={isLoading}
-            className="w-full px-4 py-3 bg-[#262626] border border-gray-700 rounded-xl text-white"
+            className="w-full px-4 py-3 bg-[#262626] border border-border-color rounded-xl text-text-primary"
           />
 
           {error && (
-            <div className="text-red-400 text-sm">
+            <div className="text-brand-pink text-sm">
               {error}
             </div>
           )}
@@ -123,7 +123,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-linear-to-r from-purple-500 via-pink-500 to-orange-400 rounded-xl text-white font-semibold disabled:opacity-50"
+            className="w-full py-3 bg-linear-to-r from-purple-500 via-pink-500 to-orange-400 rounded-xl text-text-primary font-semibold disabled:opacity-50"
           >
             {isLoading ? "Creating..." : "Create Post"}
           </button>

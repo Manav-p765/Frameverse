@@ -8,10 +8,13 @@ import {
   LogOut,
   Bell,
   Bot,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { useSocketEvent } from "../hooks/useSocket";
+import { useTheme } from "../context/ThemeContext";
 
 const parseChatId = (pathname) => {
   const segment = pathname.replace(/^\/chats\/?/, "").split("/")[0];
@@ -23,7 +26,6 @@ const navItems = [
   { to: "/explore", label: "Explore", icon: Compass },
   { to: "/reels", label: "Reels", icon: Film },
   { to: "/chats", label: "Chats", icon: MessageCircle },
-  { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/create", label: "Create", icon: PlusSquare },
   { to: "/profile", label: "Profile", icon: User },
   { to: "/autopost", label: "AutoPost", icon: Bot },
@@ -32,6 +34,7 @@ const navItems = [
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const currentChatId = parseChatId(location.pathname);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifUnread, setNotifUnread] = useState(0);
@@ -68,13 +71,13 @@ const Navbar = () => {
         flex-col
         group
         h-screen
-        bg-[#18181c]
+        bg-bg-primary
         transition-all
         duration-300
         ease-in-out
         w-[76px]
         hover:w-64
-        text-gray-100
+        text-text-primary
         relative
       "
     >
@@ -85,58 +88,95 @@ const Navbar = () => {
 
         {/* Nav — perfectly centered vertically */}
         <nav className="flex-1 flex flex-col justify-center gap-2">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={label}
-              to={to}
-              end={to === "/"}
-              className={({ isActive }) =>
-                `
+          {navItems.map(({ to, label, icon: Icon }) => {
+            // Determine active color based on label
+            const getActiveColor = (isActive) => {
+              if (!isActive) return "text-text-secondary"; // Default unselected
+              if (label === "AutoPost") return "text-brand-orange bg-brand-orange/10 font-bold";
+              if (label === "Notifications") return "text-brand-pink bg-brand-pink/10 font-bold";
+              return "text-brand-purple bg-brand-purple/10 font-bold";
+            };
+
+            const getHoverColor = () => {
+              if (label === "AutoPost") return "hover:text-brand-orange hover:bg-brand-orange/5";
+              if (label === "Notifications") return "hover:text-brand-pink hover:bg-brand-pink/5";
+              return "hover:text-brand-purple hover:bg-brand-purple/5";
+            };
+
+            return (
+              <NavLink
+                key={label}
+                to={to}
+                end={to === "/"}
+                className={({ isActive }) =>
+                  `
                 flex items-center gap-4
                 px-3 py-3 rounded-xl
-                hover:bg-white/10 transition-colors
-                ${isActive ? "bg-white/10 font-semibold text-white" : "text-gray-400 hover:text-white"}
+                transition-all duration-200
+                ${getActiveColor(isActive)}
+                ${!isActive ? getHoverColor() : ""}
               `
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
-                    <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-                    {/* Unread badge — Chats */}
-                    {label === "Chats" && unreadCount > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                    {/* Unread badge — Notifications */}
-                    {label === "Notifications" && notifUnread > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
-                        {notifUnread > 9 ? "9+" : notifUnread}
-                      </span>
-                    )}
-                  </span>
-                  <span
-                    className="
-                          overflow-hidden whitespace-nowrap
-                          max-w-0 opacity-0 -translate-x-2
-                          group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0
-                          transition-all duration-300 ease-in-out
-                        "
-                  >
-                    {label}
-                  </span>
-                </>
-              )}
-            </NavLink>
-          ))}
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
+                      <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+                      {/* Unread badge — Chats */}
+                      {label === "Chats" && unreadCount > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 bg-brand-purple text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                      {/* Unread badge — Notifications */}
+                      {label === "Notifications" && notifUnread > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 bg-brand-pink text-white text-[10px] font-bold rounded-full min-w-4 h-4 flex items-center justify-center px-1 leading-none">
+                          {notifUnread > 9 ? "9+" : notifUnread}
+                        </span>
+                      )}
+                    </span>
+                    <span
+                      className="
+                            overflow-hidden whitespace-nowrap
+                            max-w-0 opacity-0 -translate-x-2
+                            group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0
+                            transition-all duration-300 ease-in-out
+                          "
+                    >
+                      {label}
+                    </span>
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
 
-        {/* Logout — pushed to bottom */}
-        <div className="mt-auto shrink-0 pb-6 pt-4 border-t border-white/5">
+        {/* Theme Toggle & Logout — pushed to bottom */}
+        <div className="mt-auto shrink-0 pb-6 pt-4 border-t border-border-color flex flex-col gap-2">
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-4 px-3 py-3 w-full rounded-xl hover:bg-brand-purple/5 transition-colors text-text-secondary hover:text-brand-purple"
+          >
+            <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
+              {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+            </span>
+            <span
+              className="
+                overflow-hidden whitespace-nowrap
+                max-w-0 opacity-0 -translate-x-2
+                group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0
+                transition-all duration-300 ease-in-out
+                font-medium
+              "
+            >
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+            </span>
+          </button>
+
           <button
             onClick={() => navigate("/logout")}
-            className="flex items-center gap-4 px-3 py-3 w-full rounded-xl hover:bg-red-500/10 transition-colors text-red-500/80 hover:text-red-500"
+            className="flex items-center gap-4 px-3 py-3 w-full rounded-xl hover:bg-brand-pink/10 transition-colors text-brand-pink/80 hover:text-brand-pink"
           >
             <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
               <LogOut size={24} />

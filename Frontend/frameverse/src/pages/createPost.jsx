@@ -35,15 +35,15 @@ const CreatePost = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#18181c] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg-primary flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center space-y-8">
 
           {/* Icon */}
           <div className="flex justify-center">
             <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-1 animate-pulse">
-              <div className="w-full h-full bg-[#18181c] rounded-full flex items-center justify-center">
-                <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-full h-full bg-bg-primary rounded-full flex items-center justify-center">
+                <svg className="w-16 h-16 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
@@ -54,8 +54,8 @@ const CreatePost = () => {
 
           {/* Title */}
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-white tracking-tight">Create New Post</h1>
-            <p className="text-gray-400 text-sm">
+            <h1 className="text-3xl font-bold text-text-primary tracking-tight">Create New Post</h1>
+            <p className="text-text-secondary text-sm">
               {isMobile ? 'Capture a moment or choose from your gallery' : 'Select a photo to share with your followers'}
             </p>
           </div>
@@ -65,7 +65,7 @@ const CreatePost = () => {
             {/* Gallery / file picker — always available on all devices */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="group relative w-full py-4 px-6 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 rounded-xl font-semibold text-white text-lg shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative w-full py-4 px-6 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 rounded-xl font-semibold text-text-primary text-lg shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,7 +81,7 @@ const CreatePost = () => {
             {isMobile && (
               <button
                 onClick={() => cameraInputRef.current?.click()}
-                className="w-full py-4 px-6 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl font-semibold text-white text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full py-4 px-6 bg-bg-secondary hover:bg-gray-700 border border-border-color rounded-xl font-semibold text-text-primary text-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <span className="flex items-center justify-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +115,7 @@ const CreatePost = () => {
             className="hidden"
           />
 
-          <p className="text-xs text-gray-500">Supported formats: JPG, PNG, GIF, WEBP</p>
+          <p className="text-xs text-text-secondary">Supported formats: JPG, PNG, GIF, WEBP</p>
         </div>
       </div>
     </div>

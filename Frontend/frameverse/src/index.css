@@ -1,8 +1,33 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-purple: #8f95d3;
+  --color-brand-orange: #f7934c;
+  --color-brand-pink: #f7567c;
 
+  --color-bg-primary: #f1f2eb;
+  --color-bg-secondary: #e5e6df;
+  --color-bg-tertiary: #d4d6cf;
+  /* Make primary text the dark charcoal, but headings/nav the brand colors */
+  --color-text-primary: #4a4a48;
+  --color-text-secondary: #6b6b69;
+  --color-border-color: #d4d6cf;
 
-.unito{
+  --color-chat-own: var(--color-brand-pink);
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-bg-primary: #0c0c0e;
+  --color-bg-secondary: #18181c;
+  --color-bg-tertiary: #2a2a30;
+  --color-text-primary: #f1f2eb;
+  --color-text-secondary: #9a9aaa;
+  --color-border-color: rgba(255, 255, 255, 0.05);
+  --color-chat-own: var(--color-brand-purple);
+}
+
+.unito {
   font-family: "Nunito", sans-serif;
   font-optical-sizing: auto;
   font-weight: weight;
@@ -12,8 +37,10 @@
 html,
 body,
 #root {
-  background-color: #18181c;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
   margin: 0;
   padding: 0;
   font-family: 'Comforto', 'Nunito', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

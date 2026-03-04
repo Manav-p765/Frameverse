@@ -40,24 +40,24 @@ export default function CallScreen() {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-[#0c0c0e] flex flex-col items-center justify-center animate-fade-in overflow-hidden">
+        <div className="fixed inset-0 z-[100] bg-bg-primary flex flex-col items-center justify-center animate-fade-in overflow-hidden">
 
             {/* --- HEADER --- */}
             <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-10">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#2a2a30] overflow-hidden flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-bg-secondary overflow-hidden flex items-center justify-center shrink-0">
                         {remoteUser?.profilePic ? (
                             <img src={remoteUser.profilePic} alt={remoteUser.username} className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-white text-sm font-medium">{remoteUser?.username?.charAt(0).toUpperCase()}</span>
+                            <span className="text-text-primary text-sm font-medium">{remoteUser?.username?.charAt(0).toUpperCase()}</span>
                         )}
                     </div>
                     <div>
-                        <h2 className="text-white font-semibold text-lg leading-tight">{remoteUser?.username || "Unknown"}</h2>
-                        <div className="text-white/60 text-sm flex items-center gap-2">
+                        <h2 className="text-text-primary font-semibold text-lg leading-tight">{remoteUser?.username || "Unknown"}</h2>
+                        <div className="text-text-primary/60 text-sm flex items-center gap-2">
                             {callStatus === "calling" && <span className="animate-pulse">Calling...</span>}
                             {callStatus === "connecting" && <span className="animate-pulse">Connecting...</span>}
-                            {callStatus === "failed" && <span className="text-red-400">{callError}</span>}
+                            {callStatus === "failed" && <span className="text-brand-pink">{callError}</span>}
                             {callStatus === "connected" && <span>{formatDuration(duration)}</span>}
                         </div>
                     </div>
@@ -77,14 +77,14 @@ export default function CallScreen() {
                     />
                 ) : (
                     <div className="flex flex-col items-center gap-6">
-                        <div className="w-32 h-32 rounded-full overflow-hidden bg-[#2a2a30] relative">
+                        <div className="w-32 h-32 rounded-full overflow-hidden bg-bg-secondary relative">
                             {callStatus !== "failed" && callStatus !== "connected" && (
-                                <div className="absolute inset-0 bg-blue-500/20 animate-ping rounded-full" />
+                                <div className="absolute inset-0 bg-brand-purple/20 animate-ping rounded-full" />
                             )}
                             {remoteUser?.profilePic ? (
                                 <img src={remoteUser.profilePic} className="w-full h-full object-cover relative z-10" alt="" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-4xl text-white relative z-10">
+                                <div className="w-full h-full flex items-center justify-center text-4xl text-text-primary relative z-10">
                                     {remoteUser?.username?.charAt(0).toUpperCase()}
                                 </div>
                             )}
@@ -94,7 +94,7 @@ export default function CallScreen() {
 
                 {/* Local Video (Floating PIP Corner) */}
                 {callType === "video" && localStream && (
-                    <div className="absolute top-24 right-6 w-28 h-40 md:w-48 md:h-64 bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10 z-20 transition-all">
+                    <div className="absolute top-24 right-6 w-28 h-40 md:w-48 md:h-64 bg-bg-primary rounded-xl overflow-hidden shadow-2xl border border-border-color z-20 transition-all">
                         <video
                             ref={localVideoRef}
                             autoPlay
@@ -108,12 +108,12 @@ export default function CallScreen() {
             </div>
 
             {/* --- CONTROLS BAR --- */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-black/50 backdrop-blur-md px-8 py-4 rounded-full border border-white/10 z-30">
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-bg-primary/50 backdrop-blur-md px-8 py-4 rounded-full border border-border-color z-30">
 
                 {/* Microphone Toggle */}
                 <button
                     onClick={toggleAudio}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isMuted ? "bg-red-500/20 text-red-500 hover:bg-red-500/30" : "bg-white/10 text-white hover:bg-white/20"
+                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isMuted ? "bg-brand-pink/20 text-brand-pink hover:bg-brand-pink/30" : "bg-white/10 text-text-primary hover:bg-white/20"
                         }`}
                 >
                     {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
@@ -123,7 +123,7 @@ export default function CallScreen() {
                 {callType === "video" && (
                     <button
                         onClick={toggleVideo}
-                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isVideoOff ? "bg-red-500/20 text-red-500 hover:bg-red-500/30" : "bg-white/10 text-white hover:bg-white/20"
+                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isVideoOff ? "bg-brand-pink/20 text-brand-pink hover:bg-brand-pink/30" : "bg-white/10 text-text-primary hover:bg-white/20"
                             }`}
                     >
                         {isVideoOff ? <VideoOff size={22} /> : <Video size={22} />}
@@ -133,7 +133,7 @@ export default function CallScreen() {
                 {/* End Call */}
                 <button
                     onClick={emitEndCall}
-                    className="w-14 h-14 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-transform hover:scale-105"
+                    className="w-14 h-14 rounded-full bg-brand-pink text-text-primary flex items-center justify-center shadow-lg hover:bg-red-600 transition-transform hover:scale-105"
                 >
                     <PhoneOff size={24} />
                 </button>

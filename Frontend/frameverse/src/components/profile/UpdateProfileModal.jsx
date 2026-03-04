@@ -155,7 +155,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-bg-primary/70 backdrop-blur-sm z-40"
         onClick={handleCancel}
         style={{ animation: "fadeIn 0.2s ease-out" }}
       />
@@ -163,15 +163,15 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className="bg-gray-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-800"
+          className="bg-bg-primary rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-border-color"
           style={{ animation: "slideUp 0.3s ease-out" }}
         >
           {/* Header */}
-          <div className="sticky top-0 bg-gray-900 border-b border-gray-800 p-4 flex items-center justify-between z-10">
-            <h2 className="text-xl font-bold text-white">Edit Profile</h2>
+          <div className="sticky top-0 bg-bg-primary border-b border-border-color p-4 flex items-center justify-between z-10">
+            <h2 className="text-xl font-bold text-text-primary">Edit Profile</h2>
             <button
               onClick={handleCancel}
-              className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-gray-800"
+              className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded-lg hover:bg-bg-secondary"
             >
               <svg
                 width="24"
@@ -191,7 +191,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* profilepic Upload */}
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-300">
+              <label className="block text-sm font-medium text-text-secondary">
                 Profile Picture
               </label>
               <div className="flex items-center gap-4">
@@ -204,7 +204,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                     />
                   ) : (
                     <div className="w-24 h-24 rounded-full flex items-center justify-center ring-4 ring-gray-800" style={{ background: "linear-gradient(to bottom right, #3B82F6, #9333EA)" }}>
-                      <span className="text-white font-bold text-2xl">
+                      <span className="text-text-primary font-bold text-2xl">
                         {formData.username?.charAt(0).toUpperCase() || "?"}
                       </span>
                     </div>
@@ -213,7 +213,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                     <button
                       type="button"
                       onClick={handleRemoveProfilepic}
-                      className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors"
+                      className="absolute -top-1 -right-1 bg-brand-pink hover:bg-red-600 text-text-primary rounded-full p-1 transition-colors"
                     >
                       <svg
                         width="16"
@@ -241,17 +241,17 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                   />
                   <label
                     htmlFor="profilepic-upload"
-                    className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium cursor-pointer transition-colors text-sm"
+                    className="inline-block px-4 py-2 bg-brand-purple hover:opacity-90 text-text-primary rounded-lg font-medium cursor-pointer transition-colors text-sm"
                   >
                     Change Photo
                   </label>
-                  <p className="text-gray-500 text-xs mt-2">
+                  <p className="text-text-secondary text-xs mt-2">
                     JPG, PNG or GIF. Max size 5MB
                   </p>
                 </div>
               </div>
               {errors.profilePic && (
-                <p className="text-red-500 text-sm">{errors.profilePic}</p>
+                <p className="text-brand-pink text-sm">{errors.profilePic}</p>
               )}
             </div>
 
@@ -259,7 +259,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
             <div className="space-y-2">
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-text-secondary"
               >
                 Username
               </label>
@@ -268,16 +268,16 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                 type="text"
                 value={formData.username}
                 onChange={(e) => handleInputChange("username", e.target.value)}
-                className={`w-full bg-gray-800 text-white px-4 py-2.5 rounded-lg border ${errors.username
+                className={`w-full bg-bg-secondary text-text-primary px-4 py-2.5 rounded-lg border ${errors.username
                   ? "border-red-500 focus:border-red-500"
-                  : "border-gray-700 focus:border-blue-500"
+                  : "border-border-color focus:border-blue-500"
                   } focus:outline-none transition-colors`}
                 placeholder="Enter your username"
               />
               {errors.username && (
-                <p className="text-red-500 text-sm">{errors.username}</p>
+                <p className="text-brand-pink text-sm">{errors.username}</p>
               )}
-              <p className="text-gray-500 text-xs">
+              <p className="text-text-secondary text-xs">
                 {formData.username.length}/30 characters
               </p>
             </div>
@@ -286,7 +286,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
             <div className="space-y-2">
               <label
                 htmlFor="bio"
-                className="block text-sm font-medium text-gray-300"
+                className="block text-sm font-medium text-text-secondary"
               >
                 Bio
               </label>
@@ -296,16 +296,16 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                 onChange={(e) => handleInputChange("bio", e.target.value)}
                 maxLength={160}
                 rows="4"
-                className={`w-full bg-gray-800 text-white px-4 py-2.5 rounded-lg border ${errors.bio
+                className={`w-full bg-bg-secondary text-text-primary px-4 py-2.5 rounded-lg border ${errors.bio
                   ? "border-red-500 focus:border-red-500"
-                  : "border-gray-700 focus:border-blue-500"
+                  : "border-border-color focus:border-blue-500"
                   } focus:outline-none transition-colors resize-none`}
                 placeholder="Share your passion for movies & anime..."
               />
               {errors.bio && (
-                <p className="text-red-500 text-sm">{errors.bio}</p>
+                <p className="text-brand-pink text-sm">{errors.bio}</p>
               )}
-              <p className="text-gray-500 text-xs">
+              <p className="text-text-secondary text-xs">
                 {formData.bio.length}/160 characters
               </p>
 
@@ -330,7 +330,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                   }
                 }}
                 disabled={bioAiLoading || loading}
-                className="w-full py-2.5 px-3 rounded-lg font-medium text-xs transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-gray-800 border border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 hover:text-purple-200"
+                className="w-full py-2.5 px-3 rounded-lg font-medium text-xs transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-bg-secondary border border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 hover:text-purple-200"
               >
                 {bioAiLoading ? (
                   <>
@@ -350,8 +350,8 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
 
             {/* Submit Error */}
             {errors.submit && (
-              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3">
-                <p className="text-red-500 text-sm">{errors.submit}</p>
+              <div className="bg-brand-pink/10 border border-red-500/50 rounded-lg p-3">
+                <p className="text-brand-pink text-sm">{errors.submit}</p>
               </div>
             )}
 
@@ -361,14 +361,14 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                 type="button"
                 onClick={handleCancel}
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2.5 bg-bg-secondary hover:bg-gray-700 text-text-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 bg-brand-purple hover:opacity-90 text-text-primary rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>

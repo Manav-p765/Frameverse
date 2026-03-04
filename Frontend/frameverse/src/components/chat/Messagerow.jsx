@@ -17,7 +17,7 @@ const ImageBubble = ({ src, isOwn }) => {
     <div className="relative rounded-2xl overflow-hidden max-w-[260px] cursor-pointer">
       {/* Skeleton while loading */}
       {!loaded && (
-        <div className="w-[260px] aspect-square bg-[#2a2a30] animate-pulse rounded-2xl" />
+        <div className="w-[260px] aspect-square bg-bg-secondary animate-pulse rounded-2xl" />
       )}
       <img
         src={src}
@@ -50,8 +50,8 @@ const FileBubble = ({ url, fileName, isOwn }) => {
       target="_blank"
       rel="noopener noreferrer"
       className={`flex items-center gap-3 px-3.5 py-3 rounded-2xl transition-colors min-w-[180px] max-w-[280px] ${isOwn
-          ? "bg-blue-600 hover:bg-blue-700 rounded-br-sm"
-          : "bg-[#2a2a30] hover:bg-[#34343c] rounded-bl-sm"
+        ? "bg-chat-own hover:opacity-90 rounded-br-sm"
+        : "bg-bg-secondary hover:bg-[#34343c] rounded-bl-sm"
         }`}
     >
       {/* File icon */}
@@ -65,7 +65,7 @@ const FileBubble = ({ url, fileName, isOwn }) => {
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-white/70"
+          className="text-text-primary/70"
         >
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14 2 14 8 20 8" />
@@ -75,8 +75,8 @@ const FileBubble = ({ url, fileName, isOwn }) => {
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-white font-medium truncate">{displayName}</p>
-        <p className="text-[10px] text-white/50 uppercase">{ext} file</p>
+        <p className="text-sm text-text-primary font-medium truncate">{displayName}</p>
+        <p className="text-[10px] text-text-primary/50 uppercase">{ext} file</p>
       </div>
 
       {/* Download icon */}
@@ -89,7 +89,7 @@ const FileBubble = ({ url, fileName, isOwn }) => {
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="text-white/50 shrink-0"
+        className="text-text-primary/50 shrink-0"
       >
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
         <polyline points="7 10 12 15 17 10" />
@@ -148,8 +148,8 @@ const MessageRow = React.memo(function MessageRow({
           <div
             className={`px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap wrap-break-word shadow-sm
               ${isOwn
-                ? "bg-blue-500 text-white rounded-2xl rounded-br-sm"
-                : "bg-[#2a2a30] text-white rounded-2xl rounded-bl-sm"
+                ? "bg-chat-own text-white rounded-2xl rounded-br-sm"
+                : "bg-bg-secondary text-text-primary rounded-2xl rounded-bl-sm"
               }
               ${msg.optimistic ? "opacity-70" : ""}
             `}

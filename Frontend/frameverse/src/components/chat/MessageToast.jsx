@@ -49,7 +49,7 @@ export default function MessageToast({ onNewMessage }) {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="pointer-events-auto w-full max-w-sm bg-[#2a2a30] border border-[#3a3a44] rounded-2xl shadow-xl flex items-center gap-3 px-4 py-3 animate-slide-down"
+          className="pointer-events-auto w-full max-w-sm bg-bg-secondary border border-[#3a3a44] rounded-2xl shadow-xl flex items-center gap-3 px-4 py-3 animate-slide-down"
           onClick={() => { navigate(`/chats/${toast.chatId}`); dismiss(toast.id); }}
         >
           {/* Avatar */}
@@ -57,7 +57,7 @@ export default function MessageToast({ onNewMessage }) {
             {toast.avatar ? (
               <img src={toast.avatar} alt={toast.senderName} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-white text-sm font-medium">
+              <span className="text-text-primary text-sm font-medium">
                 {toast.senderName.charAt(0).toUpperCase()}
               </span>
             )}
@@ -65,14 +65,14 @@ export default function MessageToast({ onNewMessage }) {
 
           {/* Text */}
           <div className="flex-1 min-w-0">
-            <p className="text-white text-sm font-semibold truncate">{toast.senderName}</p>
-            <p className="text-[#9a9aaa] text-xs truncate">{toast.preview}</p>
+            <p className="text-text-primary text-sm font-semibold truncate">{toast.senderName}</p>
+            <p className="text-text-secondary text-xs truncate">{toast.preview}</p>
           </div>
 
           {/* Dismiss */}
           <button
             onClick={(e) => { e.stopPropagation(); dismiss(toast.id); }}
-            className="text-[#5a5a6a] hover:text-white transition-colors shrink-0"
+            className="text-[#5a5a6a] hover:text-text-primary transition-colors shrink-0"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
