@@ -10,8 +10,18 @@ export const useCallStore = create((set) => ({
     incomingOffer: null, // RTCSessionDescriptionInit
     callError: null, // string for UI feedback
 
+    // Media state (shared across all components)
+    localStream: null,
+    remoteStream: null,
+    isMuted: false,
+    isVideoOff: false,
+
     // Actions
     setCallStatus: (status) => set({ callStatus: status }),
+    setLocalStream: (stream) => set({ localStream: stream }),
+    setRemoteStream: (stream) => set({ remoteStream: stream }),
+    setIsMuted: (val) => set({ isMuted: val }),
+    setIsVideoOff: (val) => set({ isVideoOff: val }),
 
     // Caller starts a call
     initiateCall: (user, type = "video") =>
@@ -47,6 +57,10 @@ export const useCallStore = create((set) => ({
             remoteUser: null,
             incomingOffer: null,
             callError: null,
+            localStream: null,
+            remoteStream: null,
+            isMuted: false,
+            isVideoOff: false,
         }),
 
     // Fail explicitly

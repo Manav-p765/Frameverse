@@ -154,14 +154,9 @@ router.post("/run", authorize, async (req, res) => {
 
         const { processUser } = await import("../workers/autoPost.worker.js");
 
-        // A manual run deletes today's record first if it exists, to force recreation
-        // Or we simply skip idempotency in processUser for manual runs. 
-        // Actually, processUser has `if (existing) return;`.
-        // So for RUN NOW, let's just delete today's record to allow it to regenerate.
-        const today = dayjs().tz("Asia/Kolkata").format("YYYY-MM-DD");
-        await DailyStats.deleteOne({ user: userId, date: today });
+        await processUser(userId, { isManual: true });
 
-        await processUser(userId);
+        const today = dayjs().tz("Asia/Kolkata").format("YYYY-MM-DD");
 
         const updatedStats = await DailyStats.findOne({ user: userId, date: today }).lean();
 

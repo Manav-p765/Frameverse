@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/post.service";
 import ProfileHeader from "../components/profile/ProfileHeader";
 import ProfilePosts from "../components/profile/ProfilePosts";
+import AutoProgressPosts from "../components/profile/AutoProgressPosts";
 import ShareProfileModal from "../components/profile/ShareProfileModal";
 import SkeletonLoader from "../components/profile/SkeletonLoader";
 import PostViewer from "../components/profile/PostViewer";
@@ -28,6 +29,7 @@ const Profile = () => {
 
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState("posts");
 
   const observerRef = useRef();
   const loadMoreRef = useRef(null);
@@ -101,15 +103,29 @@ const Profile = () => {
     fetchProfile();
   }, [userId, isOwnProfile]);
 
+  // Split posts by type
+  const userPosts = useMemo(() => posts.filter(p => p.postType !== 'auto-progress'), [posts]);
+  const autoPosts = useMemo(() => posts.filter(p => p.postType === 'auto-progress'), [posts]);
+  const activePosts = activeTab === "posts" ? userPosts : autoPosts;
+
   useEffect(() => {
-    if (!posts.length) return;
+    if (!activePosts.length) {
+      setDisplayedPosts([]);
+      setHasMore(false);
+      return;
+    }
 
     const endIndex = currentPage * POSTS_PER_PAGE;
-    const newDisplayedPosts = posts.slice(0, endIndex);
+    const newDisplayedPosts = activePosts.slice(0, endIndex);
 
     setDisplayedPosts(newDisplayedPosts);
-    setHasMore(endIndex < posts.length);
-  }, [posts, currentPage]);
+    setHasMore(endIndex < activePosts.length);
+  }, [activePosts, currentPage]);
+
+  // Reset page when tab switches
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
 
   useEffect(() => {
     const options = {
@@ -149,9 +165,7 @@ const Profile = () => {
         formData.append("profilePic", updateData.profilePicFile);
       }
 
-      const response = await api.put("/user/updateProfile", formData, {
-        withCredentials: true,
-      });
+      const response = await api.put("/user/updateProfile", formData);
 
       setProfile(response.data.user);
     } catch (error) {
@@ -209,7 +223,7 @@ const Profile = () => {
   };
 
   const handlePostClick = (post) => {
-    const index = posts.findIndex((p) => p._id === post._id);
+    const index = activePosts.findIndex((p) => p._id === post._id);
     setSelectedIndex(index);
     setViewerOpen(true);
   };
@@ -275,19 +289,71 @@ const Profile = () => {
           currentUserId={loggedInUserId}
         />
 
+        {/* ── Tab Bar ── */}
+        <div className="flex border-b border-gray-800 px-4 mb-1">
+          <button
+            onClick={() => setActiveTab("posts")}
+            className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${activeTab === "posts"
+              ? "text-white"
+              : "text-gray-500 hover:text-gray-300"
+              }`}
+          >
+            <span className="flex items-center justify-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+              </svg>
+              Posts
+              {userPosts.length > 0 && (
+                <span className="text-xs text-gray-500">({userPosts.length})</span>
+              )}
+            </span>
+            {activeTab === "posts" && (
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-white rounded-full" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("auto")}
+            className={`flex-1 py-3 text-sm font-semibold text-center transition-colors relative ${activeTab === "auto"
+              ? "text-white"
+              : "text-gray-500 hover:text-gray-300"
+              }`}
+          >
+            <span className="flex items-center justify-center gap-1.5">
+              <span className="text-sm">⚡</span>
+              Auto-Progress
+              {autoPosts.length > 0 && (
+                <span className="text-xs text-gray-500">({autoPosts.length})</span>
+              )}
+            </span>
+            {activeTab === "auto" && (
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full" />
+            )}
+          </button>
+        </div>
+
         <div className="px-4">
-          <ProfilePosts
-            posts={displayedPosts}
-            isOwnProfile={isOwnProfile}
-            onDeletePost={handleDeletePost}
-            profile={profile}
-            onPostClick={handlePostClick}
-          />
+          {activeTab === "posts" ? (
+            <ProfilePosts
+              posts={displayedPosts}
+              isOwnProfile={isOwnProfile}
+              onDeletePost={handleDeletePost}
+              profile={profile}
+              onPostClick={handlePostClick}
+            />
+          ) : (
+            <AutoProgressPosts
+              posts={displayedPosts}
+              onPostClick={handlePostClick}
+            />
+          )}
         </div>
 
         {viewerOpen && (
           <PostViewer
-            posts={posts}
+            posts={activePosts}
             initialIndex={selectedIndex}
             profile={profile}
             onClose={() => setViewerOpen(false)}

@@ -6,6 +6,7 @@ import AutoPostSettings from "../models/autoPostSettings.js";
 import DailyStats from "../models/dailyStats.js";
 import ConnectedAccount from "../models/connectedAccount.js";
 import Post from "../models/post.js";
+import User from "../models/user.js";
 import { getTodayCommits } from "../services/activity/github.service.js";
 import { getTodayLeetCodeSolved } from "../services/activity/leetcode.service.js";
 import { generateCaption } from "../services/ai/generateCaption.js";
@@ -22,17 +23,20 @@ dayjs.extend(timezone);
  * TODO: Add retry logic (exponential backoff) for transient API failures.
  * TODO: Replace direct invocation with BullMQ job queue for scalability.
  */
-export async function processUser(userId) {
+export async function processUser(userId, options = { isManual: false }) {
+    const { isManual } = options;
     try {
         console.log(`[AutoPost] Processing auto post for user: ${userId}`);
 
         const today = dayjs().tz("Asia/Kolkata").format("YYYY-MM-DD");
 
-        // Idempotency: bail if a DailyStats already exists for today
-        const existing = await DailyStats.findOne({ user: userId, date: today }).lean();
-        if (existing) {
-            console.log(`[AutoPost] Skipped (DailyStats already exists): ${userId}`);
-            return;
+        // Idempotency: bail if a DailyStats already exists for today (unless manual run)
+        if (!isManual) {
+            const existing = await DailyStats.findOne({ user: userId, date: today }).lean();
+            if (existing) {
+                console.log(`[AutoPost] Skipped (DailyStats already exists): ${userId}`);
+                return;
+            }
         }
 
         // Load settings and connected accounts in parallel
@@ -93,24 +97,28 @@ export async function processUser(userId) {
             postType: "auto-progress",
         });
 
+        // Push post into User.posts array so it appears on profile
+        await User.findByIdAndUpdate(userId, { $push: { posts: post._id } });
+
         console.log(`[AutoPost] Post created: ${post._id}`);
 
-        // Save DailyStats and mark as posted
-        const dailyRecord = await DailyStats.create({
-            user: userId,
-            date: today,
-            githubCommits: stats.githubCommits,
-            leetcodeSolved: stats.leetcodeSolved,
-            caption,
-            imageUrl: image.url,
-            posted: true,
-        });
-
-        // Compute and save streaks
+        // Compute streaks
         const { streakCount, longestStreak } = await calculateStreak(userId, today);
-        dailyRecord.streakCount = streakCount;
-        dailyRecord.longestStreak = longestStreak;
-        await dailyRecord.save();
+
+        // Upsert DailyStats and mark as posted (use upsert so manual runs don't hit duplicate key errors)
+        const dailyRecord = await DailyStats.findOneAndUpdate(
+            { user: userId, date: today },
+            {
+                githubCommits: stats.githubCommits,
+                leetcodeSolved: stats.leetcodeSolved,
+                caption,
+                imageUrl: image.url,
+                posted: true,
+                streakCount,
+                longestStreak,
+            },
+            { new: true, upsert: true }
+        );
 
         console.log(`[AutoPost] Streak for ${userId}: ${streakCount} (Longest: ${longestStreak})`);
         console.log(`[AutoPost] ✅ Complete for ${userId} (${today})`);
@@ -145,7 +153,7 @@ export function startAutoPostWorker() {
             for (const s of enabledUsers) {
                 const [h, m] = s.postTime.split(":").map(Number);
                 const now = dayjs().tz(s.timezone || "Asia/Kolkata");
-                if (now.hour() === h && now.minute() === m) {
+                if (now.hour() > h || (now.hour() === h && now.minute() >= m)) {
                     eligible.push(s);
                 }
             }

@@ -1,19 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useCallStore } from "../../store/useCallStore";
-import { useWebRTC } from "../../hooks/useWebRTC";
+import { useCallActions } from "./CallProvider";
 import { PhoneOff, Mic, MicOff, Video, VideoOff } from "lucide-react";
 
 export default function CallScreen() {
-    const { callStatus, callType, remoteUser, callError } = useCallStore();
-    const {
-        localStream,
-        remoteStream,
-        isMuted,
-        isVideoOff,
-        toggleAudio,
-        toggleVideo,
-        emitEndCall
-    } = useWebRTC();
+    const { callStatus, callType, remoteUser, callError, localStream, remoteStream, isMuted, isVideoOff } = useCallStore();
+    const { toggleAudio, toggleVideo, emitEndCall } = useCallActions();
 
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
@@ -100,7 +92,7 @@ export default function CallScreen() {
                     </div>
                 )}
 
-                {/* Local Video (Floating PIP Corener) */}
+                {/* Local Video (Floating PIP Corner) */}
                 {callType === "video" && localStream && (
                     <div className="absolute top-24 right-6 w-28 h-40 md:w-48 md:h-64 bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10 z-20 transition-all">
                         <video
@@ -118,7 +110,7 @@ export default function CallScreen() {
             {/* --- CONTROLS BAR --- */}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-black/50 backdrop-blur-md px-8 py-4 rounded-full border border-white/10 z-30">
 
-                {/* Microhphone Toggle */}
+                {/* Microphone Toggle */}
                 <button
                     onClick={toggleAudio}
                     className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isMuted ? "bg-red-500/20 text-red-500 hover:bg-red-500/30" : "bg-white/10 text-white hover:bg-white/20"

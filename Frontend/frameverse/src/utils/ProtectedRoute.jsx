@@ -4,6 +4,8 @@ import MainLayout from "../components/mainlayout";
 import api from "../services/post.service";
 import { initSocket, disconnectSocket } from "../hooks/useSocket";
 
+const AUTH_TIMEOUT_MS = 12000; // 12s — fail gracefully if API is unreachable
+
 const ProtectedRoute = () => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -11,34 +13,66 @@ const ProtectedRoute = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    // ⭐ FAST FAIL (important)
+    // ⭐ FAST FAIL — no token means not logged in
     if (!token) {
       setIsAuthenticated(false);
       setLoading(false);
       return;
     }
 
+    let timedOut = false;
+
+    // Safety timeout — if API is unreachable, don't hang forever
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      console.warn("⚠️ Auth check timed out — redirecting to login");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setIsAuthenticated(false);
+      setLoading(false);
+    }, AUTH_TIMEOUT_MS);
+
     const checkAuth = async () => {
       try {
         const { data } = await api.get("/user/auth/me");
-        setIsAuthenticated(true);
-        // Initialize socket as soon as user is authenticated
-        initSocket(data._id);
+        if (!timedOut) {
+          setIsAuthenticated(true);
+          // Initialize socket as soon as user is authenticated
+          initSocket(data._id);
+        }
       } catch {
-        localStorage.removeItem("token");
-        setIsAuthenticated(false);
+        if (!timedOut) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setIsAuthenticated(false);
+        }
       } finally {
-        setLoading(false);
+        if (!timedOut) {
+          clearTimeout(timeout);
+          setLoading(false);
+        }
       }
     };
 
     checkAuth();
 
     // Disconnect socket when user leaves the app / logs out
-    return () => disconnectSocket();
+    return () => {
+      clearTimeout(timeout);
+      disconnectSocket();
+    };
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0c0c0e] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-3 border-white/20 border-t-white rounded-full animate-spin" />
+          <p className="text-white/50 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;

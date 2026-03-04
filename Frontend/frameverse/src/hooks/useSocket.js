@@ -17,7 +17,7 @@ export const initSocket = (userId) => {
   const token = localStorage.getItem("token");
 
   socketInstance = io(import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL, {
-    transports: ["websocket"],
+    transports: ["polling", "websocket"], // Allow polling fallback for aggressive production proxies
     auth: { token },
     reconnection: true,
     reconnectionAttempts: 5,

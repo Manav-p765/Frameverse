@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import { getSocket } from "./useSocket";
 import { useCallStore } from "../store/useCallStore";
 
@@ -17,17 +17,13 @@ export const iceServersConfig = {
 export const useWebRTC = () => {
     const {
         setCallStatus,
-        remoteUser,
-        callType,
-        incomingOffer,
         resetCall,
         setCallFailed,
+        setLocalStream,
+        setRemoteStream,
+        setIsMuted,
+        setIsVideoOff,
     } = useCallStore();
-
-    const [localStream, setLocalStream] = useState(null);
-    const [remoteStream, setRemoteStream] = useState(null);
-    const [isMuted, setIsMuted] = useState(false);
-    const [isVideoOff, setIsVideoOff] = useState(false);
 
     const peerConnectionRef = useRef(null);
     const callingTimeoutRef = useRef(null);
@@ -44,8 +40,11 @@ export const useWebRTC = () => {
 
     const endCall = useCallback(() => {
         // Stop all local and remote tracks immediately (fixes camera light bug)
-        if (localStream) cleanupMediaTracks(localStream);
-        if (remoteStream) cleanupMediaTracks(remoteStream);
+        const currentLocal = useCallStore.getState().localStream;
+        const currentRemote = useCallStore.getState().remoteStream;
+
+        if (currentLocal) cleanupMediaTracks(currentLocal);
+        if (currentRemote) cleanupMediaTracks(currentRemote);
 
         setLocalStream(null);
         setRemoteStream(null);
@@ -63,7 +62,7 @@ export const useWebRTC = () => {
         }
 
         resetCall();
-    }, [localStream, remoteStream, cleanupMediaTracks, resetCall]);
+    }, [cleanupMediaTracks, resetCall, setLocalStream, setRemoteStream]);
 
     // -------- MEDIA CAPTURE --------
     const getMediaStream = useCallback(async (type) => {
@@ -87,38 +86,46 @@ export const useWebRTC = () => {
             }
             return null;
         }
-    }, [setCallFailed]);
+    }, [setCallFailed, setLocalStream]);
 
     // -------- PEER CONNECTION INIT --------
     const createPeerConnection = useCallback(() => {
+        console.log("🛠️ Initializing RTCPeerConnection");
         const pc = new RTCPeerConnection(iceServersConfig);
 
         pc.onicecandidate = (event) => {
-            if (event.candidate && remoteUser) {
+            const currentRemoteUser = useCallStore.getState().remoteUser;
+            if (event.candidate && currentRemoteUser) {
+                console.log(`❄️ Sending ICE candidate to ${currentRemoteUser._id}`);
                 getSocket()?.emit("ice-candidate", {
-                    to: remoteUser._id,
+                    to: currentRemoteUser._id,
                     candidate: event.candidate,
                 });
+            } else if (event.candidate && !currentRemoteUser) {
+                console.warn("⚠️ ICE candidate generated, but remoteUser is null in store!");
             }
         };
 
         pc.ontrack = (event) => {
+            console.log("📺 Received remote track!", event.streams[0].getTracks());
             setRemoteStream(event.streams[0]);
         };
 
         pc.onconnectionstatechange = () => {
+            console.log(`🔄 Peer connection state changed: ${pc.connectionState}`);
             if (
                 pc.connectionState === "disconnected" ||
                 pc.connectionState === "failed" ||
                 pc.connectionState === "closed"
             ) {
+                console.warn("⚠️ Peer connection failed or closed. Ending call natively.");
                 endCall();
             }
         };
 
         peerConnectionRef.current = pc;
         return pc;
-    }, [remoteUser, endCall]);
+    }, [endCall, setRemoteStream]);
 
     // -------- CALL ACTIONS --------
 
@@ -158,11 +165,6 @@ export const useWebRTC = () => {
 
         console.log(`📡 Emitting 'call-user' to socket for ${currentRemoteUser._id}`);
 
-        // Note: the socket caller's ID and username gets injected securely on the backend if available,
-        // or we send our own local info so the receiver knows who's calling.
-        // Fetch current user from localStorage config if needed, but for now we expect App level to deal with this, 
-        // or just rely on the API. To be safe, we'll ask the `CallProvider` to pass the local user down if needed,
-        // but the backend can also infer `req.user`. Wait, backend relies on `from` sent by the client.
         const authStore = JSON.parse(localStorage.getItem('auth-storage') || '{}')?.state || {};
         const currentUser = authStore.user || { _id: getSocket()?.userId, username: "Someone" };
 
@@ -176,85 +178,104 @@ export const useWebRTC = () => {
 
     // Accepting a call (Receiver)
     const acceptCall = useCallback(async () => {
-        if (!remoteUser || !incomingOffer) return;
+        const currentRemoteUser = useCallStore.getState().remoteUser;
+        const currentIncomingOffer = useCallStore.getState().incomingOffer;
+        const currentCallType = useCallStore.getState().callType;
 
-        setCallStatus("connecting");
-        const stream = await getMediaStream(callType);
-        if (!stream) {
-            getSocket()?.emit("call-rejected", { to: remoteUser._id });
+        console.log(`✅ acceptCall invoked for caller ${currentRemoteUser?._id}`);
+        if (!currentRemoteUser || !currentIncomingOffer) {
+            console.warn("⚠️ acceptCall aborted: missing remoteUser or incomingOffer");
             return;
         }
 
+        setCallStatus("connecting");
+        const stream = await getMediaStream(currentCallType);
+        if (!stream) {
+            console.warn("⚠️ acceptCall aborted: Could not get media stream. Rejecting call.");
+            getSocket()?.emit("call-rejected", { to: currentRemoteUser._id });
+            return;
+        }
+
+        console.log("🛠️ Creating peer connection for receiver...");
         const pc = createPeerConnection();
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
 
-        await pc.setRemoteDescription(new RTCSessionDescription(incomingOffer));
+        console.log("📝 Setting remote description (offer)...");
+        await pc.setRemoteDescription(new RTCSessionDescription(currentIncomingOffer));
+
+        console.log("📝 Creating answer...");
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
 
-        getSocket()?.emit("call-accepted", { to: remoteUser._id, answer });
-    }, [remoteUser, incomingOffer, callType, setCallStatus, getMediaStream, createPeerConnection]);
+        console.log(`📡 Emitting 'call-accepted' to socket for ${currentRemoteUser._id}`);
+        getSocket()?.emit("call-accepted", { to: currentRemoteUser._id, answer });
+    }, [setCallStatus, getMediaStream, createPeerConnection]);
 
     // Declining a call
     const declineCall = useCallback(() => {
-        if (remoteUser) {
-            getSocket()?.emit("call-rejected", { to: remoteUser._id });
+        const currentRemoteUser = useCallStore.getState().remoteUser;
+        if (currentRemoteUser) {
+            getSocket()?.emit("call-rejected", { to: currentRemoteUser._id });
         }
         resetCall();
-    }, [remoteUser, resetCall]);
+    }, [resetCall]);
 
     // Emitting end call
     const emitEndCall = useCallback(() => {
-        if (remoteUser) {
-            getSocket()?.emit("end-call", { to: remoteUser._id });
+        const currentRemoteUser = useCallStore.getState().remoteUser;
+        if (currentRemoteUser) {
+            getSocket()?.emit("end-call", { to: currentRemoteUser._id });
         }
         endCall();
-    }, [remoteUser, endCall]);
+    }, [endCall]);
 
     // -------- TOGGLES --------
     const toggleAudio = useCallback(() => {
-        if (localStream) {
-            const audioTrack = localStream.getAudioTracks()[0];
+        const stream = useCallStore.getState().localStream;
+        if (stream) {
+            const audioTrack = stream.getAudioTracks()[0];
             if (audioTrack) {
                 audioTrack.enabled = !audioTrack.enabled;
                 setIsMuted(!audioTrack.enabled);
             }
         }
-    }, [localStream]);
+    }, [setIsMuted]);
 
     const toggleVideo = useCallback(() => {
-        if (localStream) {
-            const videoTrack = localStream.getVideoTracks()[0];
+        const stream = useCallStore.getState().localStream;
+        if (stream) {
+            const videoTrack = stream.getVideoTracks()[0];
             if (videoTrack) {
                 videoTrack.enabled = !videoTrack.enabled;
                 setIsVideoOff(!videoTrack.enabled);
             }
         }
-    }, [localStream]);
+    }, [setIsVideoOff]);
 
     // -------- SOCKET LISTENERS EXPORTED FOR CALL PROVIDER --------
-    // Since we abstracted socket events to be handled globally, we expose handlers here 
-    // that the CallProvider will bind to the global socket.
-
     const handleCallAccepted = useCallback(async ({ answer }) => {
+        console.log("📞 Received 'call-accepted' with answer. Setting remote description...");
         if (peerConnectionRef.current) {
             await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
             setCallStatus("connected");
             if (callingTimeoutRef.current) clearTimeout(callingTimeoutRef.current);
+            console.log("✅ Peer connection established & connected.");
+        } else {
+            console.warn("⚠️ Handled 'call-accepted' but peerConnectionRef is null!");
         }
     }, [setCallStatus]);
 
     const handleIceCandidate = useCallback(async ({ candidate }) => {
         if (peerConnectionRef.current) {
+            console.log("❄️ Adding received ICE candidate...");
             await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+        } else {
+            console.warn("⚠️ Received ICE candidate but peerConnectionRef is null!");
         }
     }, []);
 
     return {
-        localStream,
-        remoteStream,
-        isMuted,
-        isVideoOff,
+        // Actions (for CallProvider context)
         startCall,
         acceptCall,
         declineCall,

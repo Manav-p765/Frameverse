@@ -84,12 +84,8 @@ export const loginUser = async (req, res) => {
 };
 
 export const logoutUser = (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-  });
-
+  // Auth is token-based (localStorage) — no server-side cookie to clear.
+  // Client clears localStorage on its own.
   res.setHeader("Cache-Control", "no-store");
   res.json({ message: "Logged out" });
 };

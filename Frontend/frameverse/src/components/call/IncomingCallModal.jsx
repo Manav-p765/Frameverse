@@ -1,11 +1,11 @@
 import React from "react";
 import { useCallStore } from "../../store/useCallStore";
-import { useWebRTC } from "../../hooks/useWebRTC";
+import { useCallActions } from "./CallProvider";
 import { Phone, Video, X } from "lucide-react";
 
 export default function IncomingCallModal() {
     const { remoteUser, callType } = useCallStore();
-    const { acceptCall, declineCall } = useWebRTC();
+    const { acceptCall, declineCall } = useCallActions();
 
     if (!remoteUser) return null;
 

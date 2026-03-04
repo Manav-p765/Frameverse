@@ -1,18 +1,25 @@
-import React, { useEffect } from "react";
+import React, { createContext, useContext } from "react";
 import { useSocketEvent, getSocket } from "../../hooks/useSocket";
 import { useCallStore } from "../../store/useCallStore";
 import { useWebRTC } from "../../hooks/useWebRTC";
 import CallScreen from "./CallScreen";
 import IncomingCallModal from "./IncomingCallModal";
 
+// Context so children (CallScreen, IncomingCallModal) use the SAME hook instance
+const CallActionsContext = createContext(null);
+export const useCallActions = () => useContext(CallActionsContext);
+
 export default function CallProvider({ children }) {
     const { callStatus, receiveCall, setCallFailed } = useCallStore();
+
+    // Single, authoritative useWebRTC instance for the entire app
+    const webrtc = useWebRTC();
 
     const {
         handleCallAccepted,
         handleIceCandidate,
         endCall
-    } = useWebRTC();
+    } = webrtc;
 
     // 1. Incoming Call Listener
     useSocketEvent("incoming-call", ({ from, offer, callType }) => {
@@ -62,7 +69,7 @@ export default function CallProvider({ children }) {
     });
 
     return (
-        <>
+        <CallActionsContext.Provider value={webrtc}>
             {children}
 
             {/* Conditionally Render Modals based on the unified state machine */}
@@ -72,6 +79,6 @@ export default function CallProvider({ children }) {
                 callStatus === "connecting" ||
                 callStatus === "connected" ||
                 callStatus === "failed") && <CallScreen />}
-        </>
+        </CallActionsContext.Provider>
     );
 }

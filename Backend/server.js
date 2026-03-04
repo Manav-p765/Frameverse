@@ -3,7 +3,6 @@ dotenv.config();
 
 import connectdb from "./config/db.js";
 import app from "./config/app.js"
-import cookieParser from "cookie-parser";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
@@ -24,9 +23,9 @@ const server = http.createServer(app);
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://frameverse-zeta.vercel.app"
+    "https://frameverse-zeta.vercel.app",
+    "https://frameverse.onrender.com" // If frontend is also served here
   ],
-  credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
@@ -35,14 +34,16 @@ app.use(cors({
 // Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://frameverse-zeta.vercel.app"],
+    origin: [
+      "http://localhost:5173",
+      "https://frameverse-zeta.vercel.app",
+      "https://frameverse.onrender.com"
+    ],
     methods: ["GET", "POST"],
-    credentials: true,
   },
 });
 
 app.set("view engine", "ejs");
-app.use(cookieParser());
 app.set("io", io);
 
 connectdb();

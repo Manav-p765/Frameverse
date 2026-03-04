@@ -111,8 +111,6 @@ const Auth = () => {
       }
 
       navigate("/");
-
-      navigate("/");
     } catch (err) {
       const data = err.response?.data;
 

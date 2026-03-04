@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useCallStore } from "../../store/useCallStore";
-import { useWebRTC } from "../../hooks/useWebRTC";
+import { useCallActions } from "../call/CallProvider";
 
 const Avatar = ({ src, name, size = "w-9 h-9" }) => (
   <div className={`${size} rounded-full overflow-hidden shrink-0 bg-[#2a2a30] flex items-center justify-center`}>
@@ -17,7 +17,7 @@ const Avatar = ({ src, name, size = "w-9 h-9" }) => (
 export default function ChatHeader({ chat, currentUserId, typingUsers = [], onInfoClick, onBack }) {
   const navigate = useNavigate();
   const { initiateCall } = useCallStore();
-  const { startCall } = useWebRTC();
+  const { startCall } = useCallActions();
 
   if (!chat) return null;
 
