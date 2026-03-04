@@ -14,6 +14,7 @@ import messageRoute from "./routes/message.js";
 import notificationRoute from "./routes/notification.js";
 import autoPostRoutes from "./routes/autoPostRoutes.js";
 import { startAutoPostWorker } from "./workers/autoPost.worker.js";
+import callRoutes from "./routes/callRoutes.js";
 
 const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
@@ -43,8 +44,12 @@ const io = new Server(server, {
   },
 });
 
+
 app.set("view engine", "ejs");
 app.set("io", io);
+
+// Call handlers are registered inside socket.js (initSocket)
+// Do NOT duplicate activeCalls/userCallMap here
 
 connectdb();
 initSocket(io);
@@ -55,6 +60,7 @@ app.use("/chats/router/messages", messageRoute);
 app.use("/post", postRoute);
 app.use("/notifications", notificationRoute);
 app.use("/api/autopost", autoPostRoutes);
+app.use("/api/calls", callRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

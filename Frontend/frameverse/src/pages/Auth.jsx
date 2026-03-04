@@ -11,12 +11,12 @@ import AuthForm from "../components/auth/AuthForm";
 const AnimatedBackground = lazy(() =>
   Promise.resolve({
     default: () => (
-      <div className="min-h-screen w-full flex justify-center bg-bg-primary items-center ml-5">
-        <div className=" w-[95%] h-[92vh] overflow-hidden  rounded-xl">
+      <div className="min-h-screen w-full flex justify-center bg-black items-center ml-5">
+        <div className=" w-[95%] h-[92vh] overflow-hidden bg-black rounded-xl">
           <Lottie
             animationData={animationData}
             loop
-            className="bsolute inset-0 w-full h-full pointer-events-none"
+            className="absolute inset-0 w-full h-full pointer-events-none"
           />
         </div>
       </div>
@@ -126,11 +126,11 @@ const Auth = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-bg-primary flex">
+    <div className="dark h-screen overflow-hidden bg-black flex">
       {/* LEFT SIDE - Decorative Image (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-black overflow-hidden">
         <Suspense fallback={
-          <div className="min-h-screen w-full flex justify-center bg-bg-primary items-center ml-5 animate-pulse"></div>
+          <div className="min-h-screen w-full flex justify-center bg-black items-center ml-5 animate-pulse"></div>
         }>
           <AnimatedBackground />
         </Suspense>

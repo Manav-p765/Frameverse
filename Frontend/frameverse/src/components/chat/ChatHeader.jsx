@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useCallStore } from "../../store/useCallStore";
-import { useCallActions } from "../call/CallProvider";
+import { getSocket } from "../../hooks/useSocket";
 
 const Avatar = ({ src, name, size = "w-9 h-9" }) => (
   <div className={`${size} rounded-full overflow-hidden shrink-0 bg-bg-secondary flex items-center justify-center`}>
@@ -16,8 +16,7 @@ const Avatar = ({ src, name, size = "w-9 h-9" }) => (
 
 export default function ChatHeader({ chat, currentUserId, typingUsers = [], onInfoClick, onBack }) {
   const navigate = useNavigate();
-  const { initiateCall } = useCallStore();
-  const { startCall } = useCallActions();
+  const { initiateCall, callStatus } = useCallStore();
 
   if (!chat) return null;
 
@@ -26,12 +25,28 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
   const name = isGroup ? chat.title || "Group Chat" : otherUser?.username || "Unknown";
   const avatar = isGroup ? chat.image : otherUser?.avatar;
 
-  const handleStartCall = async (type) => {
-    if (!otherUser) return;
-    initiateCall(otherUser, type);
-    setTimeout(() => {
-      startCall();
-    }, 100); // Small delay to let store update so useWebRTC accesses fresh state
+  const handleStartCall = (type) => {
+    if (!otherUser || callStatus !== "idle") return;
+
+    // Derive full caller info from the chat's user list
+    const currentUserObj = chat.users?.find((u) => u._id === currentUserId);
+    const callerInfo = {
+      _id: currentUserId,
+      username: currentUserObj?.username || "Unknown",
+      profilePic: currentUserObj?.avatar || currentUserObj?.profilePic || null,
+    };
+
+    // Generate a client-side callId; server assigns the authoritative one via call:ringing
+    const callId = `${otherUser._id}_${Date.now()}`;
+    initiateCall(callId, otherUser, type);
+
+    // Emit call:request — server validates, then responds with call:ringing
+    // which triggers CallProvider to send the actual WebRTC offer
+    getSocket()?.emit("call:request", {
+      to: otherUser._id,
+      callType: type,
+      callerInfo,
+    });
   };
 
   const typingText = (() => {
@@ -41,7 +56,7 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
   })();
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-border-color bg-brand-purple/10 dark:bg-bg-primary transition-colors">
+    <div className="flex items-center gap-3 px-4 py-3 border-b border-border-color bg-brand-purple/15 dark:bg-bg-primary transition-colors">
       {/* Back button — mobile only */}
       <button
         onClick={onBack || (() => navigate("/chats"))}
@@ -77,7 +92,7 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
           <>
             <button
               onClick={() => handleStartCall("audio")}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-brand-purple/15 dark:hover:bg-white/10 hover:text-text-primary transition-colors"
               aria-label="Voice call"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -86,7 +101,7 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
             </button>
             <button
               onClick={() => handleStartCall("video")}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-brand-purple/15 dark:hover:bg-white/10 hover:text-text-primary transition-colors"
               aria-label="Video call"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -97,7 +112,7 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
         )}
         <button
           onClick={onInfoClick}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors"
+          className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary hover:bg-brand-purple/15 dark:hover:bg-white/10 hover:text-text-primary transition-colors"
           aria-label="Chat info"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -1,72 +1,114 @@
+/**
+ * useCallStore.js
+ * Authoritative state machine for the calling system.
+ *
+ * State machine transitions:
+ *
+ *  idle
+ *   ├─ initiateCall()  → calling   (outbound)
+ *   └─ receiveCall()   → ringing   (inbound)
+ *
+ *  calling
+ *   ├─ call:accepted   → connecting
+ *   ├─ call:rejected   → failed
+ *   ├─ call:timeout    → failed
+ *   ├─ call:busy       → failed
+ *   └─ emitEndCall()   → idle
+ *
+ *  ringing
+ *   ├─ acceptCall()    → connecting
+ *   └─ declineCall()   → idle
+ *
+ *  connecting
+ *   ├─ setConnected()  → connected
+ *   └─ peer fail       → failed
+ *
+ *  connected
+ *   └─ endCall()       → idle
+ *
+ *  failed
+ *   └─ (auto) endCall after 3 s → idle
+ */
+
 import { create } from "zustand";
 
-// State Machine Types: 
-// 'idle' | 'calling' | 'ringing' | 'connecting' | 'connected' | 'ended' | 'failed'
+export const useCallStore = create((set, get) => ({
+  // ── Core state ─────────────────────────────────────────────────────────────
+  callId: null,
+  callStatus: "idle",      // idle | calling | ringing | connecting | connected | failed
+  callType: "video",       // "video" | "audio"
+  remoteUser: null,        // { _id, username, profilePic }
+  incomingOffer: null,     // RTCSessionDescriptionInit — set when callee receives offer
+  callError: null,
 
-export const useCallStore = create((set) => ({
-    callStatus: "idle",
-    callType: "video", // "video" | "audio"
-    remoteUser: null, // { _id, username, profilePic }
-    incomingOffer: null, // RTCSessionDescriptionInit
-    callError: null, // string for UI feedback
+  // ── Media state ────────────────────────────────────────────────────────────
+  localStream: null,
+  remoteStream: null,
+  isMuted: false,
+  isVideoOff: false,
+  isScreenSharing: false,
 
-    // Media state (shared across all components)
-    localStream: null,
-    remoteStream: null,
-    isMuted: false,
-    isVideoOff: false,
+  // ── Stats / quality ────────────────────────────────────────────────────────
+  connectionQuality: null,  // "good" | "fair" | "poor" | null
 
-    // Actions
-    setCallStatus: (status) => set({ callStatus: status }),
-    setLocalStream: (stream) => set({ localStream: stream }),
-    setRemoteStream: (stream) => set({ remoteStream: stream }),
-    setIsMuted: (val) => set({ isMuted: val }),
-    setIsVideoOff: (val) => set({ isVideoOff: val }),
+  // ── Actions ────────────────────────────────────────────────────────────────
 
-    // Caller starts a call
-    initiateCall: (user, type = "video") =>
-        set({
-            callStatus: "calling",
-            callType: type,
-            remoteUser: user,
-            incomingOffer: null,
-            callError: null,
-        }),
+  initiateCall: (callId, user, type = "video") =>
+    set({
+      callId,
+      callStatus: "calling",
+      callType: type,
+      remoteUser: user,
+      incomingOffer: null,
+      callError: null,
+      isMuted: false,
+      isVideoOff: false,
+      isScreenSharing: false,
+    }),
 
-    // Receiver gets a call
-    receiveCall: (caller, type, offer) =>
-        set({
-            callStatus: "ringing",
-            callType: type,
-            remoteUser: caller,
-            incomingOffer: offer,
-            callError: null,
-        }),
+  receiveCall: (callId, caller, type, offer) =>
+    set({
+      callId,
+      callStatus: "ringing",
+      callType: type,
+      remoteUser: caller,
+      incomingOffer: offer,
+      callError: null,
+      isMuted: false,
+      isVideoOff: false,
+      isScreenSharing: false,
+    }),
 
-    // Transition to connecting after offering/answering
-    setConnecting: () => set({ callStatus: "connecting" }),
+  setCallStatus: (status) => set({ callStatus: status }),
+  setConnecting: () => set({ callStatus: "connecting" }),
+  setConnected: () => set({ callStatus: "connected" }),
 
-    // Peer connection established
-    setConnected: () => set({ callStatus: "connected" }),
+  setCallFailed: (errorMsg) =>
+    set({ callStatus: "failed", callError: errorMsg }),
 
-    // End or reset the call explicitly
-    resetCall: () =>
-        set({
-            callStatus: "idle",
-            callType: "video",
-            remoteUser: null,
-            incomingOffer: null,
-            callError: null,
-            localStream: null,
-            remoteStream: null,
-            isMuted: false,
-            isVideoOff: false,
-        }),
+  setLocalStream: (stream) => set({ localStream: stream }),
+  setRemoteStream: (stream) => set({ remoteStream: stream }),
+  setIsMuted: (val) => set({ isMuted: val }),
+  setIsVideoOff: (val) => set({ isVideoOff: val }),
+  setIsScreenSharing: (val) => set({ isScreenSharing: val }),
+  setConnectionQuality: (q) => set({ connectionQuality: q }),
 
-    // Fail explicitly
-    setCallFailed: (errorMsg) =>
-        set({
-            callStatus: "failed",
-            callError: errorMsg,
-        }),
+  // Called when offer is relayed (callee side, after call:accepted)
+  setIncomingOffer: (offer) => set({ incomingOffer: offer }),
+
+  resetCall: () =>
+    set({
+      callId: null,
+      callStatus: "idle",
+      callType: "video",
+      remoteUser: null,
+      incomingOffer: null,
+      callError: null,
+      localStream: null,
+      remoteStream: null,
+      isMuted: false,
+      isVideoOff: false,
+      isScreenSharing: false,
+      connectionQuality: null,
+    }),
 }));

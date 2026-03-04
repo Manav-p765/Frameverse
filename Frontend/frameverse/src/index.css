@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tell Tailwind v4 to trigger dark: via the .dark class, not @media (prefers-color-scheme) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-brand-purple: #8f95d3;
   --color-brand-orange: #f7934c;

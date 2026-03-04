@@ -18,7 +18,7 @@ export const initSocket = (userId) => {
 
   socketInstance = io(import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL, {
     transports: ["polling", "websocket"], // Allow polling fallback for aggressive production proxies
-    auth: { token },
+    auth: { token, userId },
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1500,

@@ -71,7 +71,7 @@ const Navbar = () => {
         flex-col
         group
         h-screen
-        bg-bg-primary
+        bg-bg-primary dark:bg-bg-primary
         transition-all
         duration-300
         ease-in-out

@@ -1,144 +1,216 @@
-import React, { useEffect, useRef, useState } from "react";
+/**
+ * CallScreen.jsx
+ * Active call UI — handles calling, connecting, connected, and failed states.
+ */
+
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useCallStore } from "../../store/useCallStore";
 import { useCallActions } from "./CallProvider";
-import { PhoneOff, Mic, MicOff, Video, VideoOff } from "lucide-react";
+import {
+  PhoneOff, Mic, MicOff, Video, VideoOff,
+  Monitor, MonitorOff, Signal, SignalHigh, SignalLow,
+} from "lucide-react";
+
+const STATUS_LABELS = {
+  calling: "Calling...",
+  connecting: "Connecting...",
+  connected: null,   // show timer
+  failed: null,      // show error
+};
 
 export default function CallScreen() {
-    const { callStatus, callType, remoteUser, callError, localStream, remoteStream, isMuted, isVideoOff } = useCallStore();
-    const { toggleAudio, toggleVideo, emitEndCall } = useCallActions();
+  const {
+    callStatus, callType, remoteUser, callError,
+    localStream, remoteStream,
+    isMuted, isVideoOff, isScreenSharing, connectionQuality,
+  } = useCallStore();
 
-    const localVideoRef = useRef(null);
-    const remoteVideoRef = useRef(null);
+  const { toggleAudio, toggleVideo, emitEndCall, cancelCall, startScreenShare, stopScreenShare } =
+    useCallActions();
 
-    // Attach streams
-    useEffect(() => {
-        if (localVideoRef.current && localStream) {
-            localVideoRef.current.srcObject = localStream;
-        }
-    }, [localStream]);
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const [duration, setDuration] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const hideControlsTimer = useRef(null);
 
-    useEffect(() => {
-        if (remoteVideoRef.current && remoteStream) {
-            remoteVideoRef.current.srcObject = remoteStream;
-        }
-    }, [remoteStream]);
+  // ── Stream attachment ───────────────────────────────────────────────────────
+  useEffect(() => {
+    if (localVideoRef.current && localStream) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
 
-    // Duration Timer
-    const [duration, setDuration] = useState(0);
-    useEffect(() => {
-        let interval;
-        if (callStatus === "connected") {
-            interval = setInterval(() => setDuration((d) => d + 1), 1000);
-        }
-        return () => clearInterval(interval);
-    }, [callStatus]);
+  useEffect(() => {
+    if (remoteVideoRef.current && remoteStream) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
 
-    const formatDuration = (s) => {
-        const mins = Math.floor(s / 60);
-        const secs = s % 60;
-        return `${mins}:${secs.toString().padStart(2, "0")}`;
-    };
+  // ── Timer ───────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (callStatus !== "connected") { setDuration(0); return; }
+    const id = setInterval(() => setDuration((d) => d + 1), 1000);
+    return () => clearInterval(id);
+  }, [callStatus]);
 
-    return (
-        <div className="fixed inset-0 z-[100] bg-bg-primary flex flex-col items-center justify-center animate-fade-in overflow-hidden">
+  const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-            {/* --- HEADER --- */}
-            <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-10">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-bg-secondary overflow-hidden flex items-center justify-center shrink-0">
-                        {remoteUser?.profilePic ? (
-                            <img src={remoteUser.profilePic} alt={remoteUser.username} className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-text-primary text-sm font-medium">{remoteUser?.username?.charAt(0).toUpperCase()}</span>
-                        )}
-                    </div>
-                    <div>
-                        <h2 className="text-text-primary font-semibold text-lg leading-tight">{remoteUser?.username || "Unknown"}</h2>
-                        <div className="text-text-primary/60 text-sm flex items-center gap-2">
-                            {callStatus === "calling" && <span className="animate-pulse">Calling...</span>}
-                            {callStatus === "connecting" && <span className="animate-pulse">Connecting...</span>}
-                            {callStatus === "failed" && <span className="text-brand-pink">{callError}</span>}
-                            {callStatus === "connected" && <span>{formatDuration(duration)}</span>}
-                        </div>
-                    </div>
-                </div>
-            </div>
+  // ── Auto-hide controls ──────────────────────────────────────────────────────
+  const resetHideTimer = useCallback(() => {
+    setShowControls(true);
+    clearTimeout(hideControlsTimer.current);
+    if (callStatus === "connected" && callType === "video") {
+      hideControlsTimer.current = setTimeout(() => setShowControls(false), 4000);
+    }
+  }, [callStatus, callType]);
 
-            {/* --- VIDEO AREA --- */}
-            <div className="relative w-full h-full flex items-center justify-center">
+  useEffect(() => { resetHideTimer(); return () => clearTimeout(hideControlsTimer.current); }, [resetHideTimer]);
 
-                {/* Remote Video (Full Screen) */}
-                {callType === "video" && remoteStream ? (
-                    <video
-                        ref={remoteVideoRef}
-                        autoPlay
-                        playsInline
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="flex flex-col items-center gap-6">
-                        <div className="w-32 h-32 rounded-full overflow-hidden bg-bg-secondary relative">
-                            {callStatus !== "failed" && callStatus !== "connected" && (
-                                <div className="absolute inset-0 bg-brand-purple/20 animate-ping rounded-full" />
-                            )}
-                            {remoteUser?.profilePic ? (
-                                <img src={remoteUser.profilePic} className="w-full h-full object-cover relative z-10" alt="" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-4xl text-text-primary relative z-10">
-                                    {remoteUser?.username?.charAt(0).toUpperCase()}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+  // ── Screen share toggle ─────────────────────────────────────────────────────
+  const handleScreenShare = () => isScreenSharing ? stopScreenShare() : startScreenShare();
 
-                {/* Local Video (Floating PIP Corner) */}
-                {callType === "video" && localStream && (
-                    <div className="absolute top-24 right-6 w-28 h-40 md:w-48 md:h-64 bg-bg-primary rounded-xl overflow-hidden shadow-2xl border border-border-color z-20 transition-all">
-                        <video
-                            ref={localVideoRef}
-                            autoPlay
-                            playsInline
-                            muted // Always mute local video so you don't hear yourself
-                            className="w-full h-full object-cover mirror-x"
-                            style={{ transform: "scaleX(-1)" }} // Mirror camera
-                        />
-                    </div>
-                )}
-            </div>
+  // ── Subtitle ────────────────────────────────────────────────────────────────
+  const subtitle = callStatus === "failed"
+    ? <span className="text-red-400">{callError}</span>
+    : callStatus === "connected"
+      ? <span>{fmt(duration)}</span>
+      : <span className="animate-pulse">{STATUS_LABELS[callStatus]}</span>;
 
-            {/* --- CONTROLS BAR --- */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 bg-bg-primary/50 backdrop-blur-md px-8 py-4 rounded-full border border-border-color z-30">
+  // ── Quality icon ────────────────────────────────────────────────────────────
+  const QualityIcon = () => {
+    if (!connectionQuality || callStatus !== "connected") return null;
+    const map = { good: <SignalHigh size={14} className="text-green-400" />, fair: <Signal size={14} className="text-yellow-400" />, poor: <SignalLow size={14} className="text-red-400" /> };
+    return map[connectionQuality] || null;
+  };
 
-                {/* Microphone Toggle */}
-                <button
-                    onClick={toggleAudio}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isMuted ? "bg-brand-pink/20 text-brand-pink hover:bg-brand-pink/30" : "bg-white/10 text-text-primary hover:bg-white/20"
-                        }`}
-                >
-                    {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
-                </button>
-
-                {/* Video Toggle (Only for Video Calls) */}
-                {callType === "video" && (
-                    <button
-                        onClick={toggleVideo}
-                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isVideoOff ? "bg-brand-pink/20 text-brand-pink hover:bg-brand-pink/30" : "bg-white/10 text-text-primary hover:bg-white/20"
-                            }`}
-                    >
-                        {isVideoOff ? <VideoOff size={22} /> : <Video size={22} />}
-                    </button>
-                )}
-
-                {/* End Call */}
-                <button
-                    onClick={emitEndCall}
-                    className="w-14 h-14 rounded-full bg-brand-pink text-text-primary flex items-center justify-center shadow-lg hover:bg-red-600 transition-transform hover:scale-105"
-                >
-                    <PhoneOff size={24} />
-                </button>
-            </div>
-
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-zinc-950 flex flex-col items-center justify-center overflow-hidden"
+      onMouseMove={resetHideTimer}
+      onTouchStart={resetHideTimer}
+    >
+      {/* ── Header ── */}
+      <div
+        className={`absolute top-0 left-0 right-0 p-5 flex items-center gap-3 bg-gradient-to-b from-black/80 to-transparent z-20 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+      >
+        <Avatar user={remoteUser} size="sm" />
+        <div>
+          <p className="text-white font-semibold text-base leading-tight">
+            {remoteUser?.username ?? "Unknown"}
+          </p>
+          <div className="flex items-center gap-1.5 text-white/60 text-xs">
+            <QualityIcon />
+            {subtitle}
+          </div>
         </div>
-    );
+      </div>
+
+      {/* ── Video area ── */}
+      <div className="relative w-full h-full flex items-center justify-center bg-zinc-900">
+
+        {/* Remote video (full screen) */}
+        {callType === "video" && remoteStream ? (
+          <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+        ) : (
+          <CenteredAvatar user={remoteUser} pulsing={callStatus !== "failed" && callStatus !== "connected"} />
+        )}
+
+        {/* Local video (PiP) */}
+        {callType === "video" && localStream && (
+          <div className="absolute top-20 right-4 w-28 h-40 md:w-44 md:h-60 rounded-xl overflow-hidden shadow-2xl border border-white/10 z-20">
+            <video
+              ref={localVideoRef}
+              autoPlay playsInline muted
+              className="w-full h-full object-cover"
+              style={{ transform: "scaleX(-1)" }}
+            />
+            {isVideoOff && (
+              <div className="absolute inset-0 bg-zinc-800 flex items-center justify-center">
+                <VideoOff size={20} className="text-white/40" />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Controls ── */}
+      <div
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-30 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+      >
+        <ControlBtn
+          active={isMuted}
+          icon={isMuted ? <MicOff size={20} /> : <Mic size={20} />}
+          onClick={toggleAudio}
+          label={isMuted ? "Unmute" : "Mute"}
+        />
+
+        {callType === "video" && (
+          <>
+            <ControlBtn
+              active={isVideoOff}
+              icon={isVideoOff ? <VideoOff size={20} /> : <Video size={20} />}
+              onClick={toggleVideo}
+              label={isVideoOff ? "Camera On" : "Camera Off"}
+            />
+            <ControlBtn
+              active={isScreenSharing}
+              icon={isScreenSharing ? <MonitorOff size={20} /> : <Monitor size={20} />}
+              onClick={handleScreenShare}
+              label={isScreenSharing ? "Stop Share" : "Share Screen"}
+            />
+          </>
+        )}
+
+        {/* End / Cancel call */}
+        <button
+          onClick={callStatus === "calling" ? cancelCall : emitEndCall}
+          title="End call"
+          className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-105"
+        >
+          <PhoneOff size={22} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Sub-components ─────────────────────────────────────────────────────────────
+
+function Avatar({ user, size = "sm" }) {
+  const dim = size === "sm" ? "w-9 h-9 text-sm" : "w-24 h-24 text-3xl";
+  return (
+    <div className={`${dim} rounded-full bg-zinc-700 overflow-hidden flex items-center justify-center shrink-0`}>
+      {user?.profilePic
+        ? <img src={user.profilePic} alt={user.username} className="w-full h-full object-cover" />
+        : <span className="text-white font-medium">{user?.username?.[0]?.toUpperCase()}</span>}
+    </div>
+  );
+}
+
+function CenteredAvatar({ user, pulsing }) {
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative">
+        {pulsing && <div className="absolute inset-0 bg-indigo-500/20 animate-ping rounded-full" />}
+        <Avatar user={user} size="lg" />
+      </div>
+      <p className="text-white/70 text-sm">{user?.username}</p>
+    </div>
+  );
+}
+
+function ControlBtn({ active, icon, onClick, label }) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      className={`w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-105
+        ${active
+          ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+          : "bg-white/10 text-white hover:bg-white/20"}`}
+    >
+      {icon}
+    </button>
+  );
 }

@@ -32,7 +32,7 @@ const MobileTopNavbar = () => {
                 z-50
                 flex items-center justify-between
                 px-4 h-14
-                dark:bg-brand-purple/20 bg-brand-purple/20
+                bg-brand-purple/15 dark:bg-[#18181c]
                 backdrop-blur-xl
                 border-b border-border-color
             "

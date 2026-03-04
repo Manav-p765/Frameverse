@@ -85,13 +85,13 @@ const ProfileHeader = ({
                 <>
                   <button
                     onClick={() => setShowUpdateModal(true)}
-                    className="px-4 py-1.5 bg-bg-secondary hover:bg-gray-700 text-text-primary text-xs font-medium rounded border border-border-color transition-colors"
+                    className="px-4 py-1.5 bg-bg-secondary hover:bg-bg-tertiary dark:hover:bg-gray-700 text-text-primary text-xs font-medium rounded border border-border-color transition-colors"
                   >
                     Edit profile
                   </button>
                   <button
                     onClick={onShareClick}
-                    className="p-1.5 bg-bg-secondary hover:bg-gray-700 text-text-primary rounded border border-border-color transition-colors"
+                    className="p-1.5 bg-bg-secondary hover:bg-bg-tertiary dark:hover:bg-gray-700 text-text-primary rounded border border-border-color transition-colors"
                     title="Share profile"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -109,7 +109,7 @@ const ProfileHeader = ({
                     onClick={onFollowToggle}
                     disabled={followLoading}
                     className={`px-6 py-1.5 text-xs font-semibold rounded transition-all ${isFollowing
-                      ? "bg-bg-secondary hover:bg-gray-700 text-text-primary border border-border-color"
+                      ? "bg-bg-secondary hover:bg-bg-tertiary dark:hover:bg-gray-700 text-text-primary border border-border-color"
                       : "bg-brand-purple hover:opacity-90 text-text-primary"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
@@ -122,7 +122,7 @@ const ProfileHeader = ({
                     <button
                       onClick={handleMessageClick}
                       disabled={chatLoading}
-                      className="p-1.5 bg-bg-secondary hover:bg-gray-700 text-text-primary rounded border border-border-color transition-colors disabled:opacity-50"
+                      className="p-1.5 bg-bg-secondary hover:bg-bg-tertiary dark:hover:bg-gray-700 text-text-primary rounded border border-border-color transition-colors disabled:opacity-50"
                       title="Send message"
                     >
                       {chatLoading ? (
@@ -183,13 +183,13 @@ const ProfileHeader = ({
                 <>
                   <button
                     onClick={() => setShowUpdateModal(true)}
-                    className="px-6 py-2 bg-bg-secondary hover:bg-gray-700 text-text-primary text-sm font-medium rounded border border-border-color transition-colors"
+                    className="px-6 py-2 bg-bg-secondary hover:bg-bg-tertiary dark:hover:bg-gray-700 text-text-primary text-sm font-medium rounded border border-border-color transition-colors"
                   >
                     Edit profile
                   </button>
                   <button
                     onClick={onShareClick}
-                    className="px-3 py-2 bg-bg-secondary hover:bg-gray-700 text-text-primary rounded border border-border-color transition-colors"
+                    className="px-3 py-2 bg-bg-secondary hover:bg-bg-tertiary dark:hover:bg-gray-700 text-text-primary rounded border border-border-color transition-colors"
                     title="Share profile"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline">
@@ -207,7 +207,7 @@ const ProfileHeader = ({
                     onClick={onFollowToggle}
                     disabled={followLoading}
                     className={`px-8 py-2 text-sm font-semibold rounded transition-all ${isFollowing
-                      ? "bg-bg-secondary hover:bg-gray-700 text-text-primary border border-border-color"
+                      ? "bg-bg-secondary hover:bg-bg-tertiary dark:hover:bg-gray-700 text-text-primary border border-border-color"
                       : "bg-brand-purple hover:opacity-90 text-text-primary"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
@@ -220,7 +220,7 @@ const ProfileHeader = ({
                     <button
                       onClick={handleMessageClick}
                       disabled={chatLoading}
-                      className="px-4 py-2 bg-bg-secondary hover:bg-gray-700 text-text-primary text-sm font-medium rounded border border-border-color transition-colors flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 bg-bg-secondary hover:bg-bg-tertiary dark:hover:bg-gray-700 text-text-primary text-sm font-medium rounded border border-border-color transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                       {chatLoading ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

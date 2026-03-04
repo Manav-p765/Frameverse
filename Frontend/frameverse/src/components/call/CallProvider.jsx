@@ -1,84 +1,194 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect, useRef } from "react";
 import { useSocketEvent, getSocket } from "../../hooks/useSocket";
 import { useCallStore } from "../../store/useCallStore";
 import { useWebRTC } from "../../hooks/useWebRTC";
 import CallScreen from "./CallScreen";
 import IncomingCallModal from "./IncomingCallModal";
 
-// Context so children (CallScreen, IncomingCallModal) use the SAME hook instance
 const CallActionsContext = createContext(null);
 export const useCallActions = () => useContext(CallActionsContext);
 
 export default function CallProvider({ children }) {
-    const { callStatus, receiveCall, setCallFailed } = useCallStore();
+  const { callStatus, receiveCall, setCallFailed, initiateCall } = useCallStore();
+  const webrtc = useWebRTC();
+  const {
+    startCall,
+    handleOffer,
+    handleAnswer,
+    handleIceCandidate,
+    handleReconnectOffer,
+    handleReconnectAnswer,
+    endCall,
+  } = webrtc;
 
-    // Single, authoritative useWebRTC instance for the entire app
-    const webrtc = useWebRTC();
+  // Ringtone ref
+  const ringtoneRef = useRef(null);
 
-    const {
-        handleCallAccepted,
-        handleIceCandidate,
-        endCall
-    } = webrtc;
+  // ── Ringtone helpers ────────────────────────────────────────────────────────
+  const playRingtone = () => {
+    try {
+      // Replace with your actual ringtone asset path
+      ringtoneRef.current = new Audio("/sounds/ringtone.mp3");
+      ringtoneRef.current.loop = true;
+      ringtoneRef.current.play().catch(() => { });
+    } catch { }
+  };
 
-    // 1. Incoming Call Listener
-    useSocketEvent("incoming-call", ({ from, offer, callType }) => {
-        const currentStatus = useCallStore.getState().callStatus;
+  const stopRingtone = () => {
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
+      ringtoneRef.current = null;
+    }
+  };
 
-        // Front-end Busy Guard (just in case backend misses it)
-        if (currentStatus !== "idle") {
-            getSocket()?.emit("user-busy", { to: from._id });
-            return;
-        }
+  // ── Socket event listeners ──────────────────────────────────────────────────
 
-        receiveCall(from, callType, offer);
+  // 1. Incoming call (callee side) — server sends BEFORE offer
+  useSocketEvent("call:incoming", ({ callId, from, callType }) => {
+    const status = useCallStore.getState().callStatus;
+    if (status !== "idle") {
+      // Already in a call — server should have caught this, but guard anyway
+      getSocket()?.emit("call:reject", { callId });
+      return;
+    }
+    receiveCall(callId, from, callType, null); // offer arrives separately via call:offer
+    playRingtone();
+  });
+
+  // 2. Offer relay — arrives at callee after call:incoming
+  useSocketEvent("call:offer", async ({ callId, offer }) => {
+    const { callId: currentCallId, callStatus: status } = useCallStore.getState();
+    if (callId !== currentCallId || (status !== "ringing" && status !== "connecting")) return;
+    await handleOffer({ offer });
+  });
+
+  // 3. call:ringing — confirms to caller that receiver was notified
+  useSocketEvent("call:ringing", ({ callId }) => {
+    console.log("[CallProvider] call:ringing — receiver was notified, sending offer now.");
+    // Now that server confirmed receiver is online, send the offer
+    startCall();
+  });
+
+  // 4. call:accepted — callee accepted, caller gets this before the answer
+  useSocketEvent("call:accepted", ({ callId }) => {
+    const { callStatus: status } = useCallStore.getState();
+    if (status !== "calling") return;
+    useCallStore.getState().setConnecting();
+  });
+
+  // 5. SDP answer (caller receives this)
+  useSocketEvent("call:answer", async ({ callId, answer }) => {
+    const { callId: currentCallId } = useCallStore.getState();
+    if (callId !== currentCallId) return;
+    await handleAnswer({ answer });
+  });
+
+  // 6. ICE candidates
+  useSocketEvent("call:ice-candidate", ({ callId, candidate }) => {
+    const { callId: currentCallId } = useCallStore.getState();
+    if (callId !== currentCallId) return;
+    handleIceCandidate({ candidate });
+  });
+
+  // 7. Rejected
+  useSocketEvent("call:rejected", ({ callId }) => {
+    stopRingtone();
+    if (useCallStore.getState().callStatus === "calling") {
+      setCallFailed("Call declined");
+      setTimeout(endCall, 3000);
+    }
+  });
+
+  // 8. Busy
+  useSocketEvent("call:busy", () => {
+    stopRingtone();
+    if (useCallStore.getState().callStatus === "calling") {
+      setCallFailed("User is busy");
+      setTimeout(endCall, 3000);
+    }
+  });
+
+  // 9. Timeout
+  useSocketEvent("call:timeout", ({ callId }) => {
+    stopRingtone();
+    const { callId: currentCallId, callStatus: status } = useCallStore.getState();
+    if (callId !== currentCallId) return;
+    if (status === "calling") setCallFailed("No answer");
+    if (status === "ringing") setCallFailed("Missed call");
+    setTimeout(endCall, 3000);
+  });
+
+  // 10. Remote ended the call
+  useSocketEvent("call:ended", ({ callId }) => {
+    stopRingtone();
+    const { callId: currentCallId } = useCallStore.getState();
+    if (callId !== currentCallId) return;
+    endCall();
+  });
+
+  // 11. Caller cancelled while ringing
+  useSocketEvent("call:cancelled", () => {
+    stopRingtone();
+    endCall();
+  });
+
+  // 12. ICE restart (reconnection)
+  useSocketEvent("call:reconnect-offer", ({ callId, offer }) => {
+    handleReconnectOffer({ offer });
+  });
+
+  useSocketEvent("call:reconnect-answer", ({ callId, answer }) => {
+    handleReconnectAnswer({ answer });
+  });
+
+  // Stop ringtone whenever we leave ringing state
+  useEffect(() => {
+    if (callStatus !== "ringing") stopRingtone();
+  }, [callStatus]);
+
+  // ── Expose all webrtc actions to consumers ──────────────────────────────────
+  return (
+    <CallActionsContext.Provider value={webrtc}>
+      {children}
+
+      {/* Incoming call modal — only when ringing */}
+      {callStatus === "ringing" && <IncomingCallModal />}
+
+      {/* Active call screen */}
+      {(callStatus === "calling" ||
+        callStatus === "connecting" ||
+        callStatus === "connected" ||
+        callStatus === "failed") && <CallScreen />}
+    </CallActionsContext.Provider>
+  );
+}
+
+/**
+ * Hook for initiating a call from anywhere in the app (e.g. chat header).
+ *
+ * Usage:
+ *   const { call } = useInitiateCall();
+ *   <button onClick={() => call(otherUser, "video")}>Video Call</button>
+ */
+export function useInitiateCall() {
+  const { initiateCall } = useCallStore();
+
+  const call = (user, callType = "video", callerInfo = {}) => {
+    const status = useCallStore.getState().callStatus;
+    if (status !== "idle") return; // Guard: already in a call
+
+    // Generate client-side callId candidate; server will confirm
+    const callId = `${user._id}_${Date.now()}`;
+    initiateCall(callId, user, callType);
+
+    // Emit call:request — server assigns authoritative callId via call:ringing
+    getSocket()?.emit("call:request", {
+      to: user._id,
+      callType,
+      callerInfo,
     });
+  };
 
-    // 2. Call Accepted Listener
-    useSocketEvent("call-accepted", async ({ answer }) => {
-        const currentStatus = useCallStore.getState().callStatus;
-        if (currentStatus === "calling" || currentStatus === "connecting") {
-            await handleCallAccepted({ answer });
-        }
-    });
-
-    // 3. User Busy Listener
-    useSocketEvent("user-busy", () => {
-        if (useCallStore.getState().callStatus === "calling") {
-            setCallFailed("User is busy");
-            setTimeout(endCall, 3000);
-        }
-    });
-
-    // 4. Call Rejected Listener
-    useSocketEvent("call-rejected", () => {
-        if (useCallStore.getState().callStatus === "calling") {
-            setCallFailed("Call declined");
-            setTimeout(endCall, 3000);
-        }
-    });
-
-    // 5. ICE Candidate Listener
-    useSocketEvent("ice-candidate", ({ candidate }) => {
-        handleIceCandidate({ candidate });
-    });
-
-    // 6. End Call Listener
-    useSocketEvent("end-call", () => {
-        endCall();
-    });
-
-    return (
-        <CallActionsContext.Provider value={webrtc}>
-            {children}
-
-            {/* Conditionally Render Modals based on the unified state machine */}
-            {callStatus === "ringing" && <IncomingCallModal />}
-
-            {(callStatus === "calling" ||
-                callStatus === "connecting" ||
-                callStatus === "connected" ||
-                callStatus === "failed") && <CallScreen />}
-        </CallActionsContext.Provider>
-    );
+  return { call };
 }

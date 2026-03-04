@@ -156,13 +156,13 @@ const PostCard = ({
 
   return (
     <article
-      className="bg-linear-to-br from-bg-secondary to-bg-tertiary dark:from-bg-primary dark:to-bg-primary backdrop-blur-xl overflow-hidden border border-border-color/40 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-brand-purple/50 hover:-translate-y-1"
+      className="bg-linear-to-br  from-bg-bg-primary to-bg-bg-primary dark:from-bg-primary dark:to-bg-primary backdrop-blur-xl overflow-hidden border border-border-color/40 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-brand-purple/50 hover:-translate-y-1"
       style={style}
     >
       {/* Image Section */}
       <div className="p-5 pb-0">
         <div
-          className="relative w-full aspect-4/3 bg-bg-primary/50 cursor-pointer group overflow-hidden rounded-2xl"
+          className="relative w-full bg-bg-primary/50 cursor-pointer group overflow-hidden rounded-2xl"
           onClick={() => onImageClick && onImageClick(post, 0)}
           onDoubleClick={handleDoubleTap}
         >
@@ -177,7 +177,7 @@ const PostCard = ({
                 alt="Post"
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
-                className={`w-full h-full object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                className={`w-full transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
                   } `}
               />
 

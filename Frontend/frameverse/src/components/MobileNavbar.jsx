@@ -42,7 +42,7 @@ const MobileNavbar = () => {
         fixed bottom-0 left-0 right-0
         z-50
         px-4
-        light:bg-[#f7567c] dark:bg-[#18181c]
+        bg-[#e8e5f0] dark:bg-[#18181c]
         border-t border-border-color
         shadow-[0_-4px_24px_rgba(0,0,0,0.4)]
         flex items-center justify-around
