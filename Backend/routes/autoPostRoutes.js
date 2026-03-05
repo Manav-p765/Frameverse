@@ -58,7 +58,7 @@ router.put("/settings", authorize, async (req, res) => {
             { new: true, upsert: true }
         );
 
-        // Sync connected accounts
+        // Track which platforms to keep (platforms with a valid username provided)
         const accountsToKeep = [];
 
         // GitHub
@@ -69,8 +69,6 @@ router.put("/settings", authorize, async (req, res) => {
                 { upsert: true }
             );
             accountsToKeep.push("github");
-        } else {
-            await ConnectedAccount.findOneAndDelete({ user: userId, platform: "github" });
         }
 
         // LeetCode
@@ -81,15 +79,22 @@ router.put("/settings", authorize, async (req, res) => {
                 { upsert: true }
             );
             accountsToKeep.push("leetcode");
-        } else {
-            await ConnectedAccount.findOneAndDelete({ user: userId, platform: "leetcode" });
         }
 
-        // Clean up any other orphaned accounts if they somehow unchecked them
-        await ConnectedAccount.deleteMany({
-            user: userId,
-            platform: { $nin: accountsToKeep }
-        });
+        // FIX: Only delete platforms that were explicitly cleared (not provided).
+        // Build the list of platforms to remove — those NOT in accountsToKeep.
+        // If accountsToKeep is empty (both usernames cleared), this correctly removes all.
+        // Previously this ran unconditionally and could race-delete freshly upserted accounts.
+        const platformsToRemove = ["github", "leetcode"].filter(
+            (p) => !accountsToKeep.includes(p)
+        );
+
+        if (platformsToRemove.length > 0) {
+            await ConnectedAccount.deleteMany({
+                user: userId,
+                platform: { $in: platformsToRemove }, // FIX: $in instead of $nin
+            });
+        }
 
         res.json({ message: "Settings updated successfully", settings });
     } catch (error) {
@@ -120,20 +125,19 @@ router.get("/stats/today", authorize, async (req, res) => {
             return res.json({ stats: latestStat });
         }
 
-        // Otherwise, there's no activity yet today. We just return a mockup with the streaks from past
+        // No activity yet today — return zero counts but carry over streak info
         res.json({
             stats: {
                 githubCommits: 0,
                 leetcodeSolved: 0,
-                streakCount: latestStat.streakCount, // Carry over streak to display
+                streakCount: latestStat.streakCount,
                 longestStreak: latestStat.longestStreak,
                 caption: null,
                 imageUrl: null,
                 posted: false,
-                updatedAt: latestStat.updatedAt
-            }
+                updatedAt: latestStat.updatedAt,
+            },
         });
-
     } catch (error) {
         console.error("GET /stats/today error:", error);
         res.status(500).json({ message: "Server error fetching today's stats" });
@@ -148,16 +152,11 @@ router.post("/run", authorize, async (req, res) => {
     try {
         const userId = req.userId;
 
-        // To avoid duplicating the massive processUser logic here, we dynamically 
-        // invoke the worker process manually if possible. But since the worker uses 
-        // processUser privately, let's export processUser from autoPost.worker.js
-
         const { processUser } = await import("../workers/autoPost.worker.js");
 
         await processUser(userId, { isManual: true });
 
         const today = dayjs().tz("Asia/Kolkata").format("YYYY-MM-DD");
-
         const updatedStats = await DailyStats.findOne({ user: userId, date: today }).lean();
 
         res.json({ message: "Manual run completed", stats: updatedStats });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAutoPost } from "../../features/autoPost/useAutoPost";
 import { Github, Code2, Clock, CheckCircle2, Play, AlertCircle, Loader2 } from "lucide-react";
 
@@ -9,14 +9,13 @@ export default function AutoPostSettings() {
         getSettings,
         updateSettings,
         runNow,
-        getTodayStats,
     } = useAutoPost();
 
     const [formData, setFormData] = useState({
         enabled: false,
         postTime: "09:00",
         timezone: "Asia/Kolkata",
-        selectedApps: [], // ['github', 'leetcode']
+        selectedApps: [],
     });
 
     const [githubUsername, setGithubUsername] = useState("");
@@ -26,7 +25,6 @@ export default function AutoPostSettings() {
     const [runStats, setRunStats] = useState(null);
     const [initialLoad, setInitialLoad] = useState(true);
 
-    // Timezones for the dropdown
     const timezones = [
         "Asia/Kolkata",
         "America/New_York",
@@ -38,22 +36,32 @@ export default function AutoPostSettings() {
         "UTC"
     ];
 
-    // Fetch initial data
+    // FIX: Use a ref to hold getSettings so it doesn't re-trigger useEffect on every render.
+    // If getSettings is not memoized in the hook (no useCallback), it's a new reference
+    // every render, causing an infinite fetch loop.
+    const getSettingsRef = useRef(getSettings);
     useEffect(() => {
+        getSettingsRef.current = getSettings;
+    }, [getSettings]);
+
+    useEffect(() => {
+        let cancelled = false; // FIX: Prevent state updates if component unmounts mid-fetch
+
         const fetchData = async () => {
             try {
-                const data = await getSettings();
-                if (data.settings) {
+                const data = await getSettingsRef.current();
+                if (cancelled) return;
+
+                if (data?.settings) {
                     setFormData({
-                        enabled: data.settings.enabled,
+                        enabled: data.settings.enabled ?? false,
                         postTime: data.settings.postTime || "09:00",
                         timezone: data.settings.timezone || "Asia/Kolkata",
                         selectedApps: data.settings.selectedApps || [],
                     });
                 }
 
-                // Map connected accounts
-                if (data.accounts) {
+                if (data?.accounts) {
                     const gh = data.accounts.find(a => a.platform === "github");
                     const lc = data.accounts.find(a => a.platform === "leetcode");
                     if (gh) setGithubUsername(gh.username);
@@ -62,11 +70,14 @@ export default function AutoPostSettings() {
             } catch (err) {
                 // Error handled by hook
             } finally {
-                setInitialLoad(false);
+                if (!cancelled) setInitialLoad(false);
             }
         };
+
         fetchData();
-    }, [getSettings]);
+
+        return () => { cancelled = true; }; // cleanup on unmount
+    }, []); // FIX: Empty deps — runs once on mount only
 
     const handleToggleApp = (appId) => {
         setFormData((prev) => {
@@ -83,7 +94,6 @@ export default function AutoPostSettings() {
     const handleSave = async () => {
         try {
             setSaveSuccess(false);
-            // Pass the form data + the usernames to save everything in one request
             await updateSettings({
                 ...formData,
                 githubUsername,
@@ -102,6 +112,7 @@ export default function AutoPostSettings() {
         }
 
         try {
+            setRunStats(null); // FIX: Reset previous run result before new run
             const stats = await runNow();
             setRunStats(stats);
         } catch (err) {

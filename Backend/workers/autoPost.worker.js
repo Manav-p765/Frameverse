@@ -45,17 +45,22 @@ export async function processUser(userId, options = { isManual: false }) {
             ConnectedAccount.find({ user: userId }, { platform: 1, username: 1 }).lean(),
         ]);
 
+        console.log(`[AutoPost] RAW settings:`, JSON.stringify(settings));
+        console.log(`[AutoPost] RAW accounts:`, JSON.stringify(accounts));
+
+        // FIX: Normalize platform keys to lowercase to avoid "GitHub" vs "github" mismatches
         const accountMap = {};
         for (const acc of accounts) {
-            accountMap[acc.platform] = acc.username;
+            accountMap[acc.platform.toLowerCase()] = acc.username;
         }
 
-        const apps = settings?.selectedApps || [];
+        // FIX: Normalize selectedApps to lowercase for consistent matching
+        const apps = (settings?.selectedApps || []).map((a) => a.toLowerCase());
         const tz = settings?.timezone || "Asia/Kolkata";
         const stats = { githubCommits: 0, leetcodeSolved: 0 };
 
-        console.log(`[AutoPost] selectedApps: [${apps.join(", ")}]`);
-        console.log(`[AutoPost] accountMap:`, JSON.stringify(accountMap));
+        console.log(`[AutoPost] selectedApps (normalized): [${apps.join(", ")}]`);
+        console.log(`[AutoPost] accountMap (normalized):`, JSON.stringify(accountMap));
 
         // Fetch activity from enabled platforms in parallel
         const fetches = [];
@@ -63,7 +68,15 @@ export async function processUser(userId, options = { isManual: false }) {
         if (apps.includes("github")) {
             if (accountMap.github) {
                 fetches.push(
-                    getTodayCommits(accountMap.github, tz).then((n) => { stats.githubCommits = n; })
+                    getTodayCommits(accountMap.github, tz)
+                        .then((n) => {
+                            stats.githubCommits = n;
+                            console.log(`[AutoPost] GitHub commits resolved: ${n}`);
+                        })
+                        .catch((err) => {
+                            // FIX: Catch per-platform errors so one failure doesn't zero out the other
+                            console.error(`[AutoPost] GitHub fetch failed for ${userId}:`, err);
+                        })
                 );
             } else {
                 console.log(`[AutoPost] No GitHub account linked for user: ${userId}`);
@@ -73,7 +86,15 @@ export async function processUser(userId, options = { isManual: false }) {
         if (apps.includes("leetcode")) {
             if (accountMap.leetcode) {
                 fetches.push(
-                    getTodayLeetCodeSolved(accountMap.leetcode, tz).then((n) => { stats.leetcodeSolved = n; })
+                    getTodayLeetCodeSolved(accountMap.leetcode, tz)
+                        .then((n) => {
+                            stats.leetcodeSolved = n;
+                            console.log(`[AutoPost] LeetCode solved resolved: ${n}`);
+                        })
+                        .catch((err) => {
+                            // FIX: Catch per-platform errors so one failure doesn't zero out the other
+                            console.error(`[AutoPost] LeetCode fetch failed for ${userId}:`, err);
+                        })
                 );
             } else {
                 console.log(`[AutoPost] No LeetCode account linked for user: ${userId}`);
@@ -81,7 +102,7 @@ export async function processUser(userId, options = { isManual: false }) {
         }
 
         await Promise.all(fetches);
-        console.log(`[AutoPost] Stats for ${userId}:`, stats);
+        console.log(`[AutoPost] Final stats for ${userId}:`, stats);
 
         // Generate caption and image in parallel
         const [caption, image] = await Promise.all([
@@ -109,7 +130,7 @@ export async function processUser(userId, options = { isManual: false }) {
         const { streakCount, longestStreak } = await calculateStreak(userId, today);
 
         // Upsert DailyStats and mark as posted (use upsert so manual runs don't hit duplicate key errors)
-        const dailyRecord = await DailyStats.findOneAndUpdate(
+        await DailyStats.findOneAndUpdate(
             { user: userId, date: today },
             {
                 githubCommits: stats.githubCommits,
@@ -126,7 +147,8 @@ export async function processUser(userId, options = { isManual: false }) {
         console.log(`[AutoPost] Streak for ${userId}: ${streakCount} (Longest: ${longestStreak})`);
         console.log(`[AutoPost] ✅ Complete for ${userId} (${today})`);
     } catch (err) {
-        console.error(`[AutoPost] Failed to process user ${userId}:`, err.message);
+        // FIX: Log full error object, not just err.message, to expose network/stack issues
+        console.error(`[AutoPost] Failed to process user ${userId}:`, err);
         // TODO: Implement retry — push failed userId to a retry queue or
         //       schedule a one-off re-attempt with exponential backoff.
     }
@@ -183,7 +205,7 @@ export function startAutoPostWorker() {
                 }
             }
         } catch (err) {
-            console.error("[AutoPost] Error:", err.message);
+            console.error("[AutoPost] Worker error:", err);
         }
     });
 

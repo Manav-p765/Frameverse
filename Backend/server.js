@@ -25,7 +25,8 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://frameverse-zeta.vercel.app",
-    "https://frameverse.onrender.com" // If frontend is also served here
+    "https://frameverse.onrender.com",
+ // If frontend is also served here
   ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
