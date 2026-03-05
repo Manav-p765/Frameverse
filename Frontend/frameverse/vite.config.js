@@ -36,7 +36,13 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./setupTests.js"
-  }
+  },
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+      "Cross-Origin-Embedder-Policy": "unsafe-none",
+    },
+  },
 
 })
 

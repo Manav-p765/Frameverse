@@ -4,6 +4,7 @@ import PostCard from "../components/posts/PostCard";
 import PostLightbox from "../components/posts/PostLightbox";
 import NotificationSidebar from "../components/NotificationSidebar";
 import api from "../services/post.service";
+import SEOHead from "../components/SEOHead";
 
 const Feed = () => {
   const navigate = useNavigate();
@@ -124,6 +125,11 @@ const Feed = () => {
 
   return (
     <div className="min-h-screen bg-bg-primary mt-10">
+      <SEOHead
+        title="Feed | Frameverse — The Social Platform for Student Developers"
+        description="See the latest coding updates, GitHub commits, and LeetCode solves from the student developer community."
+        canonical="https://frameverse.online/"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Two-column layout on desktop: feed left, notifications right */}

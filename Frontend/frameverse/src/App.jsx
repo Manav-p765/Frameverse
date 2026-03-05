@@ -14,6 +14,9 @@ import AutoPostPage from "./pages/AutoPostPage";
 import MessageToast from "./components/chat/MessageToast";
 import CallProvider from "./components/call/CallProvider";
 import { ThemeProvider } from "./context/ThemeContext";
+import Terms from "./pages/TermsOfService";
+import Privacy from "./pages/Privacy";
+import ResetPassword from "./pages/ResetPassword";
 
 const App = () => {
   return (
@@ -22,7 +25,9 @@ const App = () => {
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/logout" element={<Logout />} />
-
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/terms" element={<Terms />} /> 
+          <Route path="/privacy" element={<Privacy />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Feed />} />
 

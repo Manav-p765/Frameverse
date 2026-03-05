@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Allow: /auth
+Disallow: /api/
+Disallow: /chats/
+Disallow: /settings/
+Disallow: /profile/edit
+
+Sitemap: https://frameverse.online/sitemap.xml
