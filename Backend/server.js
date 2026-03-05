@@ -26,6 +26,8 @@ app.use(cors({
     "http://localhost:5173",
     "https://frameverse-zeta.vercel.app",
     "https://frameverse.onrender.com",
+    "https://frameverse.online",
+    "https://www.frameverse.online"
  // If frontend is also served here
   ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -39,7 +41,9 @@ const io = new Server(server, {
     origin: [
       "http://localhost:5173",
       "https://frameverse-zeta.vercel.app",
-      "https://frameverse.onrender.com"
+      "https://frameverse.onrender.com",
+      "https://frameverse.online",
+      "https://www.frameverse.online" 
     ],
     methods: ["GET", "POST"],
   },
