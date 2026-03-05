@@ -14,12 +14,10 @@ import AutoPostPage from "./pages/AutoPostPage";
 import MessageToast from "./components/chat/MessageToast";
 import CallProvider from "./components/call/CallProvider";
 import { ThemeProvider } from "./context/ThemeContext";
-import { Analytics } from "@vercel/analytics/next"
 
 const App = () => {
   return (
     <ThemeProvider>
-      <Analytics />
       <CallProvider>
         <Routes>
           <Route path="/auth" element={<Auth />} />
