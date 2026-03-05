@@ -1,9 +1,15 @@
 import { useState, useRef } from 'react';
 import PostDetailsForm from '../components/posts/Postdetailsform';
+import ImageCropper from '../components/posts/ImageCropper';
 
 const CreatePost = () => {
+  // Raw image selection from file input
+  const [rawImage, setRawImage] = useState(null);
+
+  // Cropped resulting image URL & file for upload
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
@@ -12,24 +18,49 @@ const CreatePost = () => {
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
-      setImageFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => setSelectedImage(reader.result);
+      reader.onloadend = () => setRawImage(reader.result);
       reader.readAsDataURL(file);
     }
+    // clear input value so picking the same file again works
+    e.target.value = null;
+  };
+
+  const handleCropComplete = (croppedData) => {
+    // croppedData contains { url, file }
+    setSelectedImage(croppedData.url);
+    setImageFile(croppedData.file);
+    setRawImage(null); // Close cropper
+  };
+
+  const handleCropCancel = () => {
+    setRawImage(null); // Close cropper
   };
 
   const handleBack = () => {
     setSelectedImage(null);
     setImageFile(null);
+    setRawImage(null);
   };
 
+  // 1. Show formulation page if we have our final cropped image
   if (selectedImage) {
     return (
       <PostDetailsForm
         selectedImage={selectedImage}
         imageFile={imageFile}
         onBack={handleBack}
+      />
+    );
+  }
+
+  // 2. Show cropper if we have a raw uncropped image
+  if (rawImage) {
+    return (
+      <ImageCropper
+        imageSrc={rawImage}
+        onCropComplete={handleCropComplete}
+        onCancel={handleCropCancel}
       />
     );
   }

@@ -44,22 +44,24 @@ export default function CallProvider({ children }) {
 
   // ── Socket event listeners ──────────────────────────────────────────────────
 
-  // 1. Incoming call (callee side) — server sends BEFORE offer
+  // 1. call:incoming — store remoteUser, callId, callType immediately
   useSocketEvent("call:incoming", ({ callId, from, callType }) => {
     const status = useCallStore.getState().callStatus;
     if (status !== "idle") {
-      // Already in a call — server should have caught this, but guard anyway
       getSocket()?.emit("call:reject", { callId });
       return;
     }
-    receiveCall(callId, from, callType, null); // offer arrives separately via call:offer
+    receiveCall(callId, from, callType, null);
     playRingtone();
   });
 
-  // 2. Offer relay — arrives at callee after call:incoming
+  // 2. call:offer — REMOVE the status guard, just store the offer
   useSocketEvent("call:offer", async ({ callId, offer }) => {
-    const { callId: currentCallId, callStatus: status } = useCallStore.getState();
-    if (callId !== currentCallId || (status !== "ringing" && status !== "connecting")) return;
+    const { callId: currentCallId } = useCallStore.getState();
+
+    // ✅ Only check callId match — drop the status guard that was blocking it
+    if (callId !== currentCallId) return;
+
     await handleOffer({ offer });
   });
 

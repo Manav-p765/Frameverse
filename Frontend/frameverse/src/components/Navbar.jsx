@@ -66,23 +66,26 @@ const Navbar = () => {
   return (
     // ✅ Only visible on md and above — mobile uses MobileNavbar
     <aside
-      className="
+      className={`
         hidden md:flex
         flex-col
         group
         h-screen
-        bg-bg-primary dark:bg-bg-primary
+        bg-bg-primary
         transition-all
         duration-300
         ease-in-out
-        w-[76px]
-        hover:w-64
+        ${location.pathname === "/" ? "w-64" : "w-[76px] hover:w-64"}
         text-text-primary
         relative
-      "
+      `}
     >
+      {/* Expanding purple background to cover logo transition (Light mode only) */}
+      <div className={`absolute inset-0 bg-brand-purple z-0 transition-opacity duration-300
+        ${location.pathname === "/" ? "opacity-100 dark:opacity-0" : "opacity-0 group-hover:opacity-100 dark:group-hover:opacity-0"}
+      `}></div>
       {/* Inner container */}
-      <div className="flex h-full w-full flex-col px-3 relative z-10">
+      <div className="flex h-full w-full flex-col px-3 relative z-10 bg-transparent dark:bg-bg-primary transition-colors duration-300 ease-in-out">
         {/* Empty spacer for absolute logo */}
         <div className="h-24 shrink-0"></div>
 
@@ -91,16 +94,29 @@ const Navbar = () => {
           {navItems.map(({ to, label, icon: Icon }) => {
             // Determine active color based on label
             const getActiveColor = (isActive) => {
-              if (!isActive) return "text-text-secondary"; // Default unselected
-              if (label === "AutoPost") return "text-brand-orange bg-brand-orange/10 font-bold";
-              if (label === "Notifications") return "text-brand-pink bg-brand-pink/10 font-bold";
-              return "text-brand-purple bg-brand-purple/10 font-bold";
+              const isHomeLight = location.pathname === "/" && theme !== "dark";
+
+              if (!isActive) {
+                return isHomeLight
+                  ? "text-white/70 hover:text-white dark:text-text-secondary dark:hover:text-text-primary"
+                  : "text-text-secondary group-hover:text-white dark:group-hover:text-text-secondary";
+              }
+
+              if (label === "AutoPost") return "text-brand-orange bg-brand-orange/10 font-bold group-hover:text-brand-orange";
+              if (label === "Notifications") return "text-brand-pink bg-brand-pink/10 font-bold group-hover:text-brand-pink";
+
+              return isHomeLight
+                ? "text-white bg-white/20 font-bold"
+                : "text-brand-purple bg-brand-purple/10 font-bold group-hover:text-white dark:group-hover:text-brand-purple";
             };
 
             const getHoverColor = () => {
-              if (label === "AutoPost") return "hover:text-brand-orange hover:bg-brand-orange/5";
-              if (label === "Notifications") return "hover:text-brand-pink hover:bg-brand-pink/5";
-              return "hover:text-brand-purple hover:bg-brand-purple/5";
+              const isHomeLight = location.pathname === "/" && theme !== "dark";
+              if (label === "AutoPost") return "hover:bg-brand-orange/20 dark:hover:bg-brand-orange/5 dark:hover:text-brand-orange";
+              if (label === "Notifications") return "hover:bg-brand-pink/20 dark:hover:bg-brand-pink/5 dark:hover:text-brand-pink";
+              return isHomeLight
+                ? "hover:bg-white/20"
+                : "hover:bg-white/20 dark:hover:bg-brand-purple/5 dark:hover:text-brand-purple";
             };
 
             return (
@@ -136,12 +152,11 @@ const Navbar = () => {
                       )}
                     </span>
                     <span
-                      className="
-                            overflow-hidden whitespace-nowrap
-                            max-w-0 opacity-0 -translate-x-2
-                            group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0
-                            transition-all duration-300 ease-in-out
-                          "
+                      className={`
+                        overflow-hidden whitespace-nowrap
+                        transition-all duration-300 ease-in-out
+                        ${location.pathname === "/" ? "max-w-[150px] opacity-100 translate-x-0" : "max-w-0 opacity-0 -translate-x-2 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0"}
+                      `}
                     >
                       {label}
                     </span>
@@ -153,22 +168,25 @@ const Navbar = () => {
         </nav>
 
         {/* Theme Toggle & Logout — pushed to bottom */}
-        <div className="mt-auto shrink-0 pb-6 pt-4 border-t border-border-color flex flex-col gap-2">
+        <div className="mt-auto shrink-0 pb-6 pt-4 border-t border-border-color group-hover:border-white/20 flex flex-col gap-2 relative z-10 transition-colors duration-300">
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-4 px-3 py-3 w-full rounded-xl hover:bg-brand-purple/5 transition-colors text-text-secondary hover:text-brand-purple"
+            className={`flex items-center gap-4 px-3 py-3 w-full rounded-xl transition-colors
+              ${location.pathname === "/" && theme !== "dark"
+                ? "text-white/70 hover:text-white hover:bg-white/20 dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-brand-purple/5"
+                : "text-text-secondary group-hover:text-white hover:bg-white/20 dark:hover:bg-brand-purple/5 dark:group-hover:text-text-secondary"
+              }
+            `}
           >
             <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
               {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
             </span>
             <span
-              className="
+              className={`
                 overflow-hidden whitespace-nowrap
-                max-w-0 opacity-0 -translate-x-2
-                group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0
-                transition-all duration-300 ease-in-out
-                font-medium
-              "
+                transition-all duration-300 ease-in-out font-medium
+                ${location.pathname === "/" ? "max-w-[150px] opacity-100 translate-x-0" : "max-w-0 opacity-0 -translate-x-2 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0"}
+              `}
             >
               {theme === "dark" ? "Light Mode" : "Dark Mode"}
             </span>
@@ -176,19 +194,22 @@ const Navbar = () => {
 
           <button
             onClick={() => navigate("/logout")}
-            className="flex items-center gap-4 px-3 py-3 w-full rounded-xl hover:bg-brand-pink/10 transition-colors text-brand-pink/80 hover:text-brand-pink"
+            className={`flex items-center gap-4 px-3 py-3 w-full rounded-xl transition-colors
+              ${location.pathname === "/" && theme !== "dark"
+                ? "text-brand-pink hover:bg-white/20 dark:text-brand-pink/80 dark:hover:bg-brand-pink/10"
+                : "text-brand-pink/80 group-hover:text-brand-pink hover:bg-white/20 dark:hover:bg-brand-pink/10 dark:group-hover:text-brand-pink/80"
+              }
+            `}
           >
             <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
               <LogOut size={24} />
             </span>
             <span
-              className="
+              className={`
                 overflow-hidden whitespace-nowrap
-                max-w-0 opacity-0 -translate-x-2
-                group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0
-                transition-all duration-300 ease-in-out
-                font-medium
-              "
+                transition-all duration-300 ease-in-out font-medium
+                ${location.pathname === "/" ? "max-w-[150px] opacity-100 translate-x-0" : "max-w-0 opacity-0 -translate-x-2 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0"}
+              `}
             >
               Logout
             </span>

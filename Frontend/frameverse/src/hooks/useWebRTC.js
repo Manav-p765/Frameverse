@@ -226,6 +226,17 @@ export const useWebRTC = () => {
   // ─── CALLEE: accept ──────────────────────────────────────────────────────
 
   const acceptCall = useCallback(async () => {
+
+    const state = store.getState();
+    // 🔍 Add this temporarily to confirm what's set
+    console.log("[DEBUG] acceptCall →", {
+      remoteUser: state.remoteUser?._id,
+      hasOffer: !!state.incomingOffer,
+      callType: state.callType,
+      callId: state.callId,
+      callStatus: state.callStatus,
+    });
+
     const { remoteUser, incomingOffer, callType, callId } = store.getState();
     if (!remoteUser || !incomingOffer) {
       return console.warn("[WebRTC] acceptCall: missing remoteUser or offer");
@@ -297,11 +308,12 @@ export const useWebRTC = () => {
 
   // ─── SDP offer (inbound, callee side — sent after call:accepted) ─────────
 
-  const handleOffer = useCallback(async ({ offer }) => {
-    // Offer arrives on callee AFTER the server relays it post-accept
+  const handleOffer = useCallback(({ offer }) => {
+    // remoteUser was already set by receiveCall() in call:incoming
+    const { remoteUser } = store.getState();
+    console.log("[WebRTC] handleOffer — remoteUser:", remoteUser?._id, "offer:", !!offer);
     setIncomingOffer(offer);
-    console.log("[WebRTC] Offer stored — waiting for acceptCall().");
-  }, [setIncomingOffer]);
+  }, [store, setIncomingOffer]);
 
   // ─── ICE restart ─────────────────────────────────────────────────────────
 

@@ -177,7 +177,7 @@ const PostCard = ({
                 alt="Post"
                 loading="lazy"
                 onLoad={() => setImageLoaded(true)}
-                className={`w-full transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                className={`w-full max-h-[65vh] object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
                   } `}
               />
 

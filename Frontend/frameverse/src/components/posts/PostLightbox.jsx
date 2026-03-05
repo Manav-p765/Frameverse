@@ -57,7 +57,7 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
 
   const handleTouchMove = useCallback((e) => {
     if (swipeStart === null) return;
-    
+
     const currentTouch = e.touches[0].clientX;
     const diff = currentTouch - swipeStart;
     setSwipeDistance(diff);
@@ -71,7 +71,7 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
         handleNext();
       }
     }
-    
+
     setSwipeStart(null);
     setSwipeDistance(0);
   }, [swipeDistance, handlePrevious, handleNext]);
@@ -155,13 +155,13 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
       )}
 
       {/* Main content container */}
-      <div className="flex items-center justify-center h-full px-4 md:px-0">
-        <div className="relative w-full max-w-6xl">
-          {/* Desktop: max 60% width, Mobile: 90% width */}
-          <div className="relative mx-auto w-full md:w-[60%]">
+      <div className="flex items-center justify-center h-full px-4 md:px-8 pb-24 pt-16 w-full relative z-0">
+        <div className="relative w-full h-full flex items-center justify-center">
+          {/* Desktop and Mobile: Flex relative sizing */}
+          <div className="relative flex items-center justify-center max-w-full max-h-full">
             {/* Image container */}
             <div
-              className="relative flex items-center justify-center"
+              className="relative flex items-center justify-center w-full h-full max-w-full max-h-full"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -179,9 +179,8 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
               <img
                 src={images[currentIndex]?.url}
                 alt={`Image ${currentIndex + 1}`}
-                className={`max-h-[85vh] w-auto max-w-full object-contain rounded-lg shadow-2xl transition-opacity duration-300 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
-                }`}
+                className={`max-w-[100vw] max-h-[80vh] md:max-w-[80vw] md:max-h-[85vh] object-contain rounded-lg shadow-2xl transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                  }`}
                 onLoad={() => setImageLoaded(true)}
                 style={{
                   animation: imageLoaded ? 'zoomIn 0.3s ease-out' : 'none',
@@ -250,11 +249,10 @@ const PostLightbox = ({ post, initialIndex = 0, onClose }) => {
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
-                className={`shrink-0 w-2 h-2 rounded-full transition-all ${
-                  idx === currentIndex
+                className={`shrink-0 w-2 h-2 rounded-full transition-all ${idx === currentIndex
                     ? 'bg-white w-6'
                     : 'bg-white/40'
-                }`}
+                  }`}
                 aria-label={`Go to image ${idx + 1}`}
               />
             ))}

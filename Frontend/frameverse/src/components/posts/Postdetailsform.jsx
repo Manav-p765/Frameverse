@@ -64,11 +64,11 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
       <div className="max-w-2xl mx-auto px-4 py-6">
         <form onSubmit={handleSubmit} className="space-y-6">
 
-          <div className="aspect-square w-full rounded-2xl overflow-hidden bg-bg-primary">
+          <div className="w-full max-h-[60vh] rounded-2xl overflow-hidden bg-bg-primary flex items-center justify-center">
             <img
               src={selectedImage}
               alt="Selected"
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
 
@@ -77,7 +77,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
             type="button"
             onClick={handleAiCaption}
             disabled={aiLoading || isLoading}
-            className="w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-[#262626] border border-purple-500/40 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400/60 hover:text-purple-200 active:scale-[0.98]"
+            className="w-full py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-bg-secondary border border-brand-purple/40 text-brand-purple hover:bg-brand-purple/10 hover:border-brand-purple/60 active:scale-[0.98]"
           >
             {aiLoading ? (
               <>
@@ -101,7 +101,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
             rows={4}
             maxLength={2200}
             disabled={isLoading}
-            className="w-full px-4 py-3 bg-[#262626] border border-border-color rounded-xl text-text-primary"
+            className="w-full px-4 py-3 bg-bg-secondary border border-border-color focus:border-brand-purple outline-none rounded-xl text-text-primary transition-colors"
           />
 
           <input
@@ -111,7 +111,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
             placeholder="Add location"
             maxLength={100}
             disabled={isLoading}
-            className="w-full px-4 py-3 bg-[#262626] border border-border-color rounded-xl text-text-primary"
+            className="w-full px-4 py-3 bg-bg-secondary border border-border-color focus:border-brand-purple outline-none rounded-xl text-text-primary transition-colors"
           />
 
           {error && (
