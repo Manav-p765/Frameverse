@@ -229,21 +229,46 @@ export const useWebRTC = () => {
 
   // ─── CALLEE: accept ──────────────────────────────────────────────────────
 
+  // ─── Shared Handshake logic (used by both acceptCall and handleOffer) ─────
+
+  const finishAcceptWithOffer = useCallback(async (currentPC, offer) => {
+    const { remoteUser, callId } = store.getState();
+    if (!currentPC || !offer || !remoteUser) return;
+
+    try {
+      console.log("[WebRTC] Setting remote description...");
+      await currentPC.setRemoteDescription(new RTCSessionDescription(offer));
+
+      // 🆕 Process any candidates that arrived while we were setting up
+      console.log("[WebRTC] Processing buffered ICE candidates...");
+      while (pendingIceCandidates.current.length > 0) {
+        const candidate = pendingIceCandidates.current.shift();
+        try {
+          await currentPC.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.error("[WebRTC] Error adding pending ICE candidate:", err);
+        }
+      }
+
+      const answer = await currentPC.createAnswer();
+      await currentPC.setLocalDescription(answer);
+
+      getSocket()?.emit("call:answer", { callId, to: remoteUser._id, answer });
+      console.log("[WebRTC] Answer sent to", remoteUser._id);
+    } catch (err) {
+      console.error("[WebRTC] finishAcceptWithOffer error:", err);
+      setCallFailed("Handshake failed");
+    }
+  }, [store, setCallFailed]);
+
+  // ─── CALLEE: accept ──────────────────────────────────────────────────────
+
   const acceptCall = useCallback(async () => {
-
     const state = store.getState();
-    // 🔍 Add this temporarily to confirm what's set
-    console.log("[DEBUG] acceptCall →", {
-      remoteUser: state.remoteUser?._id,
-      hasOffer: !!state.incomingOffer,
-      callType: state.callType,
-      callId: state.callId,
-      callStatus: state.callStatus,
-    });
+    const { remoteUser, incomingOffer, callType, callId } = state;
 
-    const { remoteUser, incomingOffer, callType, callId } = store.getState();
-    if (!remoteUser || !incomingOffer) {
-      return console.warn("[WebRTC] acceptCall: missing remoteUser or offer");
+    if (!remoteUser) {
+      return console.warn("[WebRTC] acceptCall: missing remoteUser");
     }
 
     setConnecting();
@@ -259,25 +284,14 @@ export const useWebRTC = () => {
     const pc = createPeerConnection();
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
 
-    await pc.setRemoteDescription(new RTCSessionDescription(incomingOffer));
-
-    // 🆕 Process any candidates that arrived while we were setting up
-    console.log("[WebRTC] Remote description set. Processing ICE queue...");
-    while (pendingIceCandidates.current.length > 0) {
-      const candidate = pendingIceCandidates.current.shift();
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      } catch (err) {
-        console.error("[WebRTC] Error adding pending ICE candidate:", err);
-      }
+    if (incomingOffer) {
+      // Offer already here, finish now
+      await finishAcceptWithOffer(pc, incomingOffer);
+    } else {
+      // Offer not here yet (race condition), handleOffer will pick this up
+      console.log("[WebRTC] Accept clicked but offer missing. Waiting for handleOffer...");
     }
-
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-
-    getSocket()?.emit("call:answer", { callId, to: remoteUser._id, answer });
-    console.log("[WebRTC] Answer sent to", remoteUser._id);
-  }, [store, setConnecting, getMediaStream, createPeerConnection]);
+  }, [store, setConnecting, getMediaStream, createPeerConnection, finishAcceptWithOffer]);
 
 
   // ─── Decline ─────────────────────────────────────────────────────────────
@@ -344,12 +358,19 @@ export const useWebRTC = () => {
 
   // ─── SDP offer (inbound, callee side — sent after call:accepted) ─────────
 
-  const handleOffer = useCallback(({ offer }) => {
-    // remoteUser was already set by receiveCall() in call:incoming
-    const { remoteUser } = store.getState();
-    console.log("[WebRTC] handleOffer — remoteUser:", remoteUser?._id, "offer:", !!offer);
+  const handleOffer = useCallback(async ({ offer }) => {
+    const { callStatus } = store.getState();
+    console.log("[WebRTC] handleOffer received. Status:", callStatus);
+
     setIncomingOffer(offer);
-  }, [store, setIncomingOffer]);
+
+    // 🆕 If the user already clicked "Accept" (latent accept fix), complete the handshake
+    if (callStatus === "connecting" && pcRef.current) {
+      console.log("[WebRTC] Handing latent offer...");
+      await finishAcceptWithOffer(pcRef.current, offer);
+    }
+  }, [store, setIncomingOffer, finishAcceptWithOffer]);
+
 
   // ─── ICE restart ─────────────────────────────────────────────────────────
 
