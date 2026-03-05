@@ -130,8 +130,10 @@ export default function CallProvider({ children }) {
   });
 
   // 11. Caller cancelled while ringing
-  useSocketEvent("call:cancelled", () => {
+  useSocketEvent("call:cancelled", ({ callId }) => {
     stopRingtone();
+    const { callId: currentCallId } = useCallStore.getState();
+    if (callId !== currentCallId) return;
     endCall();
   });
 

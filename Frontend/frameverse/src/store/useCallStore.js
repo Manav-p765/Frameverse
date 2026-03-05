@@ -83,6 +83,10 @@ export const useCallStore = create((set, get) => ({
   setConnecting: () => set({ callStatus: "connecting" }),
   setConnected: () => set({ callStatus: "connected" }),
 
+  setCallId: (id) => set({ callId: id }),
+  setRemoteUser: (user) => set({ remoteUser: user }),
+  setCallType: (type) => set({ callType: type }),
+
   setCallFailed: (errorMsg) =>
     set({ callStatus: "failed", callError: errorMsg }),
 

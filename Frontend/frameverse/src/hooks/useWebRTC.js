@@ -50,6 +50,8 @@ export const useWebRTC = () => {
   const ringTimeoutRef = useRef(null);    // caller-side ring guard (UI only)
   const qualityIntervalRef = useRef(null);
   const screenTrackRef = useRef(null);   // for screen share swap-back
+  const pendingIceCandidates = useRef([]); // 🆕 Queue for candidates arriving before remote SDP
+
 
   // ─── Cleanup helpers ───────────────────────────────────────────────────────
 
@@ -96,9 +98,11 @@ export const useWebRTC = () => {
       ringTimeoutRef.current = null;
     }
 
+    pendingIceCandidates.current = []; // 🆕 Reset queue
     resetCall();
     console.log("[WebRTC] Call fully cleaned up.");
   }, [store, stopTracks, closePeerConnection, stopQualityMonitor, resetCall, setLocalStream, setRemoteStream]);
+
 
   // ─── Quality monitoring ────────────────────────────────────────────────────
 
@@ -256,12 +260,25 @@ export const useWebRTC = () => {
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
 
     await pc.setRemoteDescription(new RTCSessionDescription(incomingOffer));
+
+    // 🆕 Process any candidates that arrived while we were setting up
+    console.log("[WebRTC] Remote description set. Processing ICE queue...");
+    while (pendingIceCandidates.current.length > 0) {
+      const candidate = pendingIceCandidates.current.shift();
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (err) {
+        console.error("[WebRTC] Error adding pending ICE candidate:", err);
+      }
+    }
+
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
 
     getSocket()?.emit("call:answer", { callId, to: remoteUser._id, answer });
     console.log("[WebRTC] Answer sent to", remoteUser._id);
   }, [store, setConnecting, getMediaStream, createPeerConnection]);
+
 
   // ─── Decline ─────────────────────────────────────────────────────────────
 
@@ -290,7 +307,14 @@ export const useWebRTC = () => {
   // ─── ICE candidate (inbound from server) ─────────────────────────────────
 
   const handleIceCandidate = useCallback(async ({ candidate }) => {
-    if (!pcRef.current) return console.warn("[WebRTC] ICE candidate but no PC.");
+    if (!pcRef.current) return;
+
+    // 🆕 Buffer candidates if remote description isn't set yet (w6 requirement)
+    if (!pcRef.current.remoteDescription) {
+      pendingIceCandidates.current.push(candidate);
+      return;
+    }
+
     try {
       await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
     } catch (err) {
@@ -298,13 +322,25 @@ export const useWebRTC = () => {
     }
   }, []);
 
+
   // ─── SDP answer (inbound, caller side) ───────────────────────────────────
 
   const handleAnswer = useCallback(async ({ answer }) => {
     if (!pcRef.current) return console.warn("[WebRTC] Answer received but no PC.");
     await pcRef.current.setRemoteDescription(new RTCSessionDescription(answer));
-    console.log("[WebRTC] Remote description (answer) set. Waiting for connection...");
+
+    // 🆕 Process any candidates that arrived while we were waiting for the answer
+    console.log("[WebRTC] Remote description (answer) set. Processing ICE queue...");
+    while (pendingIceCandidates.current.length > 0) {
+      const candidate = pendingIceCandidates.current.shift();
+      try {
+        await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (err) {
+        console.error("[WebRTC] Error adding pending ICE candidate:", err);
+      }
+    }
   }, []);
+
 
   // ─── SDP offer (inbound, callee side — sent after call:accepted) ─────────
 
