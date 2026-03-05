@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+import "./config/firebaseAdmin.js"
 import connectdb from "./config/db.js";
 import app from "./config/app.js"
 import http from "http";

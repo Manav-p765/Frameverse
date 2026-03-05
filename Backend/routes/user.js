@@ -1,34 +1,64 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import { validateuser, isLoggedIn } from "../middleware.js";
 import wrapAsync from "../utils/wrapAsync.js";
 import { upload } from "../config/multer.js";
-import { getFollowing, getFeed, followUser, getUserProfile, loginUser, logoutUser, registerUser, searchUsers, updateUserProfile, unfollowUser, authMe } from "../controllers/user.js";
-import { get } from "http";
+import {
+  authMe,
+  firebaseAuth,
+  logoutUser,
+  getFollowing,
+  getFeed,
+  followUser,
+  getUserProfile,
+  searchUsers,
+  updateUserProfile,
+  unfollowUser,
+} from "../controllers/user.js";
 
 const router = Router({ mergeParams: true });
 
-router.get("/profile", isLoggedIn, wrapAsync(getUserProfile));
+// ─── Rate Limiters ────────────────────────────────────────────────────────────
 
-router.get("/profile/:id", isLoggedIn, wrapAsync(getUserProfile));
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many attempts. Please try again in 15 minutes." },
+});
 
-router.post("/register", validateuser, wrapAsync(registerUser));
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many requests. Please slow down." },
+});
 
-router.post("/login", wrapAsync(loginUser));
+// ─── Firebase Auth (all auth — email/password, Google, GitHub) ───────────────
 
-router.post("/logout", isLoggedIn, logoutUser);
+router.post("/auth/firebase", authLimiter, wrapAsync(firebaseAuth));
+router.post("/logout",        isLoggedIn,  logoutUser);
 
-router.get("/search", wrapAsync(searchUsers));
+// ─── Protected Routes ─────────────────────────────────────────────────────────
 
-router.put("/updateProfile", isLoggedIn, validateuser, upload.single("profilePic"), wrapAsync(updateUserProfile));
+router.get("/auth/me",      isLoggedIn, wrapAsync(authMe));
+router.get("/profile",      isLoggedIn, wrapAsync(getUserProfile));
+router.get("/profile/:id",  isLoggedIn, wrapAsync(getUserProfile));
+router.get("/search",       isLoggedIn, apiLimiter, wrapAsync(searchUsers));
+router.get("/feed",         isLoggedIn, apiLimiter, wrapAsync(getFeed));
+router.get("/following",    isLoggedIn, wrapAsync(getFollowing));
 
-router.post("/follow/:id", isLoggedIn, followUser);
+router.put(
+  "/updateProfile",
+  isLoggedIn,
+  validateuser,
+  upload.single("profilePic"),
+  wrapAsync(updateUserProfile)
+);
 
-router.post("/unfollow/:id", isLoggedIn, unfollowUser);
-
-router.get("/feed", isLoggedIn, getFeed);
-
-router.get("/auth/me", isLoggedIn, authMe);
-
-router.get("/following", isLoggedIn, getFollowing);
+router.post("/follow/:id",   isLoggedIn, wrapAsync(followUser));
+router.post("/unfollow/:id", isLoggedIn, wrapAsync(unfollowUser));
 
 export default router;

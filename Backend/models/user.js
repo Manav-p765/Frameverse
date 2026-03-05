@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import validator from 'validator';
-import bcrypt from "bcrypt";
 
 const Schema = mongoose.Schema;
 
@@ -14,29 +13,22 @@ const userSchema = new Schema({
         maxlength: [20, 'Username cannot exceed 20 characters'],
         match: [/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores']
     },
-
     email: {
         type: String,
         required: true,
         unique: true,
         lowercase: true,
         trim: true,
-        validator: {
+        validate: {
             validator: validator.isEmail,
             message: 'Invalid email format'
         }
-    },
-    password: {
-        type: String,
-        required: [true, 'Password is required'],
-        minlength: [8, 'Password must be at least 8 characters'],
-        select: false,
     },
     age: {
         type: Number,
         min: [13, 'Age must be at least 13'],
         max: [120, 'Age must be below 120'],
-        validator: {
+        validate: {
             validator: Number.isInteger,
             message: 'Age must be an integer'
         }
@@ -46,7 +38,7 @@ const userSchema = new Schema({
         ref: "Avatar",
     }],
     profilePic: {
-        type: String,   // store file path or Cloudinary URL
+        type: String,
         default: ""
     },
     posts: [{
@@ -65,19 +57,17 @@ const userSchema = new Schema({
         type: String,
         maxlength: [160, 'Bio cannot exceed 160 characters']
     },
-});
-
-
-
-userSchema.pre('save', async function (next) {
-
-    if (!this.isModified('password')) {
-        return;
-    }
-
-    const saltrounds = 12;
-    this.password = await bcrypt.hash(this.password, saltrounds);
-});
+    firebaseUid: {
+        type: String,
+        sparse: true,
+        index: true
+    },
+    provider: {
+        type: String,
+        enum: ["local", "google", "github"],
+        default: "local"
+    },
+}, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
 export default User;

@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken";
 
 export const sendToken = (user, res, statusCode, message) => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defined in environment variables");
+  }
+
   const token = jwt.sign(
     { id: user._id },
     process.env.JWT_SECRET,
@@ -10,11 +14,12 @@ export const sendToken = (user, res, statusCode, message) => {
   res.status(statusCode).json({
     success: true,
     message,
-    token, // ⭐ FRONTEND WILL USE THIS
+    token,
     user: {
       _id: user._id,
       username: user.username,
       email: user.email,
+      profilePic: user.profilePic ?? null,
     },
   });
 };
