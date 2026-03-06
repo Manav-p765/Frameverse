@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import api from "../../services/post.service"; // your axios instance
 import { generateImageCaption } from "../../services/Geminiai";
 
 const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
   const navigate = useNavigate();
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -35,10 +37,17 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
     setIsLoading(true);
 
     try {
+      if (!executeRecaptcha) {
+        throw new Error("Security check not ready. Please wait a moment and try again.");
+      }
+      const recaptchaToken = await executeRecaptcha("CREATE_POST");
+
       const formData = new FormData();
       formData.append("image", imageFile);
       formData.append("description", description.trim());
       formData.append("location", location.trim());
+      formData.append("recaptchaToken", recaptchaToken);
+      formData.append("recaptchaAction", "CREATE_POST");
 
       await api.post("post/create", formData, {
         headers: {

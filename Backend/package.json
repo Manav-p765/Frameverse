@@ -14,8 +14,10 @@
   "description": "",
   "dependencies": {
     "@canvas/image-data": "^1.1.0",
+    "@google-cloud/recaptcha-enterprise": "^6.4.0",
     "@google/genai": "^1.43.0",
     "@tensorflow/tfjs": "^4.22.0",
+    "axios": "^1.13.6",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -34,6 +36,7 @@
     "mongoose": "^9.1.5",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.1",
     "nodemon": "^3.1.11",
     "nsfwjs": "^4.2.1",
     "router": "^2.2.0",

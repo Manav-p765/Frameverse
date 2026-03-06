@@ -8,7 +8,8 @@ const postRouter = Router();
 
 postRouter.get("/explore", isLoggedIn, getExplorePosts);
 
-postRouter.post("/create", isLoggedIn, upload.single("image"), createPost);
+import { verifyRecaptcha } from "../controllers/recaptca.js";
+postRouter.post("/create", isLoggedIn, verifyRecaptcha, upload.single("image"), createPost);
 
 postRouter.delete("/posts/:id", isLoggedIn, isOwner, deletePost);
 

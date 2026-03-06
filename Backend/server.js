@@ -16,6 +16,7 @@ import notificationRoute from "./routes/notification.js";
 import autoPostRoutes from "./routes/autoPostRoutes.js";
 import { startAutoPostWorker } from "./workers/autoPost.worker.js";
 import callRoutes from "./routes/callRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
@@ -29,7 +30,7 @@ app.use(cors({
     "https://frameverse.onrender.com",
     "https://frameverse.online",
     "https://www.frameverse.online"
- // If frontend is also served here
+    // If frontend is also served here
   ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -44,7 +45,7 @@ const io = new Server(server, {
       "https://frameverse-zeta.vercel.app",
       "https://frameverse.onrender.com",
       "https://frameverse.online",
-      "https://www.frameverse.online" 
+      "https://www.frameverse.online"
     ],
     methods: ["GET", "POST"],
   },
@@ -67,6 +68,7 @@ app.use("/post", postRoute);
 app.use("/notifications", notificationRoute);
 app.use("/api/autopost", autoPostRoutes);
 app.use("/api/calls", callRoutes);
+app.use("/auth", authRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

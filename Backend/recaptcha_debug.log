@@ -1,0 +1,15 @@
+{"time":"2026-03-06T14:42:43.569Z","data":{"success":false,"error-codes":["browser-error"]}}
+{"time":"2026-03-06T14:43:48.566Z","data":{"success":false,"error-codes":["browser-error"]}}
+{"time":"2026-03-06T14:46:33.825Z","data":{"success":false,"error-codes":["incorrect-captcha-sol"]}}
+{"time":"2026-03-06T14:49:16.525Z","data":{"success":true,"challenge_ts":"2026-03-06T14:48:55Z","hostname":"localhost","score":0.9,"action":"LOGIN"}}
+{"time":"2026-03-06T14:49:56.281Z","data":{"success":true,"challenge_ts":"2026-03-06T14:48:55Z","hostname":"localhost","score":0.9,"action":"LOGIN"}}
+{"time":"2026-03-06T14:51:51.987Z","data":{"success":true,"challenge_ts":"2026-03-06T14:48:55Z","hostname":"localhost","score":0.9,"action":"LOGIN"}}
+{"time":"2026-03-06T14:56:10.961Z","data":{"success":true,"challenge_ts":"2026-03-06T14:56:01Z","hostname":"localhost","score":0.9,"action":"LOGIN"}}
+{"time":"2026-03-06T14:57:17.554Z","data":{"success":true,"challenge_ts":"2026-03-06T14:56:59Z","hostname":"localhost","score":0.9,"action":"LOGIN"}}
+{"time":"2026-03-06T14:58:53.641Z","data":{"success":true,"challenge_ts":"2026-03-06T14:56:59Z","hostname":"localhost","score":0.9,"action":"LOGIN"}}
+{"time":"2026-03-06T15:16:03.961Z","data":{"success":true,"challenge_ts":"2026-03-06T15:15:19Z","hostname":"localhost","score":0.9,"action":"FORGOT_PASSWORD"}}
+{"time":"2026-03-06T15:16:56.489Z","data":{"success":true,"challenge_ts":"2026-03-06T15:15:19Z","hostname":"localhost","score":0.9,"action":"FORGOT_PASSWORD"}}
+{"time":"2026-03-06T15:19:31.399Z","data":{"success":true,"challenge_ts":"2026-03-06T15:19:11Z","hostname":"localhost","score":0.9,"action":"FORGOT_PASSWORD"}}
+{"time":"2026-03-06T15:20:10.125Z","data":{"success":true,"challenge_ts":"2026-03-06T15:19:11Z","hostname":"localhost","score":0.9,"action":"RESET_PASSWORD"}}
+{"time":"2026-03-06T15:20:32.650Z","data":{"success":true,"challenge_ts":"2026-03-06T15:19:11Z","hostname":"localhost","score":0.9,"action":"LOGIN"}}
+{"time":"2026-03-06T15:28:55.031Z","data":{"success":true,"challenge_ts":"2026-03-06T15:21:35Z","hostname":"localhost","score":0.9,"action":"FORGOT_PASSWORD"}}

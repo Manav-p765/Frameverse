@@ -1,6 +1,7 @@
 import { FaEye, FaEyeSlash, FaGoogle, FaGithub, FaEnvelope } from "react-icons/fa";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import AnimatedLogo from "../AnimatedLogo";
 import {
     signInWithGoogle,
@@ -62,93 +63,15 @@ function PasswordStrength({ password }) {
     );
 }
 
-function ForgotPasswordModal({ onClose }) {
-    const [email, setEmail] = useState("");
-    const [status, setStatus] = useState("idle");
-    const [msg, setMsg] = useState("");
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!email.trim()) return;
-        setStatus("loading");
-        try {
-            await sendFirebasePasswordReset(email.trim());
-            setMsg("Reset email sent! Check your inbox.");
-            setStatus("sent");
-        } catch (err) {
-            setMsg(firebaseError(err.code).message);
-            setStatus("error");
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" onClick={onClose}>
-            <div className="bg-[#111] border border-border-color rounded-xl p-6 w-full max-w-sm shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                <h3 className="text-text-primary text-lg font-semibold mb-1">Forgot password?</h3>
-                <p className="text-text-secondary text-sm mb-5">Enter your email and we'll send a reset link.</p>
-                {status === "sent" ? (
-                    <div className="text-center space-y-4">
-                        <p className="text-green-400 text-sm">{msg}</p>
-                        <button onClick={onClose} className="text-text-secondary text-sm hover:text-text-primary underline">Close</button>
-                    </div>
-                ) : (
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} />
-                        {status === "error" && <p className="text-brand-pink text-xs">{msg}</p>}
-                        <div className="flex gap-3">
-                            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-border-color text-text-secondary text-sm hover:text-text-primary transition-all cursor-pointer">Cancel</button>
-                            <button type="submit" disabled={status === "loading"} className="flex-1 py-2.5 rounded-lg bg-linear-to-r from-red-300 to-pink-500 text-black font-semibold text-sm disabled:opacity-50 cursor-pointer">
-                                {status === "loading" ? "Sending…" : "Send link"}
-                            </button>
-                        </div>
-                    </form>
-                )}
-            </div>
-        </div>
-    );
-}
-
-function UsernameModal({ suggested, onConfirm, loading, error }) {
-    const [username, setUsername] = useState(suggested ?? "");
-    const [localErr, setLocalErr] = useState("");
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const clean = username.trim().toLowerCase();
-        if (!/^[a-zA-Z0-9_]{3,30}$/.test(clean)) { setLocalErr("3–30 characters: letters, numbers, underscores only"); return; }
-        setLocalErr("");
-        onConfirm(clean);
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-            <div className="bg-[#111] border border-border-color rounded-xl p-6 w-full max-w-sm shadow-2xl">
-                <h3 className="text-text-primary text-lg font-semibold mb-1">Pick a username</h3>
-                <p className="text-text-secondary text-sm mb-5">This is how others will find you.</p>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <input type="text" value={username} placeholder="krish12" autoFocus onChange={(e) => { setUsername(e.target.value); setLocalErr(""); }} className={inputClass} />
-                        {(localErr || error) && <p className="text-brand-pink text-xs mt-2">{localErr || error}</p>}
-                    </div>
-                    <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-linear-to-r from-red-300 to-pink-500 text-black font-semibold text-sm disabled:opacity-50 cursor-pointer">
-                        {loading ? "Creating account…" : "Continue"}
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
-}
-
 // ─── Email Form ───────────────────────────────────────────────────────────────
 
-function EmailForm({ mode, onBack, onExchangeToken }) {
+function EmailForm({ mode, onBack, onExchangeToken, onNavigate }) {
     const [form, setForm] = useState({ username: "", email: "", password: "", confirmPassword: "" });
     const [errors, setErrors] = useState({});
     const [serverError, setServerError] = useState("");
     const [loading, setLoading] = useState(false);
     const [showPw, setShowPw] = useState(false);
     const [showCf, setShowCf] = useState(false);
-    const [showForgot, setShowForgot] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -193,7 +116,7 @@ function EmailForm({ mode, onBack, onExchangeToken }) {
             } else {
                 const data = err.response?.data;
                 if (data?.field) setErrors({ [data.field]: data.message });
-                else setServerError(data?.message || "Something went wrong");
+                else setServerError(data?.message || err.message || "Something went wrong");
             }
         } finally {
             setLoading(false);
@@ -202,8 +125,6 @@ function EmailForm({ mode, onBack, onExchangeToken }) {
 
     return (
         <>
-            {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
-
             {serverError && (
                 <div className="mb-4 p-3 bg-brand-pink/10 border border-red-500/30 rounded-lg">
                     <p className="text-brand-pink text-sm text-center">{serverError}</p>
@@ -254,7 +175,7 @@ function EmailForm({ mode, onBack, onExchangeToken }) {
 
                 {mode === "login" && (
                     <div className="text-right -mt-1">
-                        <button type="button" onClick={() => setShowForgot(true)} className="text-text-secondary text-xs hover:text-text-primary hover:underline transition cursor-pointer">
+                        <button type="button" onClick={() => onNavigate("/forgot-password")} className="text-text-secondary text-xs hover:text-text-primary hover:underline transition cursor-pointer">
                             Forgot password?
                         </button>
                     </div>
@@ -279,6 +200,7 @@ function EmailForm({ mode, onBack, onExchangeToken }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 function AuthForm({ mode, toggleMode, onNavigate }) {
+    const { executeRecaptcha } = useGoogleReCaptcha();
     const [showEmail, setShowEmail] = useState(false);
     const [socialLoading, setSocialLoading] = useState(null);
     const [socialError, setSocialError] = useState("");
@@ -294,7 +216,25 @@ function AuthForm({ mode, toggleMode, onNavigate }) {
     };
 
     const exchangeToken = async (idToken, username) => {
-        const res = await api.post("/user/auth/firebase", { idToken, username });
+        if (!executeRecaptcha) {
+            console.error("Execute recaptcha not yet available");
+            throw new Error("Security check not ready. Please try again.");
+        }
+
+        let recaptchaToken;
+        try {
+            recaptchaToken = await executeRecaptcha('LOGIN');
+        } catch (err) {
+            throw new Error("Security check failed. Please try again.");
+        }
+
+        const res = await api.post("/user/auth/firebase", {
+            idToken,
+            username,
+            recaptchaToken,
+            recaptchaAction: 'LOGIN'
+        });
+
         if (res.data.needsUsername) {
             setPendingIdToken(idToken);
             setSuggestedUsername(res.data.suggestedUsername ?? "");
@@ -312,14 +252,16 @@ function AuthForm({ mode, toggleMode, onNavigate }) {
             const idToken = provider === "google" ? await signInWithGoogle() : await signInWithGithub();
             await exchangeToken(idToken);
         } catch (err) {
-            if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+            if (err.message && err.message.startsWith("Security check")) {
+                setSocialError(err.message);
+            } else if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
                 // silent
             } else if (err.code === "auth/account-exists-with-different-credential") {
                 setSocialError("An account with this email already exists. Sign in with email/password.");
             } else if (err.code) {
                 setSocialError(firebaseError(err.code).message);
             } else {
-                setSocialError(err.response?.data?.message || "Sign in failed. Please try again.");
+                setSocialError(err.response?.data?.message || err.message || "Sign in failed. Please try again.");
             }
         } finally {
             setSocialLoading(null);
@@ -414,6 +356,7 @@ function AuthForm({ mode, toggleMode, onNavigate }) {
                             mode={mode}
                             onBack={() => setShowEmail(false)}
                             onExchangeToken={exchangeToken}
+                            onNavigate={onNavigate}
                         />
                     )}
 

@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 
 const Analytics = lazy(() =>
   import('@vercel/analytics/react').then((m) => ({ default: m.Analytics }))
@@ -15,10 +16,16 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Suspense fallback={null}>
-        <Analytics />
-        <SpeedInsights />
+        {import.meta.env.PROD && (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        )}
       </Suspense>
-      <App />
+      <GoogleReCaptchaProvider reCaptchaKey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}>
+        <App />
+      </GoogleReCaptchaProvider>
     </BrowserRouter>
-  </StrictMode>
+  </StrictMode >
 )

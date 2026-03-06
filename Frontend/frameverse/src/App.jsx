@@ -17,16 +17,21 @@ import { ThemeProvider } from "./context/ThemeContext";
 import Terms from "./pages/TermsOfService";
 import Privacy from "./pages/Privacy";
 import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyOtp from "./pages/VerifyOtp";
 
 const App = () => {
   return (
     <ThemeProvider>
       <CallProvider>
+
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/terms" element={<Terms />} /> 
+          <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Feed />} />
