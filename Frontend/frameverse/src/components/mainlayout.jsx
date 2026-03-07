@@ -41,7 +41,7 @@ const MainLayout = () => {
           <div className="w-18" />
         </div>
       ) : (
-        <aside className={`hidden md:block bg-bg-primary relative z-40 transition-all duration-300 ${location.pathname === "/" ? "w-64" : "w-[76px]"}`}>
+        <aside className="hidden md:block bg-bg-primary relative z-40 transition-all duration-300 w-[76px]">
           <Navbar />
         </aside>
       )}

@@ -11,6 +11,7 @@ import Notifications from "./pages/Notifications";
 import Reels from "./pages/Reels";
 import CreatePost from "./pages/createPost";
 import AutoPostPage from "./pages/AutoPostPage";
+import UserAnalytics from "./pages/UserAnalytics";
 import MessageToast from "./components/chat/MessageToast";
 import CallProvider from "./components/call/CallProvider";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -19,6 +20,8 @@ import Privacy from "./pages/Privacy";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyOtp from "./pages/VerifyOtp";
+import AnalyticsDashboard from "./pages/dashboard/AnalyticsDashboard";
+import EngagementDashboard from "./pages/dashboard/EngagementDashboard";
 
 const App = () => {
   return (
@@ -34,7 +37,8 @@ const App = () => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Feed />} />
+            <Route path="/" element={<Navigate to="/feed" replace />} />
+            <Route path="/feed" element={<Feed />} />
 
             <Route path="/chats/*" element={<Chats />} />
 
@@ -44,6 +48,9 @@ const App = () => {
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/reels" element={<Reels />} />
             <Route path="/create" element={<CreatePost />} />
+            <Route path="/dashboard/analytics" element={<AnalyticsDashboard />} />
+            <Route path="/dashboard/engagement" element={<EngagementDashboard />} />
+            <Route path="/profile/insights" element={<EngagementDashboard />} />
             <Route path="/autopost" element={<AutoPostPage />} />
 
           </Route>

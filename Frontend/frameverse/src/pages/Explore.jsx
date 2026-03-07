@@ -37,7 +37,7 @@ const Explore = () => {
       setPosts((prev) =>
         prev.map((p) =>
           p._id === postId
-            ? { ...p, likesCount: res.data.likesCount, likedByCurrentUser: res.data.liked }
+            ? { ...p, likeCount: res.data.likeCount, likedByCurrentUser: res.data.liked }
             : p
         )
       );

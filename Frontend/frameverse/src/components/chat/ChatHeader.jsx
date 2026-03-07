@@ -1,18 +1,40 @@
 import { useNavigate } from "react-router-dom";
 import { useCallStore } from "../../store/useCallStore";
 import { getSocket } from "../../hooks/useSocket";
+import { usePresence } from "../../hooks/usePresence";
 
-const Avatar = ({ src, name, size = "w-9 h-9" }) => (
-  <div className={`${size} rounded-full overflow-hidden shrink-0 bg-bg-secondary flex items-center justify-center`}>
-    {src ? (
-      <img src={src} alt={name} className="w-full h-full object-cover" />
-    ) : (
-      <span className="text-text-secondary text-sm font-medium">
-        {name?.charAt(0)?.toUpperCase() || "?"}
-      </span>
+const Avatar = ({ src, name, size = "w-9 h-9", isOnline }) => (
+  <div className="relative shrink-0">
+    <div className={`${size} rounded-full overflow-hidden bg-bg-secondary flex items-center justify-center`}>
+      {src ? (
+        <img src={src} alt={name} className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-text-secondary text-sm font-medium">
+          {name?.charAt(0)?.toUpperCase() || "?"}
+        </span>
+      )}
+    </div>
+    {isOnline && (
+      <span className="absolute bottom-0 right-0 w-3 h-3 bg-brand-orange border-2 border-bg-primary rounded-full z-10"></span>
     )}
   </div>
 );
+
+// Format last seen helper
+const formatLastSeen = (date) => {
+  if (!date) return "Tap to view info";
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+
+  if (diffMins < 1) return "Last seen just now";
+  if (diffMins < 60) return `Last seen ${diffMins}m ago`;
+
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `Last seen ${diffHours}h ago`;
+
+  return `Last seen ${date.toLocaleDateString()}`;
+};
 
 export default function ChatHeader({ chat, currentUserId, typingUsers = [], onInfoClick, onBack }) {
   const navigate = useNavigate();
@@ -24,6 +46,8 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
   const otherUser = !isGroup ? chat.users?.find((u) => u._id !== currentUserId) : null;
   const name = isGroup ? chat.title || "Group Chat" : otherUser?.username || "Unknown";
   const avatar = isGroup ? chat.image : otherUser?.avatar;
+
+  const { isOnline, lastSeen } = usePresence(otherUser?._id);
 
   const handleStartCall = (type) => {
     if (!otherUser || callStatus !== "idle") return;
@@ -73,14 +97,17 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
         onClick={onInfoClick}
         className="flex items-center gap-3 flex-1 text-left hover:opacity-80 transition-opacity min-w-0"
       >
-        <Avatar src={avatar} name={name} />
+        <Avatar src={avatar} name={name} isOnline={!isGroup && isOnline} />
         <div className="min-w-0">
           <p className="text-text-primary text-sm font-medium truncate">{name}</p>
           {typingText ? (
             <p className="text-brand-purple text-xs truncate">{typingText}</p>
           ) : (
-            <p className="text-[#5a5a6a] text-xs truncate">
-              {isGroup ? `${chat.users?.length || 0} members` : "Tap to view info"}
+            <p className={`text-xs truncate ${isOnline && !isGroup ? 'text-brand-orange font-medium' : 'text-[#5a5a6a]'}`}>
+              {isGroup
+                ? `${chat.users?.length || 0} members`
+                : (isOnline ? "Online" : formatLastSeen(lastSeen))
+              }
             </p>
           )}
         </div>

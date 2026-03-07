@@ -3,6 +3,8 @@ import rateLimit from "express-rate-limit";
 import { validateuser, isLoggedIn } from "../middleware.js";
 import wrapAsync from "../utils/wrapAsync.js";
 import { upload } from "../config/multer.js";
+import { verifyRecaptcha } from "../controllers/recaptca.js";
+import { engagementLimiter } from "../config/rateLimit.js";
 import {
   authMe,
   firebaseAuth,
@@ -14,6 +16,8 @@ import {
   searchUsers,
   updateUserProfile,
   unfollowUser,
+
+  getFollowers,
 } from "../controllers/user.js";
 
 const router = Router({ mergeParams: true });
@@ -36,8 +40,6 @@ const apiLimiter = rateLimit({
   message: { message: "Too many requests. Please slow down." },
 });
 
-// ─── Firebase Auth (all auth — email/password, Google, GitHub) ───────────────
-import { verifyRecaptcha } from "../controllers/recaptca.js";
 
 router.post("/auth/firebase", authLimiter, verifyRecaptcha, wrapAsync(firebaseAuth));
 router.post("/auth/verify-recaptcha-only", authLimiter, verifyRecaptcha, (req, res) => res.status(200).json({ success: true }));
@@ -55,12 +57,15 @@ router.get("/following", isLoggedIn, wrapAsync(getFollowing));
 router.put(
   "/updateProfile",
   isLoggedIn,
-  validateuser,
   upload.single("profilePic"),
+  validateuser,
   wrapAsync(updateUserProfile)
 );
 
-router.post("/follow/:id", isLoggedIn, wrapAsync(followUser));
-router.post("/unfollow/:id", isLoggedIn, wrapAsync(unfollowUser));
+router.get("/followers", isLoggedIn, wrapAsync(getFollowers));
+router.get("/followers/:id", isLoggedIn, wrapAsync(getFollowers));
+
+router.post("/follow/:id", isLoggedIn, engagementLimiter, wrapAsync(followUser));
+router.post("/unfollow/:id", isLoggedIn, engagementLimiter, wrapAsync(unfollowUser));
 
 export default router;

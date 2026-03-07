@@ -17,25 +17,30 @@ import autoPostRoutes from "./routes/autoPostRoutes.js";
 import { startAutoPostWorker } from "./workers/autoPost.worker.js";
 import callRoutes from "./routes/callRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import analyticsRoutes from "./routes/admin/analyticsRoutes.js";
+import adminRoutes from "./routes/admin/adminRoutes.js";
+import userAnalyticsRoutes from "./routes/userAnalyticsRoutes.js";
+import calculateTrendingScores from "./workers/trendingWorker.js";
 
 const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
 
 // cors setup
 
-app.use(cors({
+const corsOptions = {
   origin: [
     "http://localhost:5173",
     "https://frameverse-zeta.vercel.app",
     "https://frameverse.onrender.com",
     "https://frameverse.online",
     "https://www.frameverse.online"
-    // If frontend is also served here
   ],
+  credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-}));
+};
 
+app.use(cors(corsOptions));
 
 // Socket.io setup
 const io = new Server(server, {
@@ -69,6 +74,9 @@ app.use("/notifications", notificationRoute);
 app.use("/api/autopost", autoPostRoutes);
 app.use("/api/calls", callRoutes);
 app.use("/auth", authRoutes);
+app.use("/api/admin/analytics", analyticsRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/user/analytics", userAnalyticsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

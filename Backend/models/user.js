@@ -57,6 +57,18 @@ const userSchema = new Schema({
         type: String,
         maxlength: [160, 'Bio cannot exceed 160 characters']
     },
+    profileViews: {
+        type: Number,
+        default: 0
+    },
+    followersCount: {
+        type: Number,
+        default: 0
+    },
+    followingCount: {
+        type: Number,
+        default: 0
+    },
     firebaseUid: {
         type: String,
         sparse: true,
@@ -68,6 +80,9 @@ const userSchema = new Schema({
         default: "local"
     },
 }, { timestamps: true });
+
+userSchema.index({ createdAt: 1 });
+userSchema.index({ followersCount: -1 });
 
 const User = mongoose.model('User', userSchema);
 export default User;

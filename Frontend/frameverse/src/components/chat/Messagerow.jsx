@@ -159,16 +159,43 @@ const MessageRow = React.memo(function MessageRow({
           </div>
         )}
 
-        {/* Time */}
-        <span
-          className={`text-[10px] mt-1 px-1 ${isOwn ? "text-right text-[#8e8ea0]" : "text-left text-[#6a6a7a]"
-            }`}
-        >
-          {new Date(msg.createdAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
+        {/* Time and Status */}
+        <div className={`flex items-center gap-1 mt-1 px-1 ${isOwn ? "justify-end text-[#8e8ea0]" : "justify-start text-[#6a6a7a]"}`}>
+          <span className="text-[10px]">
+            {new Date(msg.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+          {isOwn && (
+            <span className="mb-[2px] ml-0.5">
+              {msg.status === "sent" && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+              {msg.status === "delivered" && (
+                <svg width="14" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <polyline points="18 6 9 17 4 12" />
+                  <line x1="22" y1="6" x2="16" y2="12" />
+                </svg>
+              )}
+              {msg.status === "read" && (
+                <svg width="14" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500">
+                  <polyline points="18 6 9 17 4 12" />
+                  <line x1="22" y1="6" x2="16" y2="12" />
+                </svg>
+              )}
+              {/* Fallback for old messages without status */}
+              {!msg.status && (
+                <svg width="14" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={msg.readBy?.length > 1 ? "text-blue-500" : "text-gray-400"}>
+                  <polyline points="18 6 9 17 4 12" />
+                  <line x1="22" y1="6" x2="16" y2="12" />
+                </svg>
+              )}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Menu — received messages */}

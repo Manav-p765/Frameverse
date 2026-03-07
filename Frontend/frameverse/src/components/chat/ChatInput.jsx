@@ -38,7 +38,7 @@ export default function ChatInput({ chatId, onSend, disabled }) {
     typingTimer.current = setTimeout(() => {
       setIsTyping(false);
       emitStopTyping(chatId);
-    }, 2000);
+    }, 1500);
   }, [chatId, isTyping]);
 
   const handleChange = (e) => {

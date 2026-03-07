@@ -30,7 +30,7 @@ export default function ChatWindow({
   const seenIds = useRef(new Set());
   const sendingRef = useRef(false);
   const virtuosoRef = useRef(null);
-  
+
 
   // Join socket room when chat changes
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function ChatWindow({
       .then((msgs) => {
         msgs.forEach((m) => seenIds.current.add(m._id));
         setMessages(msgs);
-        messageAPI.markAsRead(chat._id).catch(() => {});
+        messageAPI.markAsRead(chat._id).catch(() => { });
       })
       .catch(() => setError("Failed to load messages"))
       .finally(() => setLoading(false));
@@ -74,7 +74,7 @@ export default function ChatWindow({
 
     seenIds.current.add(msg._id);
     setMessages((prev) => [...prev, msg]);
-    messageAPI.markAsRead(chat._id).catch(() => {});
+    messageAPI.markAsRead(chat._id).catch(() => { });
   });
 
   // Socket: delete
@@ -96,16 +96,25 @@ export default function ChatWindow({
   });
 
   // Socket: read receipts
-  useSocketEvent("messages-read", ({ chatId, userId }) => {
+  useSocketEvent("messages-read", ({ chatId, readByUserId }) => {
     if (chatId !== chat?._id) return;
-
     setMessages((prev) =>
       prev.map((m) => ({
         ...m,
-        readBy: m.readBy?.includes(userId)
+        status: m.sender?._id === currentUserId || m.sender === currentUserId ? "read" : m.status,
+        readBy: m.readBy?.includes(readByUserId)
           ? m.readBy
-          : [...(m.readBy || []), userId],
+          : [...(m.readBy || []), readByUserId],
       }))
+    );
+  });
+
+  useSocketEvent("message_delivered", ({ messageId, chatId }) => {
+    if (chatId !== chat?._id) return;
+    setMessages((prev) =>
+      prev.map((m) =>
+        m._id === messageId && m.status === "sent" ? { ...m, status: "delivered" } : m
+      )
     );
   });
 
@@ -168,14 +177,14 @@ export default function ChatWindow({
       try {
         await messageAPI.deleteMessage(messageId);
       } catch {
-        messageAPI.getMessages(chat._id).then(setMessages).catch(() => {});
+        messageAPI.getMessages(chat._id).then(setMessages).catch(() => { });
       }
     },
     [chat?._id]
   );
 
   const handleCopy = useCallback((content) => {
-    navigator.clipboard.writeText(content || "").catch(() => {});
+    navigator.clipboard.writeText(content || "").catch(() => { });
   }, []);
 
   // Group by date
@@ -203,15 +212,15 @@ export default function ChatWindow({
     return groups;
   }, [messages]);
 
-  
+
   useEffect(() => {
-  if (!loading && grouped.length) {
-    virtuosoRef.current?.scrollToIndex({
-      index: grouped.length - 1,
-      behavior: "auto",
-    });
-  }
-}, [loading, grouped.length]);
+    if (!loading && grouped.length) {
+      virtuosoRef.current?.scrollToIndex({
+        index: grouped.length - 1,
+        behavior: "auto",
+      });
+    }
+  }, [loading, grouped.length]);
 
 
   if (!chat) {

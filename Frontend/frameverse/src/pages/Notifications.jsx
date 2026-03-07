@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, UserPlus, ImagePlus, Check } from "lucide-react";
+import { Share2, MessageSquare, Heart, UserPlus, ImagePlus, Check } from "lucide-react";
 import { notificationAPI } from "../services/api";
 import { useSocketEvent } from "../hooks/useSocket";
 
@@ -57,6 +57,18 @@ const notifMeta = {
     text: "shared a new post",
     color: "text-green-400",
     bg: "bg-green-500/10",
+  },
+  comment: {
+    icon: MessageSquare,
+    text: "commented on your post",
+    color: "text-brand-orange",
+    bg: "bg-brand-orange/10",
+  },
+  share: {
+    icon: Share2,
+    text: "shared your post",
+    color: "text-blue-400",
+    bg: "bg-blue-500/10",
   },
 };
 
@@ -127,7 +139,7 @@ const Notifications = () => {
   const handleClick = (notif) => {
     if (notif.type === "follow") {
       navigate(`/profile/${notif.sender._id}`);
-    } else if (notif.type === "like" || notif.type === "new_post") {
+    } else if (["like", "new_post", "comment", "share"].includes(notif.type)) {
       navigate(`/profile/${notif.sender._id}`);
     }
   };

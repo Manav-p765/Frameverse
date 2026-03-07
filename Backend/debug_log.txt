@@ -1,0 +1,7 @@
+Connecting to DB...
+DEBUG SCRIPT ERROR: Server selection timed out after 30000 ms
+
+ERROR: MongooseServerSelectionError: Server selection timed out after 30000 ms
+    at _handleConnectionErrors (D:\Sdocs\Frameverse\Backend\node_modules\mongoose\lib\connection.js:1169:11)
+    at NativeConnection.openUri (D:\Sdocs\Frameverse\Backend\node_modules\mongoose\lib\connection.js:1100:11)
+    at async checkData (file:///D:/Sdocs/Frameverse/Backend/debug_stats.js:19:9)

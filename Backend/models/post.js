@@ -34,8 +34,31 @@ const postSchema = new mongoose.Schema(
                 ref: 'User'
             }
         ],
+        likeCount: {
+            type: Number,
+            default: 0
+        },
+        sharesCount: {
+            type: Number,
+            default: 0
+        },
+        commentCount: {
+            type: Number,
+            default: 0
+        },
+        trendingScore: {
+            type: Number,
+            default: 0,
+            index: true
+        }
     },
     { timestamps: true }
 );
+
+postSchema.index({ createdAt: -1 });
+postSchema.index({ likeCount: -1 });
+postSchema.index({ trendingScore: -1 });
+postSchema.index({ owner: 1 });
+postSchema.index({ owner: 1, createdAt: -1 });
 
 export default mongoose.model('Post', postSchema);

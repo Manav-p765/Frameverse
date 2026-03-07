@@ -102,7 +102,7 @@ export const getMessages = async (req, res) => {
     // Mark messages as read
     await Message.updateMany(
       { chat: chatId, readBy: { $ne: req.userId } },
-      { $addToSet: { readBy: req.userId } }
+      { $addToSet: { readBy: req.userId }, $set: { status: "read" } }
     );
 
     res.status(200).json(messages.reverse());
@@ -120,14 +120,15 @@ export const markAsRead = async (req, res) => {
     const chat = await Chat.findOne({ _id: chatId, users: req.userId });
     if (!chat) return res.status(404).json({ message: "Chat not found" });
 
+    // Find messages not read by user
     await Message.updateMany(
       { chat: chatId, readBy: { $ne: req.userId } },
-      { $addToSet: { readBy: req.userId } }
+      { $addToSet: { readBy: req.userId }, $set: { status: "read" } }
     );
 
     // Notify others that messages were read
     const io = req.app.get("io");
-    io.to(chatId).emit("messages-read", { chatId, userId: req.userId });
+    io.to(chatId).emit("messages-read", { chatId, readByUserId: req.userId });
 
     res.status(200).json({ message: "Marked as read" });
   } catch (err) {

@@ -103,6 +103,8 @@ const Profile = () => {
     fetchProfile();
   }, [userId, isOwnProfile]);
 
+  console.log(profile)
+
   // Split posts by type
   const userPosts = useMemo(() => posts.filter(p => p.postType !== 'auto-progress'), [posts]);
   const autoPosts = useMemo(() => posts.filter(p => p.postType === 'auto-progress'), [posts]);
@@ -189,11 +191,21 @@ const Profile = () => {
         ? [...prev.followers, { _id: loggedInUserId, username: loggedInUser?.username, bio: loggedInUser?.bio, profilePic: loggedInUser?.profilePic }]
         : prev.followers.filter((entry) => (entry?._id ?? entry)?.toString() !== loggedInUserId);
 
-      return { ...prev, followers: updatedFollowers };
+      // Optimistic update for counters
+      const inc = nextFollowing ? 1 : -1;
+      return {
+        ...prev,
+        followers: updatedFollowers,
+        followersCount: (prev.followersCount || 0) + inc
+      };
     });
 
     try {
-      await api.post(`/user/${nextFollowing ? "follow" : "unfollow"}/${userId}`);
+      const res = await api.post(`/user/${nextFollowing ? "follow" : "unfollow"}/${userId}`);
+      // Sync with server authoritative count
+      if (res.data.followersCount !== undefined) {
+        setProfile(prev => ({ ...prev, followersCount: res.data.followersCount }));
+      }
     } catch (err) {
       setIsFollowing(!nextFollowing);
       setProfile((prev) => ({ ...prev, followers: previousFollowers }));
@@ -236,7 +248,7 @@ const Profile = () => {
           post._id === postId
             ? {
               ...post,
-              likesCount: res.data.likesCount,
+              likeCount: res.data.likeCount,
               likedByCurrentUser: res.data.liked,
             }
             : post
@@ -247,10 +259,20 @@ const Profile = () => {
     }
   };
 
+  const onPostUpdate = (updatedPost) => {
+    setPosts((prev) =>
+      prev.map((p) => (p._id === updatedPost._id ? updatedPost : p))
+    );
+    setDisplayedPosts((prev) =>
+      prev.map((p) => (p._id === updatedPost._id ? updatedPost : p))
+    );
+  };
+
   const handleUserClick = (user) => {
     navigate(`/profile/${user._id}`);
   };
 
+  
   if (loading) return <SkeletonLoader />;
 
   if (error) {
@@ -285,6 +307,7 @@ const Profile = () => {
           onShareClick={() => setShowShareModal(true)}
           onUpdateProfile={handleUpdateProfile}
           onUserClick={handleUserClick}
+
           // ✅ Pass current user id so FollowList can hide Follow btn for self
           currentUserId={loggedInUserId}
         />
@@ -342,6 +365,7 @@ const Profile = () => {
               onDeletePost={handleDeletePost}
               profile={profile}
               onPostClick={handlePostClick}
+              onPostUpdate={onPostUpdate}
             />
           ) : (
             <AutoProgressPosts
@@ -359,6 +383,7 @@ const Profile = () => {
             onClose={() => setViewerOpen(false)}
             onDeletePost={handleDeletePost}
             onLikeToggle={onLikeToggle}
+            onPostUpdate={onPostUpdate}
             currentUser={currentUser}
           />
         )}

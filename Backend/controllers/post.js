@@ -3,6 +3,7 @@ import User from "../models/user.js";
 import Notification from "../models/notification.js";
 import mongoose from "mongoose";
 import { uploadToCloudinary, deleteFromCloudinary } from "../config/cloudinary.js";
+import FeedService from "../services/feedService.js";
 
 // ─── Explore: random posts ───────────────────────────────────────────────────
 export const getExplorePosts = async (req, res) => {
@@ -22,7 +23,9 @@ export const getExplorePosts = async (req, res) => {
       { $unwind: "$owner" },
       {
         $addFields: {
-          likesCount: { $size: "$likes" },
+          likeCount: { $size: "$likes" },
+          commentCount: { $ifNull: ["$commentCount", 0] },
+          sharesCount: { $ifNull: ["$sharesCount", 0] },
           likedByCurrentUser: {
             $in: [new mongoose.Types.ObjectId(req.userId), "$likes"],
           },
@@ -95,6 +98,8 @@ export const createPost = async (req, res) => {
           await populated.populate("post", "image description");
           io.to(notif.recipient.toString()).emit("new-notification", populated);
         }
+        // Invalidate following's feed caches asynchronously
+        FeedService.invalidateFollowersFeeds(req.userId);
       }
     } catch (notifErr) {
       console.error("New post notif error:", notifErr);
@@ -114,65 +119,83 @@ export const createPost = async (req, res) => {
 };
 
 
-export const likePost = async (req, res) => {
+import EngagementService from "../services/engagementService.js";
+
+export const likePost = async (req, res, next) => {
   try {
     const { postId } = req.params;
-    const userId = req.userId;
+    const result = await EngagementService.toggleLike(req.userId, postId);
 
-    const post = await Post.findOneAndUpdate(
-      {
-        _id: postId,
-        likes: { $ne: userId },
-      },
-      { $push: { likes: userId } },
-      { new: true }
-    );
-
-    if (post) {
-      // ── Notification: "X liked your post" ──
-      const ownerId = post.owner.toString();
-      if (ownerId !== userId) {
-        try {
-          const notif = await Notification.create({
-            recipient: ownerId,
-            sender: userId,
-            type: "like",
-            post: postId,
-          });
-          const populated = await notif.populate("sender", "username profilePic");
-          await populated.populate("post", "image description");
-          const io = req.app.get("io");
-          io.to(ownerId).emit("new-notification", populated);
-        } catch (notifErr) {
-          if (notifErr.code !== 11000) console.error("Notif error:", notifErr);
-        }
-      }
-
-      return res.status(200).json({
-        liked: true,
-        likesCount: post.likes.length,
+    // Emit live update
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("postLiked", {
+        postId,
+        likeCount: result.likeCount,
       });
     }
 
-    // Unlike — remove like
-    const updatedPost = await Post.findOneAndUpdate(
-      { _id: postId },
-      { $pull: { likes: userId } },
-      { new: true }
-    );
-
-    res.status(200).json({
-      liked: false,
-      likesCount: updatedPost.likes.length,
+    return res.status(200).json({
+      liked: result.isLiked,
+      likeCount: result.likeCount
     });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    next(err);
+  }
+};
+
+export const sharePost = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+    const post = await EngagementService.sharePost(req.userId, postId);
+
+    // Emit live update
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("postShared", {
+        postId,
+        sharesCount: post.sharesCount,
+      });
+    }
+
+    res.status(200).json({
+      message: "Post shared successfully",
+      sharesCount: post.sharesCount
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const addComment = async (req, res, next) => {
+  try {
+    const { postId } = req.params;
+    const { content } = req.body;
+    // For now, just increment counter and return success
+    const post = await Post.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } }, { new: true });
+    EngagementService.trackEngagement(postId, 'comments', 1);
+
+    // Emit live update
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("postCommented", {
+        postId,
+        commentCount: post.commentCount,
+      });
+    }
+
+    res.status(201).json({
+      message: "Comment added (placeholder)",
+      commentCount: post.commentCount
+    });
+  } catch (err) {
+    next(err);
   }
 };
 
 export const updatePost = async (req, res) => {
   const { postId } = req.params;
-  const { description, location, imageUrl, imagePublicId } = req.body;
+  const { description, location, image } = req.body;
   const userId = req.userId; // From auth middleware
 
   try {
@@ -214,11 +237,11 @@ export const updatePost = async (req, res) => {
     }
 
     // Handle image update if new image is provided
-    if (imageUrl && imagePublicId) {
+    if (image && image.url && image.public_id) {
       // Delete old image from Cloudinary if it exists
       if (post.image?.public_id) {
         try {
-          await cloudinary.uploader.destroy(post.image.public_id);
+          await deleteFromCloudinary(post.image.public_id);
           console.log(`Deleted old image: ${post.image.public_id}`);
         } catch (cloudinaryError) {
           console.error('Cloudinary deletion error:', cloudinaryError);
@@ -228,8 +251,8 @@ export const updatePost = async (req, res) => {
 
       // Set new image
       updateData.image = {
-        url: imageUrl,
-        public_id: imagePublicId
+        url: image.url,
+        public_id: image.public_id
       };
     }
 

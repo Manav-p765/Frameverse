@@ -16,6 +16,15 @@ const Feed = () => {
   const [hasMore, setHasMore] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Sync current user from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+  }, []);
 
   // Refs
   const observerTarget = useRef(null);
@@ -112,7 +121,7 @@ const Feed = () => {
           post._id === postId
             ? {
               ...post,
-              likesCount: res.data.likesCount,
+              likeCount: res.data.likeCount,
               likedByCurrentUser: res.data.liked,
             }
             : post
@@ -121,6 +130,23 @@ const Feed = () => {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const onDeletePost = async (postId) => {
+    if (!window.confirm("Delete this post?")) return;
+    try {
+      await api.delete(`/post/posts/${postId}`);
+      setPosts((prev) => prev.filter((p) => p._id !== postId));
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Failed to delete post");
+    }
+  };
+
+  const onPostUpdate = (updatedPost) => {
+    setPosts((prev) =>
+      prev.map((p) => (p._id === updatedPost._id ? updatedPost : p))
+    );
   };
 
   return (
@@ -175,6 +201,9 @@ const Feed = () => {
                   onUserClick={onUserClick}
                   onImageClick={handleImageClick}
                   onLikeToggle={onLikeToggle}
+                  onDeletePost={onDeletePost}
+                  onPostUpdate={onPostUpdate}
+                  currentUser={currentUser}
                 />
               ))}
             </div>
@@ -190,6 +219,9 @@ const Feed = () => {
                     onUserClick={onUserClick}
                     onImageClick={handleImageClick}
                     onLikeToggle={onLikeToggle}
+                    onDeletePost={onDeletePost}
+                    onPostUpdate={onPostUpdate}
+                    currentUser={currentUser}
                   />
                 ))}
               </div>
@@ -202,6 +234,9 @@ const Feed = () => {
                     onUserClick={onUserClick}
                     onImageClick={handleImageClick}
                     onLikeToggle={onLikeToggle}
+                    onDeletePost={onDeletePost}
+                    onPostUpdate={onPostUpdate}
+                    currentUser={currentUser}
                   />
                 ))}
               </div>

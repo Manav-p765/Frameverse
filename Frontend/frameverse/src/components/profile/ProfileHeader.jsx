@@ -24,8 +24,10 @@ const ProfileHeader = ({
   const navigate = useNavigate();
 
   const postCount = posts?.length || 0;
-  const followerCount = followers?.length || 0;
-  const followingCount = following?.length || 0;
+  const followerCountDisplay = followers?.length ?? 0;
+  const followingCountDisplay = following?.length ?? 0;
+
+  console.log(followerCountDisplay, followingCountDisplay);
 
   const handleUpdateProfile = async (updateData) => {
     await onUpdateProfile(updateData);
@@ -158,14 +160,14 @@ const ProfileHeader = ({
                 onClick={() => setShowFollowersList(true)}
                 className="shrink-0 hover:opacity-80 transition-opacity text-center sm:text-left"
               >
-                <span className="font-semibold text-text-primary text-base sm:text-xl mr-1">{followerCount}</span>
+                <span className="font-semibold text-text-primary text-base sm:text-xl mr-1">{followerCountDisplay}</span>
                 <span className="text-text-secondary text-sm">followers</span>
               </button>
               <button
                 onClick={() => setShowFollowingList(true)}
                 className="shrink-0 hover:opacity-80 transition-opacity text-center sm:text-left"
               >
-                <span className="font-semibold text-text-primary text-base sm:text-xl mr-1">{followingCount}</span>
+                <span className="font-semibold text-text-primary text-base sm:text-xl mr-1">{followingCountDisplay}</span>
                 <span className="text-text-secondary text-sm">following</span>
               </button>
             </div>

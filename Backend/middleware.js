@@ -1,6 +1,6 @@
 
 import Avatar from "./models/avatar.js";
-import { userschema, avatarschema } from "./schema.js";
+import { userschema, avatarschema, postschema } from "./schema.js";
 import ExpressErrors from "./utils/expressErrors.js";
 import jwt from "jsonwebtoken";
 import app from "./config/app.js"
@@ -27,6 +27,17 @@ export const validateavatar = (req, res, next) => {
     throw new ExpressErrors(400, errmsg);
   }
   else {
+    next();
+  }
+};
+
+//validating post server side errors
+export const validatepost = (req, res, next) => {
+  let { error } = postschema.validate(req.body);
+  if (error) {
+    let errmsg = error.details.map((el) => el.message).join(",");
+    throw new ExpressErrors(400, errmsg);
+  } else {
     next();
   }
 };
@@ -78,11 +89,11 @@ const isAvatarOwner = async (req, res, next) => {
   const avatar = await Avatar.findById(req.params.id);
 
   if (!avatar) {
-    return next(new ExpressErrors(404, "Avatar not found"));
+    return res.status(404).json({ message: "Avatar not found" });
   }
 
   if (avatar.owner.toString() !== req.userId) {
-    return next(new ExpressErrors(403, "You are not allowed to do this"));
+    return res.status(403).json({ message: "You are not allowed to do this" });
   }
 
   next();

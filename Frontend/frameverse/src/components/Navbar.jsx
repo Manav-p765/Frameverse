@@ -10,6 +10,7 @@ import {
   Bot,
   Sun,
   Moon,
+  BarChart2,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
@@ -22,13 +23,14 @@ const parseChatId = (pathname) => {
 };
 
 const navItems = [
-  { to: "/", label: "Home", icon: Home },
+  { to: "/feed", label: "Home", icon: Home },
   { to: "/explore", label: "Explore", icon: Compass },
   { to: "/reels", label: "Reels", icon: Film },
   { to: "/chats", label: "Chats", icon: MessageCircle },
   { to: "/create", label: "Create", icon: PlusSquare },
   { to: "/profile", label: "Profile", icon: User },
   { to: "/autopost", label: "AutoPost", icon: Bot },
+  { to: "/dashboard/analytics", label: "Analytics", icon: BarChart2 },
 ];
 
 const Navbar = () => {
@@ -75,15 +77,13 @@ const Navbar = () => {
         transition-all
         duration-300
         ease-in-out
-        ${location.pathname === "/" ? "w-64" : "w-[76px] hover:w-64"}
+        w-[76px] hover:w-64
         text-text-primary
         relative
       `}
     >
       {/* Expanding purple background to cover logo transition (Light mode only) */}
-      <div className={`absolute inset-0 bg-brand-purple z-0 transition-opacity duration-300
-        ${location.pathname === "/" ? "opacity-100 dark:opacity-0" : "opacity-0 group-hover:opacity-100 dark:group-hover:opacity-0"}
-      `}></div>
+      <div className="absolute inset-0 bg-brand-purple z-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100 dark:group-hover:opacity-0"></div>
       {/* Inner container */}
       <div className="flex h-full w-full flex-col px-3 relative z-10 bg-transparent dark:bg-bg-primary transition-colors duration-300 ease-in-out">
         {/* Empty spacer for absolute logo */}
@@ -94,36 +94,25 @@ const Navbar = () => {
           {navItems.map(({ to, label, icon: Icon }) => {
             // Determine active color based on label
             const getActiveColor = (isActive) => {
-              const isHomeLight = location.pathname === "/" && theme !== "dark";
-
               if (!isActive) {
-                return isHomeLight
-                  ? "text-white/70 hover:text-white dark:text-text-secondary dark:hover:text-text-primary"
-                  : "text-text-secondary group-hover:text-white dark:group-hover:text-text-secondary";
+                return "text-text-secondary group-hover:text-white dark:group-hover:text-text-secondary";
               }
-
               if (label === "AutoPost") return "text-brand-orange bg-brand-orange/10 font-bold group-hover:text-brand-orange";
               if (label === "Notifications") return "text-brand-pink bg-brand-pink/10 font-bold group-hover:text-brand-pink";
-
-              return isHomeLight
-                ? "text-white bg-white/20 font-bold"
-                : "text-brand-purple bg-brand-purple/10 font-bold group-hover:text-white dark:group-hover:text-brand-purple";
+              return "text-brand-purple bg-brand-purple/10 font-bold group-hover:text-white dark:group-hover:text-brand-purple";
             };
 
             const getHoverColor = () => {
-              const isHomeLight = location.pathname === "/" && theme !== "dark";
               if (label === "AutoPost") return "hover:bg-brand-orange/20 dark:hover:bg-brand-orange/5 dark:hover:text-brand-orange";
               if (label === "Notifications") return "hover:bg-brand-pink/20 dark:hover:bg-brand-pink/5 dark:hover:text-brand-pink";
-              return isHomeLight
-                ? "hover:bg-white/20"
-                : "hover:bg-white/20 dark:hover:bg-brand-purple/5 dark:hover:text-brand-purple";
+              return "hover:bg-white/20 dark:hover:bg-brand-purple/5 dark:hover:text-brand-purple";
             };
 
             return (
               <NavLink
                 key={label}
                 to={to}
-                end={to === "/"}
+                end={to === "/feed"}
                 className={({ isActive }) =>
                   `
                 flex items-center gap-4
@@ -155,7 +144,7 @@ const Navbar = () => {
                       className={`
                         overflow-hidden whitespace-nowrap
                         transition-all duration-300 ease-in-out
-                        ${location.pathname === "/" ? "max-w-[150px] opacity-100 translate-x-0" : "max-w-0 opacity-0 -translate-x-2 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0"}
+                        ${"max-w-0 opacity-0 -translate-x-2 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0"}
                       `}
                     >
                       {label}
@@ -172,10 +161,7 @@ const Navbar = () => {
           <button
             onClick={toggleTheme}
             className={`flex items-center gap-4 px-3 py-3 w-full rounded-xl transition-colors
-              ${location.pathname === "/" && theme !== "dark"
-                ? "text-white/70 hover:text-white hover:bg-white/20 dark:text-text-secondary dark:hover:text-text-primary dark:hover:bg-brand-purple/5"
-                : "text-text-secondary group-hover:text-white hover:bg-white/20 dark:hover:bg-brand-purple/5 dark:group-hover:text-text-secondary"
-              }
+              text-text-secondary group-hover:text-white hover:bg-white/20 dark:hover:bg-brand-purple/5 dark:group-hover:text-text-secondary
             `}
           >
             <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
@@ -185,7 +171,7 @@ const Navbar = () => {
               className={`
                 overflow-hidden whitespace-nowrap
                 transition-all duration-300 ease-in-out font-medium
-                ${location.pathname === "/" ? "max-w-[150px] opacity-100 translate-x-0" : "max-w-0 opacity-0 -translate-x-2 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0"}
+                ${"max-w-0 opacity-0 -translate-x-2 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0"}
               `}
             >
               {theme === "dark" ? "Light Mode" : "Dark Mode"}
@@ -195,10 +181,7 @@ const Navbar = () => {
           <button
             onClick={() => navigate("/logout")}
             className={`flex items-center gap-4 px-3 py-3 w-full rounded-xl transition-colors
-              ${location.pathname === "/" && theme !== "dark"
-                ? "text-brand-pink hover:bg-white/20 dark:text-brand-pink/80 dark:hover:bg-brand-pink/10"
-                : "text-brand-pink/80 group-hover:text-brand-pink hover:bg-white/20 dark:hover:bg-brand-pink/10 dark:group-hover:text-brand-pink/80"
-              }
+              text-brand-pink/80 group-hover:text-brand-pink hover:bg-white/20 dark:hover:bg-brand-pink/10 dark:group-hover:text-brand-pink/80
             `}
           >
             <span className="relative shrink-0 flex items-center justify-center w-6 h-6">
@@ -208,7 +191,7 @@ const Navbar = () => {
               className={`
                 overflow-hidden whitespace-nowrap
                 transition-all duration-300 ease-in-out font-medium
-                ${location.pathname === "/" ? "max-w-[150px] opacity-100 translate-x-0" : "max-w-0 opacity-0 -translate-x-2 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0"}
+                ${"max-w-0 opacity-0 -translate-x-2 group-hover:max-w-[150px] group-hover:opacity-100 group-hover:translate-x-0"}
               `}
             >
               Logout

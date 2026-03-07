@@ -35,13 +35,20 @@ const messageSchema = new mongoose.Schema(
             default: "text"
         },
         fileName: { type: String, default: null },
-        
+        status: {
+            type: String,
+            enum: ["sent", "delivered", "read"],
+            default: "sent"
+        }
+
     },
 
     {
         timestamps: true
     }
 );
+
+messageSchema.index({ sender: 1, createdAt: 1 });
 
 const Message = mongoose.model("Message", messageSchema);
 export default Message;

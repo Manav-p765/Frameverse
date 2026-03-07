@@ -33,6 +33,15 @@ export const initSocket = (userId) => {
     socketReadyListeners.clear();
   });
 
+  socketInstance.io.on("reconnect", () => {
+    console.log("🔄 Socket reconnected! Syncing presence.");
+    if (socketInstance) {
+      socketInstance.emit("setup", userId);
+      socketInstance.emit("sync_presence");
+      // Could also trigger a global data refetch here if needed
+    }
+  });
+
   socketInstance.on("connect_error", (err) => {
     console.warn("Socket connect error:", err.message);
   });
@@ -104,5 +113,5 @@ export const useChatRoom = (chatId) => {
 
 // ─── Emitters ─────────────────────────────────────────────────────────────────
 
-export const emitTyping = (chatId) => socketInstance?.emit("typing", chatId);
-export const emitStopTyping = (chatId) => socketInstance?.emit("stop-typing", chatId);
+export const emitTyping = (chatId) => socketInstance?.emit("typing_start", chatId);
+export const emitStopTyping = (chatId) => socketInstance?.emit("typing_stop", chatId);

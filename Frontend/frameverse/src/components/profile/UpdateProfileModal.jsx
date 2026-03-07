@@ -96,8 +96,8 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
       newErrors.username = "Username is required";
     } else if (formData.username.length < 3) {
       newErrors.username = "Username must be at least 3 characters";
-    } else if (formData.username.length > 30) {
-      newErrors.username = "Username must be less than 30 characters";
+    } else if (formData.username.length > 20) {
+      newErrors.username = "Username must be less than 20 characters";
     } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
       newErrors.username = "Username can only contain letters, numbers, and underscores";
     }
@@ -278,7 +278,7 @@ const UpdateProfileModal = ({ profile, isOpen, onClose, onSave }) => {
                 <p className="text-brand-pink text-sm">{errors.username}</p>
               )}
               <p className="text-text-secondary text-xs">
-                {formData.username.length}/30 characters
+                {formData.username.length}/20 characters
               </p>
             </div>
 

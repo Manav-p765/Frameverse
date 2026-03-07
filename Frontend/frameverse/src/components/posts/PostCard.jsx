@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, MoreHorizontal } from "lucide-react";
+import { Share2, Heart, MessageCircle, MoreHorizontal } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { useSocketEvent } from "../../hooks/useSocket";
+import EditPostModal from "./EditPostModal";
 
 const PostCard = ({
   post,
@@ -9,22 +11,11 @@ const PostCard = ({
   onImageClick,
   onDeletePost,
   onReportPost,
+  onPostUpdate, // Added this prop
   currentUser,
   style,
 }) => {
   if (!post) return null;
-
-  // State
-  const [showComments, setShowComments] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
-  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-
-  // Refs
-  const lastTapTime = useRef(0);
-  const menuRef = useRef(null);
-
 
   // Extract post data
   const {
@@ -33,19 +24,64 @@ const PostCard = ({
     image,
     description,
     location,
-    likes = [],
-    commentsCount = 0,
+    likeCount = 0,
+    commentCount = 0,
+    sharesCount = 0,
     createdAt,
   } = post;
 
-
-
   const username = owner?.username || 'Unknown';
   const profilePic = owner?.profilePic;
-  const userId = owner?._id;;
-  const { likesCount = 0, likedByCurrentUser = false } = post;
+  const userId = owner?._id;
 
   const isEditable = currentUser?._id && String(userId) === String(currentUser._id);
+
+  // State
+  const [showComments, setShowComments] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+
+
+  // Real-time metrics state
+  const [localLikesCount, setLocalLikesCount] = useState(post.likeCount || 0);
+  const [localCommentsCount, setLocalCommentsCount] = useState(post.commentCount || 0);
+  const [localSharesCount, setLocalSharesCount] = useState(post.sharesCount || 0);
+  const [localLikedByCurrentUser, setLocalLikedByCurrentUser] = useState(post.likedByCurrentUser || false);
+
+  // Sync state if post prop changes
+  useEffect(() => {
+    setLocalLikesCount(post.likeCount || 0);
+    setLocalCommentsCount(post.commentCount || 0);
+    setLocalSharesCount(post.sharesCount || 0);
+    setLocalLikedByCurrentUser(post.likedByCurrentUser || false);
+  }, [post.likeCount, post.commentCount, post.sharesCount, post.likedByCurrentUser]);
+
+  // Socket listeners for real-time updates
+  useSocketEvent("postLiked", (data) => {
+    if (data.postId === _id) {
+      setLocalLikesCount(data.likeCount);
+    }
+  });
+
+  useSocketEvent("postCommented", (data) => {
+    if (data.postId === _id) {
+      setLocalCommentsCount(data.commentCount);
+    }
+  });
+
+  useSocketEvent("postShared", (data) => {
+    if (data.postId === _id) {
+      setLocalSharesCount(data.sharesCount);
+    }
+  });
+
+
+  // Refs
+  const lastTapTime = useRef(0);
+  const menuRef = useRef(null);
 
   // Handle double-tap/double-click like
   const handleDoubleTap = useCallback((e) => {
@@ -56,28 +92,28 @@ const PostCard = ({
 
     if (timeDiff < 300 && timeDiff > 0) {
       // Double tap/click detected
-      if (!likedByCurrentUser) {
-        onLikeToggle(_id, likedByCurrentUser);
+      if (!localLikedByCurrentUser) {
+        onLikeToggle(_id, localLikedByCurrentUser);
         setShowHeartAnimation(true);
         setTimeout(() => setShowHeartAnimation(false), 1000);
       }
     }
 
     lastTapTime.current = now;
-  }, [_id, likedByCurrentUser, onLikeToggle]);
+  }, [_id, localLikedByCurrentUser, onLikeToggle]);
 
   // Handle like button click
   const handleLikeClick = useCallback((e) => {
     e.stopPropagation();
     if (onLikeToggle) {
-      onLikeToggle(_id, likedByCurrentUser);
+      onLikeToggle(_id, localLikedByCurrentUser);
     }
 
-    if (!likedByCurrentUser) {
+    if (!localLikedByCurrentUser) {
       setShowHeartAnimation(true);
       setTimeout(() => setShowHeartAnimation(false), 800);
     }
-  }, [_id, likedByCurrentUser, onLikeToggle]);
+  }, [_id, localLikedByCurrentUser, onLikeToggle]);
 
   // Handle share
   const handleShare = useCallback(async (e) => {
@@ -276,33 +312,42 @@ const PostCard = ({
               className="group transition-transform active:scale-90 flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-bg-secondary/30"
             >
               <Heart
-                className={`w-5 h-5 transition-all ${likedByCurrentUser
+                className={`w-5 h-5 transition-all ${localLikedByCurrentUser
                   ? 'fill-red-500 text-brand-pink'
                   : 'text-text-secondary group-hover:text-brand-pink'
                   }`}
               />
-              {likesCount > 0 && (
-                <span className="text-text-secondary text-xs font-medium">
-                  {likesCount}
-                </span>
-              )}
+              <span className="text-text-secondary text-xs font-semibold tabular-nums">
+                {localLikesCount}
+              </span>
             </button>
 
             {/* Comment button */}
-            {commentsCount > 0 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowComments(!showComments);
-                }}
-                className="group transition-transform active:scale-90 flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-bg-secondary/30"
-              >
-                <MessageCircle className="w-5 h-5 text-text-secondary group-hover:text-brand-purple transition-colors" />
-                <span className="text-text-secondary text-xs font-medium">
-                  {commentsCount}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowComments(!showComments);
+              }}
+              className="group transition-transform active:scale-90 flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-bg-secondary/30"
+            >
+              <MessageCircle className="w-5 h-5 text-text-secondary group-hover:text-brand-purple transition-colors" />
+              <span className="text-text-secondary text-xs font-semibold tabular-nums">
+                {localCommentsCount}
+              </span>
+            </button>
+
+            {/* Share button */}
+            <button
+              onClick={handleShare}
+              className="group transition-transform active:scale-90 flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-bg-secondary/30"
+            >
+              <Share2 className="w-5 h-5 text-text-secondary group-hover:text-brand-orange transition-colors" />
+              {localSharesCount > 0 && (
+                <span className="text-text-secondary text-xs font-semibold tabular-nums">
+                  {localSharesCount}
                 </span>
-              </button>
-            )}
+              )}
+            </button>
 
             {/* Arrow/More button */}
             <div className="relative" ref={menuRef}>
@@ -328,6 +373,16 @@ const PostCard = ({
                   </button>
                   {isEditable ? (
                     <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowEditModal(true);
+                          setShowMenu(false);
+                        }}
+                        className="w-full px-4 py-2.5 text-left text-text-primary text-sm hover:bg-bg-secondary/50 transition-colors"
+                      >
+                        Edit post
+                      </button>
                       <button
                         onClick={() => onDeletePost(_id)}
                         className="w-full px-4 py-2.5 text-left text-brand-pink text-sm hover:bg-bg-secondary/50 transition-colors"
@@ -360,6 +415,16 @@ const PostCard = ({
           </div>
         )}
       </div>
+
+      {/* Modal for editing */}
+      <EditPostModal
+        post={post}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onUpdate={(updatedPost) => {
+          if (onPostUpdate) onPostUpdate(updatedPost);
+        }}
+      />
 
       {/* Animations */}
       <style>{`

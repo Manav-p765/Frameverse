@@ -55,7 +55,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
         },
       });
 
-      navigate("/");
+      navigate("/feed");
     } catch (err) {
       console.error("Post creation error:", err);
       setError(
