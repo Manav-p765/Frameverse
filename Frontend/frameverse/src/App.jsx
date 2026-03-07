@@ -30,7 +30,7 @@ const App = () => {
       <CallProvider>
 
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/landing" element={<LandingPage />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -39,7 +39,7 @@ const App = () => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route element={<ProtectedRoute />}>
-            <Route path="/feed" element={<Feed />} />
+            <Route path="/" element={<Feed />} />
 
             <Route path="/chats/*" element={<Chats />} />
 

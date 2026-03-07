@@ -22,7 +22,7 @@ const Logout = () => {
         delete api.defaults.headers.common["Authorization"];
 
         if (isMounted) {
-          navigate("/", { replace: true });
+          navigate("/landing", { replace: true });
         }
       }
     };
