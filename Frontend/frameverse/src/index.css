@@ -1,7 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Host+Grotesk:wght@400;700&display=swap');
+
 @import "tailwindcss";
+
+@tailwind utilities;
 
 /* Tell Tailwind v4 to trigger dark: via the .dark class, not @media (prefers-color-scheme) */
 @custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+  @apply bg-[#0a0a0a] text-white antialiased overflow-x-hidden;
+  font-family: "DM Sans", sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6 {
+  font-family: "Host Grotesk", sans-serif;
+}
+}
+
+@layer utilities {
+  /* noise texture — too complex for a single utility class so kept minimal */
+  .noise-overlay {
+    background-image: url('https://framerusercontent.com/images/6mcf62RlDfRfU61Yg5vb2pefpi4.png?width=256&height=256');
+    background-repeat: repeat;
+    background-size: 153.5px auto;
+  }
+
+  /* gradient text for logo */
+  .text-gradient-accent {
+    background: linear-gradient(135deg, #fff 0%, #d5ff45 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* bar chart bars — height driven by CSS var set inline */
+  .chart-bar {
+    height: var(--bar-h, 50%);
+    transform-origin: bottom;
+  }
+}
 
 @theme {
   --color-brand-purple: #8f95d3;
