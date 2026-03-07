@@ -21,6 +21,7 @@ import {
 } from "../controllers/user.js";
 
 const router = Router({ mergeParams: true });
+console.log("Registering User Routes...");
 
 // ─── Rate Limiters ────────────────────────────────────────────────────────────
 

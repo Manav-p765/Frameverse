@@ -45,7 +45,7 @@ export const validatepost = (req, res, next) => {
 
 
 export const isLoggedIn = (req, res, next) => {
-
+  console.log(`Checking auth for: ${req.method} ${req.originalUrl}`);
   try {
     const authHeader = req.headers.authorization;
 

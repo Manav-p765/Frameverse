@@ -197,6 +197,64 @@ function EmailForm({ mode, onBack, onExchangeToken, onNavigate }) {
     );
 }
 
+// ─── Username Selection Modal ────────────────────────────────────────────────
+
+function UsernameModal({ suggested, onConfirm, loading, error }) {
+    const [username, setUsername] = useState(suggested || "");
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (username.trim()) onConfirm(username.trim());
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="w-full max-w-md bg-bg-secondary border border-border-color rounded-2xl p-8 shadow-2xl animate-slide-down">
+                <div className="flex flex-col items-center text-center mb-8">
+                    <div className="w-16 h-16 bg-brand-purple/10 rounded-full flex items-center justify-center mb-4">
+                        <span className="text-3xl">🎭</span>
+                    </div>
+                    <h3 className="text-2xl font-bold text-text-primary tracking-tight">One last thing!</h3>
+                    <p className="text-text-secondary mt-2">Pick a unique username to complete your profile.</p>
+                </div>
+
+                {error && (
+                    <div className="mb-6 p-3 bg-brand-pink/10 border border-brand-pink/20 rounded-xl">
+                        <p className="text-brand-pink text-sm text-center font-medium">{error}</p>
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                        <label className="block text-text-secondary text-xs font-bold uppercase tracking-widest mb-2 ml-1">Username</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, "_"))}
+                            placeholder="e.g. creative_mind"
+                            className={inputClass}
+                            autoFocus
+                        />
+                        <p className="text-[10px] text-text-secondary/60 mt-2 ml-1 lowercase italic">
+                            Letters, numbers, and underscores only.
+                        </p>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading || !username.trim()}
+                        className="w-full py-4 rounded-xl bg-linear-to-r from-brand-purple to-brand-pink text-white font-bold
+                                 hover:shadow-[0_0_20px_-5px_rgba(139,92,246,0.5)] active:scale-[0.98] 
+                                 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                        {loading ? "Creating Account..." : "Complete Sign Up"}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 function AuthForm({ mode, toggleMode, onNavigate }) {
