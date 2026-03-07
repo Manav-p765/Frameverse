@@ -223,7 +223,7 @@ const Profile = () => {
     setDisplayedPosts((prev) => prev.filter((p) => p._id !== postId));
 
     try {
-      await api.delete(`/post/posts/${postId}`);
+      await api.delete(`/post/${postId}`);
     } catch (err) {
       setPosts(prevPosts);
       setDisplayedPosts(prevDisplayed);

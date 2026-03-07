@@ -135,7 +135,7 @@ const Feed = () => {
   const onDeletePost = async (postId) => {
     if (!window.confirm("Delete this post?")) return;
     try {
-      await api.delete(`/post/posts/${postId}`);
+      await api.delete(`/post/${postId}`);
       setPosts((prev) => prev.filter((p) => p._id !== postId));
     } catch (err) {
       console.error("Delete error:", err);

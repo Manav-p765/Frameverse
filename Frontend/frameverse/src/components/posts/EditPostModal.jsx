@@ -13,7 +13,7 @@ const EditPostModal = ({ post, isOpen, onClose, onUpdate }) => {
         setError("");
 
         try {
-            const response = await api.post(`/post/update/${post._id}`, {
+            const response = await api.put(`/post/${post._id}`, {
                 description: description.trim(),
                 location: location.trim(),
             });
