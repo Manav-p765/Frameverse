@@ -45,9 +45,8 @@ export default function Chats() {
       .then((user) => {
         setCurrentUser(user);
       })
-      .catch(() => {
-        localStorage.removeItem("token");
-        window.location.href = "/auth";
+      .catch((err) => {
+        console.error("Failed to fetch user in Chats page:", err);
       });
   }, []);
 

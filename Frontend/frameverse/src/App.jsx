@@ -25,6 +25,7 @@ import EngagementDashboard from "./pages/dashboard/EngagementDashboard";
 import LandingPage from './pages/LandingPage';
 
 const App = () => {
+  console.log("API URL:", import.meta.env.VITE_API_URL);
   return (
     <ThemeProvider>
       <CallProvider>

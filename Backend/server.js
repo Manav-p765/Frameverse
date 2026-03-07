@@ -30,11 +30,12 @@ const server = http.createServer(app);
 const corsOptions = {
   origin: [
     "http://localhost:5173",
+    process.env.FRONTEND_URL,
     "https://frameverse-zeta.vercel.app",
     "https://frameverse.onrender.com",
     "https://frameverse.online",
     "https://www.frameverse.online"
-  ],
+  ].filter(Boolean),
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -47,11 +48,12 @@ const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:5173",
+      process.env.FRONTEND_URL,
       "https://frameverse-zeta.vercel.app",
       "https://frameverse.onrender.com",
       "https://frameverse.online",
       "https://www.frameverse.online"
-    ],
+    ].filter(Boolean),
     methods: ["GET", "POST"],
   },
 });

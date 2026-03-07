@@ -109,21 +109,12 @@ const MobileNavbar = () => {
                   style={
                     isActive
                       ? {
-                        stroke: "url(#activeGrad)",
+                        stroke: "var(--color-brand-pink)",
                         filter: "drop-shadow(0 0 6px rgba(247, 86, 124, 0.4))",
                       }
                       : { color: "#6b7280" }
                   }
                 />
-
-                <svg width="0" height="0" className="absolute">
-                  <defs>
-                    <linearGradient id="activeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="var(--color-brand-orange)" />
-                      <stop offset="100%" stopColor="var(--color-brand-pink)" />
-                    </linearGradient>
-                  </defs>
-                </svg>
 
                 {/* Unread badge — chats only */}
                 {label === "Chats" && unreadCount > 0 && (
