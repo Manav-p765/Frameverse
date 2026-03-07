@@ -57,7 +57,7 @@ export default function Hero() {
             className="px-7 py-3.5 text-[15px] font-medium text-white bg-accent border-2 border-white/20 rounded-full hover:shadow-[0_0_30px_6px_rgba(213,255,69,0.2)] hover:-translate-y-px transition-all">
             Get Started
           </button>
-          <button onClick={() => navigate('/feed')}
+          <button onClick={() => navigate('/')}
             className="inline-flex items-center gap-2 px-6 py-3.5 text-[15px] font-medium text-white border border-white/16 rounded-full hover:bg-white/5 hover:border-white/30 transition-all">
             Explore Feed
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

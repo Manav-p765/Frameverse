@@ -23,7 +23,7 @@ const parseChatId = (pathname) => {
 };
 
 const navItems = [
-  { to: "/feed", label: "Home", icon: Home },
+  { to: "/", label: "Home", icon: Home },
   { to: "/explore", label: "Explore", icon: Compass },
   { to: "/reels", label: "Reels", icon: Film },
   { to: "/chats", label: "Chats", icon: MessageCircle },
@@ -112,7 +112,7 @@ const Navbar = () => {
               <NavLink
                 key={label}
                 to={to}
-                end={to === "/feed"}
+                end={to === "/"}
                 className={({ isActive }) =>
                   `
                 flex items-center gap-4

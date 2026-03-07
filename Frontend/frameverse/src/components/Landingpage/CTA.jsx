@@ -35,7 +35,7 @@ export default function CTA() {
             className="px-7 py-3.5 text-[15px] font-medium text-white bg-accent border-2 border-white/20 rounded-full hover:shadow-[0_0_30px_6px_rgba(213,255,69,0.2)] hover:-translate-y-px transition-all">
             Get Started — it's free
           </button>
-          <button onClick={() => navigate('/feed')}
+          <button onClick={() => navigate('/')}
             className="px-6 py-3.5 text-[15px] font-medium text-white border border-white/16 rounded-full hover:bg-white/5 hover:border-white/30 transition-all">
             Explore the Feed
           </button>

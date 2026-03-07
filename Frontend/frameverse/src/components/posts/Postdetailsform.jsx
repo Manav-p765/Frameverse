@@ -51,7 +51,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
 
       await postAPI.create(formData);
 
-      navigate("/feed");
+      navigate("/");
     } catch (err) {
       console.error("Post creation error:", err);
       setError(
@@ -65,7 +65,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-bg-primary pb-safe">
+    <div className="min-h-screen bg-bg-primary overflow-y-auto pb-32">
       <div className="max-w-2xl mx-auto px-4 py-6">
         <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -128,7 +128,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-linear-to-r from-purple-500 via-pink-500 to-orange-400 rounded-xl text-text-primary font-semibold disabled:opacity-50"
+            className="w-full py-4 mb-8 bg-linear-to-r from-purple-500 via-pink-500 to-orange-400 rounded-xl text-text-primary font-bold text-lg shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
           >
             {isLoading ? "Creating..." : "Create Post"}
           </button>

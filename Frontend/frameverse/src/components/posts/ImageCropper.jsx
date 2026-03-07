@@ -41,31 +41,9 @@ const ImageCropper = ({ imageSrc, onCropComplete, onCancel }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col">
-            {/* Top Header */}
-            <div className="flex items-center justify-between p-4 bg-black/60 backdrop-blur-md z-10 shrink-0">
-                <button
-                    onClick={onCancel}
-                    className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-                >
-                    <X className="w-6 h-6 text-white" />
-                </button>
-                <span className="text-white font-medium">Crop Photo</span>
-                <button
-                    onClick={handleApplyCrop}
-                    disabled={isProcessing}
-                    className="p-2 bg-brand-purple hover:bg-brand-purple/80 rounded-full transition-colors disabled:opacity-50"
-                >
-                    {isProcessing ? (
-                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    ) : (
-                        <Check className="w-6 h-6 text-white" />
-                    )}
-                </button>
-            </div>
-
-            {/* Cropper Container */}
-            <div className="relative flex-1 w-full bg-black">
+        <div className="fixed inset-0 z-[60] bg-black overflow-hidden select-none">
+            {/* Cropper Area */}
+            <div className="absolute inset-0">
                 <Cropper
                     image={imageSrc}
                     crop={crop}
@@ -79,19 +57,49 @@ const ImageCropper = ({ imageSrc, onCropComplete, onCancel }) => {
                 />
             </div>
 
-            {/* Bottom Controls */}
-            <div className="p-6 bg-black/60 backdrop-blur-md shrink-0 flex items-center justify-center gap-4">
-                <span className="text-white/70 text-sm">Zoom:</span>
-                <input
-                    type="range"
-                    value={zoom}
-                    min={1}
-                    max={3}
-                    step={0.1}
-                    aria-labelledby="Zoom"
-                    onChange={(e) => setZoom(e.target.value)}
-                    className="flex-1 max-w-xs accent-brand-purple"
-                />
+            {/* Navigation Header Overlay */}
+            <div
+                className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/95 via-black/70 to-transparent"
+                style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}
+            >
+                <button
+                    onClick={onCancel}
+                    className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors text-white"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+                <span className="text-white font-semibold text-lg drop-shadow-md">Crop Photo</span>
+                <button
+                    onClick={handleApplyCrop}
+                    disabled={isProcessing}
+                    className="px-6 py-2.5 bg-brand-purple hover:bg-brand-purple/90 text-white font-bold rounded-xl shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                >
+                    {isProcessing ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                        "Apply"
+                    )}
+                </button>
+            </div>
+
+            {/* Zoom Controls Overlay */}
+            <div
+                className="absolute bottom-0 left-0 right-0 z-10 p-6 flex flex-col gap-4 bg-gradient-to-t from-black/95 via-black/70 to-transparent"
+                style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+            >
+                <div className="flex items-center gap-4">
+                    <span className="text-white/80 text-sm font-medium">Zoom</span>
+                    <input
+                        type="range"
+                        value={zoom}
+                        min={1}
+                        max={3}
+                        step={0.1}
+                        aria-labelledby="Zoom"
+                        onChange={(e) => setZoom(e.target.value)}
+                        className="flex-1 accent-brand-purple"
+                    />
+                </div>
             </div>
         </div>
     );

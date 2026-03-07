@@ -9,7 +9,7 @@ const parseChatId = (pathname) => {
 };
 
 const mobileNavItems = [
-  { to: "/feed", label: "Home", icon: Home },
+  { to: "/", label: "Home", icon: Home },
   { to: "/explore", label: "Explore", icon: Compass },
   { to: "/create", label: "Create", icon: PlusCircle },
   { to: "/chats", label: "Chats", icon: MessageCircle },
@@ -54,7 +54,7 @@ const MobileNavbar = () => {
         <NavLink
           key={label}
           to={to}
-          end={to === "/feed"}
+          end={to === "/"}
           aria-label={label}
           className="group relative flex flex-col items-center justify-center overflow-visible"
           style={{ minWidth: 52, minHeight: 56 }}

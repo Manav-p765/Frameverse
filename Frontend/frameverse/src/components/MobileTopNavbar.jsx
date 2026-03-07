@@ -1,14 +1,18 @@
-import { useState, useCallback, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { Bell, Bot, Sun, Moon } from "lucide-react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Bell, Bot, Sun, Moon, MoreVertical, LogOut } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import AnimatedLogo from "./AnimatedLogo";
 import { useSocketEvent } from "../hooks/useSocket";
 import { useTheme } from "../context/ThemeContext";
 
 const MobileTopNavbar = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const { theme, toggleTheme } = useTheme();
     const [notifUnread, setNotifUnread] = useState(0);
+    const [showMenu, setShowMenu] = useState(false);
+    const menuRef = useRef(null);
 
     // Listen for new notifications
     useSocketEvent("new-notification", useCallback(() => {
@@ -23,6 +27,17 @@ const MobileTopNavbar = () => {
             setNotifUnread(0);
         }
     }, [location.pathname]);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setShowMenu(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
         <header
@@ -78,6 +93,40 @@ const MobileTopNavbar = () => {
                         </span>
                     )}
                 </NavLink>
+
+                {/* More Menu */}
+                <div className="relative" ref={menuRef}>
+                    <button
+                        onClick={() => setShowMenu(!showMenu)}
+                        aria-label="More options"
+                        className="w-9 h-9 rounded-full flex items-center justify-center transition-colors text-text-secondary hover:text-text-primary hover:bg-white/5"
+                    >
+                        <MoreVertical size={20} strokeWidth={1.5} />
+                    </button>
+
+                    <AnimatePresence>
+                        {showMenu && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                transition={{ duration: 0.15, ease: "easeOut" }}
+                                className="absolute right-0 mt-2 w-36 bg-bg-secondary border border-border-color rounded-xl shadow-xl overflow-hidden py-1 z-[60]"
+                            >
+                                <button
+                                    onClick={() => {
+                                        setShowMenu(false);
+                                        navigate("/logout");
+                                    }}
+                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-text-primary hover:bg-white/5 transition-colors"
+                                >
+                                    <LogOut size={16} strokeWidth={1.5} />
+                                    <span>Logout</span>
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
         </header>
     );

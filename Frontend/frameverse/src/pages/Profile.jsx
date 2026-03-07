@@ -270,7 +270,7 @@ const Profile = () => {
     navigate(`/profile/${user._id}`);
   };
 
-  
+
   if (loading) return <SkeletonLoader />;
 
   if (error) {
@@ -283,7 +283,7 @@ const Profile = () => {
             This user may not exist or has been removed
           </p>
           <button
-            onClick={() => navigate("/feed")}
+            onClick={() => navigate("/")}
             className="px-6 py-2.5 bg-brand-purple hover:opacity-90 text-text-primary rounded-lg font-medium transition-colors"
           >
             ← Back to Feed
