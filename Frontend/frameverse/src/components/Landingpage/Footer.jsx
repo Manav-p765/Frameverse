@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 
 const LINKS = {
-  Platform: [{ label: 'Developer Feed', to: '/' }, { label: 'Messaging', to: '/chat' }, { label: 'Analytics', to: '/analysis' }, { label: 'Video Calls', to: '/chat' }],
-  Developers: [{ label: 'GitHub', href: 'https://github.com' }, { label: 'API Docs', href: '#' }, { label: 'Changelog', href: '#' }, { label: 'Status', href: '#' }],
+  Platform: [{ label: 'Developer Feed', to: '/' }, { label: 'Messaging', to: '/chats' }, { label: 'Analytics', to: '/dashboard/analytics' }, { label: 'Video Calls', to: '/chats' }],
+  Developers: [{ label: 'GitHub', href: 'https://github.com/Manav-p765/Frameverse' }, { label: 'API Docs', href: '#' }, { label: 'Changelog', href: '#' }, { label: 'Status', href: '#' }],
   Company: [{ label: 'About', href: '/#about' }, { label: 'Security', href: '/#security' }, { label: 'Privacy', href: '#' }, { label: 'Terms', href: '#' }],
 };
 

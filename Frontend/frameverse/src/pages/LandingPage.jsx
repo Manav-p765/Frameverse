@@ -10,7 +10,7 @@ import Footer from '../components/Landingpage/Footer';
 
 export default function LandingPage() {
   return (
-    <>
+    <div className="dark bg-[#0a0a0a] text-white min-h-screen relative isolate">
       {/* Framer-style noise texture overlay */}
       <div className="noise-overlay fixed inset-0 pointer-events-none z-[5] opacity-[0.13]" aria-hidden="true" />
       <Navbar />
@@ -24,6 +24,6 @@ export default function LandingPage() {
         <CTA />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
