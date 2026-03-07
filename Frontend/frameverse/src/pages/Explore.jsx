@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import SearchBar from "../components/explore/SearchBar";
 import ExploreGrid from "../components/explore/ExploreGrid";
 import PostViewer from "../components/profile/PostViewer";
-import { postAPI } from "../services/api";
-import api from "../services/post.service";
+import { postAPI, userAPI } from "../services/api";
 
 const Explore = () => {
   const [posts, setPosts] = useState([]);
@@ -14,8 +13,8 @@ const Explore = () => {
 
   useEffect(() => {
     // Fetch current user for PostCard
-    api.get("/user/auth/me")
-      .then((r) => setCurrentUser(r.data))
+    userAPI.getMe()
+      .then((data) => setCurrentUser(data))
       .catch(() => { });
 
     // Fetch explore posts
@@ -33,11 +32,11 @@ const Explore = () => {
 
   const handleLikeToggle = async (postId) => {
     try {
-      const res = await api.post(`/post/${postId}/like`);
+      const data = await postAPI.toggleLike(postId);
       setPosts((prev) =>
         prev.map((p) =>
           p._id === postId
-            ? { ...p, likeCount: res.data.likeCount, likedByCurrentUser: res.data.liked }
+            ? { ...p, likeCount: data.likeCount, likedByCurrentUser: data.liked }
             : p
         )
       );

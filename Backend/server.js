@@ -67,8 +67,8 @@ connectdb();
 initSocket(io);
 
 app.use("/user", userRoute);
-app.use("/chats/router", chatRoute);
-app.use("/chats/router/messages", messageRoute);
+app.use("/chats", chatRoute);
+app.use("/messages", messageRoute);
 app.use("/post", postRoute);
 app.use("/notifications", notificationRoute);
 app.use("/api/autopost", autoPostRoutes);

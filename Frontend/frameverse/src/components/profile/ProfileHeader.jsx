@@ -27,8 +27,6 @@ const ProfileHeader = ({
   const followerCountDisplay = followers?.length ?? 0;
   const followingCountDisplay = following?.length ?? 0;
 
-  console.log(followerCountDisplay, followingCountDisplay);
-
   const handleUpdateProfile = async (updateData) => {
     await onUpdateProfile(updateData);
   };

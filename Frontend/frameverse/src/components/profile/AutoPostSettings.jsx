@@ -115,6 +115,10 @@ export default function AutoPostSettings() {
             setRunStats(null); // FIX: Reset previous run result before new run
             const stats = await runNow();
             setRunStats(stats);
+            // Refresh the page after a short delay to show the new post
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
         } catch (err) {
             // Error handled by hook
         }

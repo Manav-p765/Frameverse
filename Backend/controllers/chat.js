@@ -5,15 +5,16 @@ import User from "../models/user.js";
 // Create 1v1 chat
 export const createChat = async (req, res) => {
   try {
-    const { otherUserId } = req.body;
+    const { userId, otherUserId } = req.body;
+    const targetId = userId || otherUserId;
 
-    if (!otherUserId) return res.status(400).json({ message: "otherUserId required" });
-    if (otherUserId === req.userId) return res.status(400).json({ message: "Cannot chat with yourself" });
+    if (!targetId) return res.status(400).json({ message: "userId or otherUserId required" });
+    if (targetId === req.userId) return res.status(400).json({ message: "Cannot chat with yourself" });
 
     // Check if 1v1 chat already exists
     const existing = await Chat.findOne({
       isGroup: false,
-      users: { $all: [req.userId, otherUserId], $size: 2 },
+      users: { $all: [req.userId, targetId], $size: 2 },
     })
       .populate("users", "username profilePic")
       .populate({ path: "lastMessage", populate: { path: "sender", select: "username" } });
@@ -22,7 +23,7 @@ export const createChat = async (req, res) => {
 
     const chat = await Chat.create({
       isGroup: false,
-      users: [req.userId, otherUserId],
+      users: [req.userId, targetId],
     });
 
     const populated = await Chat.findById(chat._id)

@@ -86,9 +86,17 @@ class EngagementService {
                 isLiked = true;
             }
 
-            // Update Post Counter
+            // Update Post Counter and Likes Array
             const incAmount = isLiked ? 1 : -1;
-            const post = await Post.findByIdAndUpdate(postId, { $inc: { likeCount: incAmount } }, { session, new: true });
+            const updateOp = isLiked ? '$addToSet' : '$pull';
+            const post = await Post.findByIdAndUpdate(
+                postId,
+                {
+                    $inc: { likeCount: incAmount },
+                    [updateOp]: { likes: userId }
+                },
+                { session, new: true }
+            );
 
             await session.commitTransaction();
 

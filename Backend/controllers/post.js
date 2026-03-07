@@ -48,6 +48,30 @@ export const getExplorePosts = async (req, res) => {
   }
 };
 
+export const getPostById = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const post = await Post.findById(postId)
+      .populate("owner", "username profilePic followersCount followingCount")
+      .lean();
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const result = {
+      ...post,
+      likedByCurrentUser: req.userId ? post.likes.some(id => id.toString() === req.userId.toString()) : false,
+      likeCount: post.likes.length,
+    };
+
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error("GetPostById error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 export const createPost = async (req, res) => {
   try {
@@ -78,7 +102,7 @@ export const createPost = async (req, res) => {
       $push: { posts: newPost._id },
     });
 
-    await newPost.populate("owner", "username profilePicture");
+    await newPost.populate("owner", "username profilePic");
 
     // ── Notification: "X shared a new post" to all followers ──
     try {
@@ -271,7 +295,7 @@ export const updatePost = async (req, res) => {
         new: true, // Return updated document
         runValidators: true // Run schema validators
       }
-    ).populate('owner', 'username profilePicture'); // Populate owner details
+    ).populate('owner', 'username profilePic'); // Populate owner details
 
     res.status(200).json({
       message: 'Post updated successfully',
@@ -304,11 +328,11 @@ export const updatePost = async (req, res) => {
 
 
 export const deletePost = async (req, res) => {
-  const { id } = req.params;
+  const { postId } = req.params;
   const userId = req.userId;
 
   try {
-    const post = await Post.findOne({ _id: id, owner: userId });
+    const post = await Post.findOne({ _id: postId, owner: userId });
 
     if (!post) {
       return res.status(404).json({
@@ -323,11 +347,11 @@ export const deletePost = async (req, res) => {
 
     // Remove post reference from user
     await User.findByIdAndUpdate(userId, {
-      $pull: { posts: id },
+      $pull: { posts: postId },
     });
 
     // Delete post
-    await Post.deleteOne({ _id: id });
+    await Post.deleteOne({ _id: postId });
 
     res.status(200).json({
       message: "Post deleted successfully",

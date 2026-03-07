@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
-import api from "../../services/post.service"; // your axios instance
+import { postAPI } from "../../services/api";
 import { generateImageCaption } from "../../services/Geminiai";
 
 const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
@@ -49,11 +49,7 @@ const PostDetailsForm = ({ selectedImage, imageFile, onBack }) => {
       formData.append("recaptchaToken", recaptchaToken);
       formData.append("recaptchaAction", "CREATE_POST");
 
-      await api.post("post/create", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await postAPI.create(formData);
 
       navigate("/feed");
     } catch (err) {

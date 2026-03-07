@@ -103,8 +103,6 @@ const Profile = () => {
     fetchProfile();
   }, [userId, isOwnProfile]);
 
-  console.log(profile)
-
   // Split posts by type
   const userPosts = useMemo(() => posts.filter(p => p.postType !== 'auto-progress'), [posts]);
   const autoPosts = useMemo(() => posts.filter(p => p.postType === 'auto-progress'), [posts]);

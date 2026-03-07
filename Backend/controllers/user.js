@@ -176,7 +176,7 @@ export const getUserProfile = async (req, res) => {
     const cached = await getProfileCache(cacheKey);
     if (cached) {
       if (req.params.id && req.params.id !== req.userId) {
-        User.findByIdAndUpdate(userId, { $inc: { profileViews: 1 } }).catch(() => {});
+        User.findByIdAndUpdate(userId, { $inc: { profileViews: 1 } }).catch(() => { });
       }
       return res.status(200).json(cached);
     }
@@ -185,7 +185,7 @@ export const getUserProfile = async (req, res) => {
     const [user] = await Promise.all([
       User.findById(userId).select("username profilePic bio posts profileViews followersCount followingCount followers following").lean(),
       req.params.id && req.params.id !== req.userId
-        ? User.findByIdAndUpdate(userId, { $inc: { profileViews: 1 } }).catch(() => {})
+        ? User.findByIdAndUpdate(userId, { $inc: { profileViews: 1 } }).catch(() => { })
         : Promise.resolve(),
     ]);
 
@@ -205,8 +205,8 @@ export const getUserProfile = async (req, res) => {
         : [],
       postIds.length
         ? Post.find({ _id: { $in: postIds } })
-            .populate("owner", "username profilePic followersCount followingCount")
-            .lean()
+          .populate("owner", "username profilePic followersCount followingCount")
+          .lean()
         : [],
     ]);
 
@@ -218,7 +218,10 @@ export const getUserProfile = async (req, res) => {
       ...user,
       followers,
       following,
-      posts: postsList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+      posts: postsList.map(post => ({
+        ...post,
+        likedByCurrentUser: req.userId ? post.likes.some(id => id.toString() === req.userId.toString()) : false,
+      })).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
     };
 
     await setProfileCache(cacheKey, profile);

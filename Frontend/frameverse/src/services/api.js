@@ -17,23 +17,23 @@ api.interceptors.request.use(async (config) => {
 
 export const authAPI = {
   logout: () => api.post("/user/logout").then((r) => r.data),
-  me: () => api.get("/user/auth/me").then((r) => r.data), // Aligned with ProtectedRoute.jsx
+  me: () => api.get("/user/auth/me").then((r) => r.data),
   updateProfile: (data) =>
-    api.put("/user/profile", data).then((r) => r.data),
+    api.put("/user/updateProfile", data).then((r) => r.data),
   firebaseAuth: (data) =>
     api.post("/user/auth/firebase", data).then((r) => r.data),
-  changePassword: (data) =>
-    api.post("/user/auth/change-password", data).then((r) => r.data),
+  forgotPassword: (data) =>
+    api.post("/auth/forgot-password", data).then((r) => r.data),
   verifyOTP: (data) =>
-    api.post("/user/auth/verify-otp", data).then((r) => r.data),
+    api.post("/auth/verify-otp", data).then((r) => r.data),
   resetPassword: (data) =>
-    api.post("/user/auth/reset-password", data).then((r) => r.data),
+    api.post("/auth/reset-password", data).then((r) => r.data),
 };
 
 export const postAPI = {
   create: (formData) =>
     api
-      .post("/post", formData, {
+      .post("/post/create", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then((r) => r.data),
@@ -49,24 +49,25 @@ export const postAPI = {
       .delete(`/post/${postId}/comment/${commentId}`)
       .then((r) => r.data),
   share: (id) => api.post(`/post/${id}/share`).then((r) => r.data),
+  getExplorePosts: (limit = 30) => api.get(`/post/explore?limit=${limit}`).then((r) => r.data),
 };
 
 export const chatAPI = {
-  getMyChats: () => api.get("/chats/router").then((r) => r.data),
-  getChat: (id) => api.get(`/chats/router/${id}`).then((r) => r.data),
+  getMyChats: () => api.get("/chats").then((r) => r.data),
+  getChat: (id) => api.get(`/chats/${id}`).then((r) => r.data),
   createChat: (userId) =>
-    api.post("/chats/router", { userId }).then((r) => r.data),
+    api.post("/chats", { userId }).then((r) => r.data),
   createGroupChat: (data) =>
-    api.post("/chats/router/group", data).then((r) => r.data),
+    api.post("/chats/group", data).then((r) => r.data),
   renameGroup: (id, title) =>
-    api.put(`/chats/router/group/${id}`, { title }).then((r) => r.data),
+    api.put(`/chats/group/${id}`, { title }).then((r) => r.data),
   addToGroup: (id, userId) =>
-    api.post(`/chats/router/${id}/add-user`, { userId }).then((r) => r.data),
+    api.post(`/chats/${id}/add-user`, { userId }).then((r) => r.data),
 };
 
 export const messageAPI = {
   getMessages: (chatId) =>
-    api.get(`/chats/router/messages/${chatId}`).then((r) => r.data),
+    api.get(`/messages/${chatId}`).then((r) => r.data),
   sendMessage: (chatId, content, messageType = "text", fileName = null) => {
     if (messageType === "file" || messageType === "image") {
       const formData = new FormData();
@@ -74,16 +75,16 @@ export const messageAPI = {
       formData.append("content", content);
       formData.append("messageType", messageType);
       if (fileName) formData.append("fileName", fileName);
-      return api.post("/chats/router/messages", formData, {
+      return api.post("/messages", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       }).then(r => r.data);
     }
-    return api.post("/chats/router/messages", { chatId, content, messageType }).then((r) => r.data);
+    return api.post("/messages", { chatId, content, messageType }).then((r) => r.data);
   },
   deleteMessage: (messageId) =>
-    api.delete(`/chats/router/messages/${messageId}`).then((r) => r.data),
+    api.delete(`/messages/${messageId}`).then((r) => r.data),
   markAsRead: (chatId) =>
-    api.patch(`/chats/router/messages/${chatId}/read`).then((r) => r.data),
+    api.patch(`/messages/${chatId}/read`).then((r) => r.data),
 };
 
 export const userAPI = {

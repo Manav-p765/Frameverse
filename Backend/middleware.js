@@ -67,9 +67,10 @@ export const isLoggedIn = (req, res, next) => {
 
 
 export const isOwner = async (req, res, next) => {
-  const { id } = req.params;
+  const { id, postId } = req.params;
+  const targetId = id || postId;
 
-  const post = await Post.findById(id);
+  const post = await Post.findById(targetId);
 
   if (!post) {
     return res.status(404).json({ message: "Post not found" });

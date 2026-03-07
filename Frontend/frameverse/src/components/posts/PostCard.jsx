@@ -312,8 +312,9 @@ const PostCard = ({
               className="group transition-transform active:scale-90 flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-bg-secondary/30"
             >
               <Heart
+                fill={localLikedByCurrentUser ? "#ef4444" : "none"}
                 className={`w-5 h-5 transition-all ${localLikedByCurrentUser
-                  ? 'fill-red-500 text-brand-pink'
+                  ? 'text-[#ef4444]'
                   : 'text-text-secondary group-hover:text-brand-pink'
                   }`}
               />
