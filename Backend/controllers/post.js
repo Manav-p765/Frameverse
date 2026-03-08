@@ -191,31 +191,6 @@ export const sharePost = async (req, res, next) => {
   }
 };
 
-export const addComment = async (req, res, next) => {
-  try {
-    const { postId } = req.params;
-    const { content } = req.body;
-    // For now, just increment counter and return success
-    const post = await Post.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } }, { new: true });
-    EngagementService.trackEngagement(postId, 'comments', 1);
-
-    // Emit live update
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("postCommented", {
-        postId,
-        commentCount: post.commentCount,
-      });
-    }
-
-    res.status(201).json({
-      message: "Comment added (placeholder)",
-      commentCount: post.commentCount
-    });
-  } catch (err) {
-    next(err);
-  }
-};
 
 export const updatePost = async (req, res) => {
   const { postId } = req.params;

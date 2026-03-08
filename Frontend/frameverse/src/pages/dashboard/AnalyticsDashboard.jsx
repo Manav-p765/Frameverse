@@ -148,7 +148,7 @@ const AnalyticsDashboard = () => {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 <StatsCard
-                    label="Personal Frames"
+                    label="Total Posts"
                     value={stats?.totalPosts?.toLocaleString() || "0"}
                     icon={FileText}
                     trend="up"

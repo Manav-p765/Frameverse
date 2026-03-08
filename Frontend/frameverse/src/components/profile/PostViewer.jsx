@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PostCard from "../posts/PostCard";
+import CommentPanel from "../comments/CommentPanel";
 
 const PostViewer = ({ posts = [], initialIndex = 0, onClose, profile, onDeletePost, onLikeToggle, onPostUpdate, currentUser }) => {
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
@@ -33,53 +34,53 @@ const PostViewer = ({ posts = [], initialIndex = 0, onClose, profile, onDeletePo
         }
     };
 
+    const currentPost = posts[currentIndex];
+
     return (
-        <div className="fixed inset-0
-  z-50
-  flex flex-col items-center justify-center
-  bg-bg-primary/40
-  backdrop-blur-md
-  transition-all duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-md transition-all duration-300">
+            {/* Navigation */}
+            <div className="flex items-center justify-center w-full h-full max-w-7xl px-4 gap-6">
+                {/* Previous */}
+                {currentIndex > 0 && (
+                    <button
+                        onClick={prevPost}
+                        className="hidden md:block text-text-primary text-4xl hover:text-brand-purple transition-colors"
+                    >
+                        ‹
+                    </button>
+                )}
 
-            {/* Close Button */}
-            <button
-                onClick={onClose}
-                className="absolute top-6 right-6 text-text-primary text-2xl"
-            >
-                ✕
-            </button>
+                {/* Main Content Area */}
+                <div className="w-full max-w-5xl md:max-w-6xl">
+                    <PostCard
+                        post={currentPost}
+                        profile={profile}
+                        onDeletePost={onDeletePost}
+                        onLikeToggle={onLikeToggle}
+                        onPostUpdate={onPostUpdate}
+                        currentUser={currentUser}
+                        onClose={onClose}
+                    />
+                </div>
 
-            {/* Previous */}
-            {currentIndex > 0 && (
-                <button
-                    onClick={prevPost}
-                    className="absolute left-5 text-text-primary text-3xl"
-                >
-                    ‹
-                </button>
-            )}
-
-            {/* Post */}
-            <div className="w-full max-w-xl">
-                <PostCard
-                    post={posts[currentIndex]}
-                    profile={profile}
-                    onDeletePost={onDeletePost}
-                    onLikeToggle={onLikeToggle}
-                    onPostUpdate={onPostUpdate}
-                    currentUser={currentUser} // pass current user for editable check
-                />
+                {/* Next */}
+                {currentIndex < posts.length - 1 && (
+                    <button
+                        onClick={nextPost}
+                        className="hidden md:block text-text-primary text-4xl hover:text-brand-purple transition-colors"
+                    >
+                        ›
+                    </button>
+                )}
             </div>
 
-            {/* Next */}
-            {currentIndex < posts.length - 1 && (
-                <button
-                    onClick={nextPost}
-                    className="absolute right-5 text-text-primary text-3xl"
-                >
-                    ›
-                </button>
-            )}
+            <style>{`
+                .glass-morphism {
+                    background: rgba(15, 15, 15, 0.4);
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                }
+            `}</style>
         </div>
     );
 };

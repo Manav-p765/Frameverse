@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PostCard from "../components/posts/PostCard";
 import PostLightbox from "../components/posts/PostLightbox";
 import NotificationSidebar from "../components/NotificationSidebar";
+import CommentPanel from "../components/comments/CommentPanel";
 import api from "../services/post.service";
 import SEOHead from "../components/SEOHead";
 
@@ -28,16 +29,16 @@ const Feed = () => {
 
   // Refs
   const observerTarget = useRef(null);
-  const pageRef = useRef(0);
+  const pageRef = useRef(1);
 
   // Fetch posts
   const fetchPosts = async (page) => {
-    if (loading || !hasMore) return;
+    if (loading || (!hasMore && page !== 1)) return;
 
     setLoading(true);
 
     try {
-      const res = await api.get(`/user/feed?limit=10&depth=${page}`);
+      const res = await api.get(`/user/feed?limit=10&page=${page}`);
       const newPosts = res.data.posts || [];
 
       setPosts((prev) => {
@@ -46,7 +47,7 @@ const Feed = () => {
         return [...prev, ...uniquePosts];
       });
 
-      if (newPosts.length < 10) {
+      if (newPosts.length === 0 || newPosts.length < 10) {
         setHasMore(false);
       }
     } catch (err) {
@@ -59,7 +60,7 @@ const Feed = () => {
 
   // Initial load
   useEffect(() => {
-    fetchPosts(0);
+    fetchPosts(1);
   }, []);
 
   // Infinite scroll
@@ -75,14 +76,15 @@ const Feed = () => {
           posts.length > 0 &&
           !isFetchingRef.current
         ) {
-          isFetchingRef.current = true; // 🚫 block repeats
-          pageRef.current += 1;
-          fetchPosts(pageRef.current).finally(() => {
-            isFetchingRef.current = false; // ✅ allow next time
+          isFetchingRef.current = true;
+          const nextPage = pageRef.current + 1;
+          pageRef.current = nextPage;
+          fetchPosts(nextPage).finally(() => {
+            isFetchingRef.current = false;
           });
         }
       },
-      { rootMargin: "200px", threshold: 0 }
+      { rootMargin: "300px", threshold: 0 }
     );
 
     const target = observerTarget.current;
@@ -96,11 +98,8 @@ const Feed = () => {
 
   // Handlers
   const onUserClick = (userId) => {
-
     navigate(`/profile/${userId}`);
   };
-
-
 
   const handleImageClick = (post, imageIndex = 0) => {
     setSelectedPost(post);
@@ -149,6 +148,14 @@ const Feed = () => {
     );
   };
 
+  const onCommentAdded = (postId) => {
+    setPosts(prev => prev.map(p => p._id === postId ? { ...p, commentCount: (p.commentCount || 0) + 1 } : p));
+  };
+
+  const onCommentDeleted = (postId) => {
+    setPosts(prev => prev.map(p => p._id === postId ? { ...p, commentCount: Math.max(0, (p.commentCount || 0) - 1) } : p));
+  };
+
   return (
     <div className="min-h-screen bg-bg-primary mt-10">
       <SEOHead
@@ -191,55 +198,23 @@ const Feed = () => {
               </div>
             )}
 
-            {/* Posts Grid - Rendered as two vertical columns on desktop, single on mobile. */}
-            {/* Mobile View (Hidden on md+) */}
-            <div className="flex flex-col gap-6 w-full md:hidden">
+            {/* Posts Feed - Single Column with side-by-side comments on desktop */}
+            <div className="flex flex-col gap-10 w-full mb-10">
               {posts.map((post) => (
-                <PostCard
-                  key={post._id}
-                  post={post}
-                  onUserClick={onUserClick}
-                  onImageClick={handleImageClick}
-                  onLikeToggle={onLikeToggle}
-                  onDeletePost={onDeletePost}
-                  onPostUpdate={onPostUpdate}
-                  currentUser={currentUser}
-                />
+                <div key={post._id} className="w-full">
+                  <PostCard
+                    post={post}
+                    onUserClick={onUserClick}
+                    onImageClick={handleImageClick}
+                    onLikeToggle={onLikeToggle}
+                    onDeletePost={onDeletePost}
+                    onPostUpdate={onPostUpdate}
+                    onCommentAdded={onCommentAdded}
+                    onCommentDeleted={onCommentDeleted}
+                    currentUser={currentUser}
+                  />
+                </div>
               ))}
-            </div>
-
-            {/* Desktop View (Hidden on sm) - Split into two distinct columns */}
-            <div className="hidden md:flex gap-6 w-full items-start">
-              {/* Left Column */}
-              <div className="flex flex-col gap-6 flex-1 min-w-0">
-                {posts.filter((_, i) => i % 2 === 0).map((post) => (
-                  <PostCard
-                    key={post._id}
-                    post={post}
-                    onUserClick={onUserClick}
-                    onImageClick={handleImageClick}
-                    onLikeToggle={onLikeToggle}
-                    onDeletePost={onDeletePost}
-                    onPostUpdate={onPostUpdate}
-                    currentUser={currentUser}
-                  />
-                ))}
-              </div>
-              {/* Right Column */}
-              <div className="flex flex-col gap-6 flex-1 min-w-0">
-                {posts.filter((_, i) => i % 2 !== 0).map((post) => (
-                  <PostCard
-                    key={post._id}
-                    post={post}
-                    onUserClick={onUserClick}
-                    onImageClick={handleImageClick}
-                    onLikeToggle={onLikeToggle}
-                    onDeletePost={onDeletePost}
-                    onPostUpdate={onPostUpdate}
-                    currentUser={currentUser}
-                  />
-                ))}
-              </div>
             </div>
 
             {/* Loading more */}
@@ -263,7 +238,7 @@ const Feed = () => {
           </div>
 
           {/* Right column — Notifications sidebar (desktop only) */}
-          <div className="hidden lg:block w-[30%] max-w-[320px] shrink-0">
+          <div className="hidden xl:block w-[30%] max-w-[320px] shrink-0">
             <div className="sticky top-4 pt-4 space-y-6">
               <NotificationSidebar />
             </div>
@@ -280,6 +255,14 @@ const Feed = () => {
           onClose={closeLightbox}
         />
       )}
+
+      <style>{`
+        .glass-morphism {
+          background: rgba(15, 15, 15, 0.4);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+        }
+      `}</style>
     </div>
   );
 };

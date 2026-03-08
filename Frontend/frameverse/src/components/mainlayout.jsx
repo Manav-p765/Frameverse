@@ -30,7 +30,7 @@ const MainLayout = () => {
   const isChatsPage = useIsChatsPage();
 
   return (
-    <div className="flex h-screen w-full bg-bg-primary overflow-hidden">
+    <div className="flex h-dvh w-full bg-bg-primary overflow-hidden">
       {/* Desktop sidebar — on chat page: fixed overlay so it doesn't push content.
           On other pages: normal flow with w-18 reserved space. */}
       {isChatsPage ? (

@@ -72,7 +72,6 @@ class UserAnalyticsService {
             }),
             Comment.countDocuments({
                 postId: { $in: postIds },
-                isActive: true,
                 createdAt: { $gte: startDate }
             }),
             Post.aggregate([
@@ -150,7 +149,7 @@ class UserAnalyticsService {
 
         const [likes, comments, posts] = await Promise.all([
             postIds.length ? Like.countDocuments({ postId: { $in: postIds }, isActive: true, createdAt: { $gte: startDate } }) : 0,
-            postIds.length ? Comment.countDocuments({ postId: { $in: postIds }, isActive: true, createdAt: { $gte: startDate } }) : 0,
+            postIds.length ? Comment.countDocuments({ postId: { $in: postIds }, createdAt: { $gte: startDate } }) : 0,
             postIds.length ? Post.find({ _id: { $in: postIds } }).select("sharesCount").lean() : []
         ]);
 

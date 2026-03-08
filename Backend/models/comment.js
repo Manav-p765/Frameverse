@@ -11,21 +11,28 @@ const commentSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    content: {
+    text: {
         type: String,
         required: true,
         trim: true,
         maxlength: 500
     },
-    isActive: {
-        type: Boolean,
-        default: true
+    likes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
+    parentComment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment',
+        default: null
     }
 }, { timestamps: true });
 
 // Optimize lookup for post comments and analytics
 commentSchema.index({ postId: 1, createdAt: -1 });
-commentSchema.index({ postId: 1, isActive: 1, createdAt: 1 });
+commentSchema.index({ userId: 1 });
 
 const Comment = mongoose.model('Comment', commentSchema);
 export default Comment;

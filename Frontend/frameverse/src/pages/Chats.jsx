@@ -176,7 +176,7 @@ export default function Chats() {
   return (
     <>
       {/* ═══ DESKTOP (md+) ═══════════════════════════════════════════════════ */}
-      <div className="hidden md:flex bg-bg-primary overflow-hidden" style={{ height: "100vh" }}>
+      <div className="hidden md:flex bg-bg-primary overflow-hidden h-full">
         <div className="w-[320px] shrink-0 border-r border-border-color flex flex-col overflow-hidden">
           <ChatList {...listProps} />
         </div>
