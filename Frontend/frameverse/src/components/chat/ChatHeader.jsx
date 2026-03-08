@@ -43,9 +43,9 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
   if (!chat) return null;
 
   const isGroup = chat.isGroup;
-  const otherUser = !isGroup ? chat.users?.find((u) => u._id !== currentUserId) : null;
+  const otherUser = !isGroup ? chat.users?.find((u) => u._id.toString() !== currentUserId.toString()) : null;
   const name = isGroup ? chat.title || "Group Chat" : otherUser?.username || "Unknown";
-  const avatar = isGroup ? chat.image : otherUser?.avatar;
+  const avatar = isGroup ? chat.image : (otherUser?.profilePic || otherUser?.avatar);
 
   const { isOnline, lastSeen } = usePresence(otherUser?._id);
 
@@ -53,11 +53,11 @@ export default function ChatHeader({ chat, currentUserId, typingUsers = [], onIn
     if (!otherUser || callStatus !== "idle") return;
 
     // Derive full caller info from the chat's user list
-    const currentUserObj = chat.users?.find((u) => u._id === currentUserId);
+    const currentUserObj = chat.users?.find((u) => u._id.toString() === currentUserId.toString());
     const callerInfo = {
       _id: currentUserId,
       username: currentUserObj?.username || "Unknown",
-      profilePic: currentUserObj?.avatar || currentUserObj?.profilePic || null,
+      profilePic: currentUserObj?.profilePic || currentUserObj?.avatar || null,
     };
 
     // Generate a client-side callId; server assigns the authoritative one via call:ringing

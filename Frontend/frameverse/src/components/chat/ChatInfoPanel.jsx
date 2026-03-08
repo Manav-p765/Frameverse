@@ -22,7 +22,7 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
   const [activeTab, setActiveTab] = useState("media");
 
   const isGroup = chat?.isGroup;
-  const otherUser = !isGroup ? chat?.users?.find((u) => u._id !== currentUserId) : null;
+  const otherUser = !isGroup ? chat?.users?.find((u) => u._id.toString() !== currentUserId.toString()) : null;
   const name = isGroup ? chat?.title || "Group Chat" : otherUser?.username || "Unknown";
   const avatar = isGroup ? chat?.image : otherUser?.profilePic;
 
@@ -130,7 +130,7 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-text-primary text-sm truncate">{user.username}</p>
-                {chat.admin?.some((a) => a._id === user._id || a === user._id) && (
+                {chat.admin?.some((a) => (a._id || a).toString() === user._id.toString()) && (
                   <p className="text-brand-purple text-xs">Admin</p>
                 )}
               </div>
@@ -146,11 +146,10 @@ export default function ChatInfoPanel({ chat, currentUserId, onClose }) {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-3 text-xs font-medium capitalize transition-colors ${
-                activeTab === tab
+              className={`flex-1 py-3 text-xs font-medium capitalize transition-colors ${activeTab === tab
                   ? "text-text-primary border-b-2 border-blue-500"
                   : "text-[#5a5a6a] hover:text-text-secondary"
-              }`}
+                }`}
             >
               {tab} {tab === "media" ? `(${images.length})` : `(${files.length})`}
             </button>

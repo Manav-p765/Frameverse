@@ -8,21 +8,34 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
-  *, *::before, *::after { box-sizing: border-box; }
 
-  html { scroll-behavior: smooth; }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
 
   body {
-  @apply bg-[#0a0a0a] text-white antialiased overflow-x-hidden;
-  font-family: "DM Sans", sans-serif;
-}
+    @apply bg-[#0a0a0a] text-white antialiased overflow-x-hidden;
+    font-family: "DM Sans", sans-serif;
+  }
 
-h1,h2,h3,h4,h5,h6 {
-  font-family: "Host Grotesk", sans-serif;
-}
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Host Grotesk", sans-serif;
+  }
 }
 
 @layer utilities {
+
   /* noise texture — too complex for a single utility class so kept minimal */
   .noise-overlay {
     background-image: url('https://framerusercontent.com/images/6mcf62RlDfRfU61Yg5vb2pefpi4.png?width=256&height=256');
@@ -82,9 +95,8 @@ h1,h2,h3,h4,h5,h6 {
 html,
 body,
 #root {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
-  overflow: hidden;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   margin: 0;

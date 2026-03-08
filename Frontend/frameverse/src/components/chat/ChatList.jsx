@@ -63,7 +63,7 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
     return sorted.filter((c) => {
       const name = c.isGroup
         ? c.title
-        : c.users.find((u) => u._id !== currentUserId)?.username || "";
+        : c.users.find((u) => u._id.toString() !== currentUserId.toString())?.username || "";
       return name.toLowerCase().includes(q);
     });
   }, [chats, search, currentUserId, isSearchFocused]);
@@ -76,7 +76,7 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
     const existingChatUserIds = new Set();
     chats.forEach(chat => {
       if (!chat.isGroup && chat.users.length === 2) {
-        const otherUser = chat.users.find(u => u._id !== currentUserId);
+        const otherUser = chat.users.find(u => u._id.toString() !== currentUserId.toString());
         if (otherUser) existingChatUserIds.add(otherUser._id.toString());
       }
     });
@@ -106,7 +106,7 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
   const getChatName = useCallback(
     (chat) => {
       if (chat.isGroup) return chat.title || "Group Chat";
-      const other = chat.users.find((u) => u._id !== currentUserId);
+      const other = chat.users.find((u) => u._id.toString() !== currentUserId.toString());
       return other?.username || "Unknown";
     },
     [currentUserId]
@@ -115,7 +115,7 @@ export default function ChatList({ chats, loading, activeChatId, currentUserId, 
   const getChatAvatar = useCallback(
     (chat) => {
       if (chat.isGroup) return chat.image;
-      const other = chat.users.find((u) => u._id !== currentUserId);
+      const other = chat.users.find((u) => u._id.toString() !== currentUserId.toString());
       return other?.profilePic;
     },
     [currentUserId]

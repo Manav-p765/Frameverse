@@ -63,23 +63,15 @@ export const chatAPI = {
     api.put(`/chats/group/${id}`, { title }).then((r) => r.data),
   addToGroup: (id, userId) =>
     api.post(`/chats/${id}/add-user`, { userId }).then((r) => r.data),
+  getChatMedia: (id) =>
+    api.get(`/chats/${id}/media`).then((r) => r.data),
 };
 
 export const messageAPI = {
   getMessages: (chatId) =>
     api.get(`/messages/${chatId}`).then((r) => r.data),
   sendMessage: (chatId, content, messageType = "text", fileName = null) => {
-    if (messageType === "file" || messageType === "image") {
-      const formData = new FormData();
-      formData.append("chatId", chatId);
-      formData.append("content", content);
-      formData.append("messageType", messageType);
-      if (fileName) formData.append("fileName", fileName);
-      return api.post("/messages", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      }).then(r => r.data);
-    }
-    return api.post("/messages", { chatId, content, messageType }).then((r) => r.data);
+    return api.post("/messages", { chatId, content, messageType, fileName }).then((r) => r.data);
   },
   deleteMessage: (messageId) =>
     api.delete(`/messages/${messageId}`).then((r) => r.data),
