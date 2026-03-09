@@ -17,6 +17,7 @@ import EngagementService from "../services/engagementService.js";
 import FeedService from "../services/feedService.js";
 import Follow from "../models/follow.js";
 import redis from "../config/redis.js";
+import fs from "fs";
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
@@ -252,11 +253,18 @@ export const updateUserProfile = async (req, res) => {
     delete updates.provider;
 
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "profile_pics",
-        transformation: [{ width: 500, height: 500, crop: "fill" }],
-      });
-      updates.profilePic = result.secure_url;
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "profile_pics",
+          transformation: [{ width: 500, height: 500, crop: "fill" }],
+        });
+        updates.profilePic = result.secure_url;
+      } finally {
+        // Always delete local file after upload attempt
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+      }
     }
 
     const user = await User.findByIdAndUpdate(

@@ -1,6 +1,8 @@
 import Post from "../models/post.js";
 import User from "../models/user.js";
 import Notification from "../models/notification.js";
+import Comment from "../models/comment.js";
+import Like from "../models/like.js";
 import mongoose from "mongoose";
 import { uploadToCloudinary, deleteFromCloudinary } from "../config/cloudinary.js";
 import FeedService from "../services/feedService.js";
@@ -306,10 +308,15 @@ export const deletePost = async (req, res) => {
   const { postId } = req.params;
   const userId = req.userId;
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const post = await Post.findOne({ _id: postId, owner: userId });
+    const post = await Post.findOne({ _id: postId, owner: userId }).session(session);
 
     if (!post) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({
         message: "Post not found or unauthorized",
       });
@@ -317,21 +324,41 @@ export const deletePost = async (req, res) => {
 
     // Delete image from Cloudinary
     if (post.image?.public_id) {
-      await deleteFromCloudinary(post.image.public_id);
+      try {
+        await deleteFromCloudinary(post.image.public_id);
+      } catch (cloudinaryErr) {
+        console.error("Cloudinary delete error during post deletion:", cloudinaryErr);
+        // Continue anyway as database consistency is prioritized
+      }
     }
 
-    // Remove post reference from user
-    await User.findByIdAndUpdate(userId, {
-      $pull: { posts: postId },
-    });
+    // Parallel cleanup using transaction session
+    await Promise.all([
+      // Remove post reference from user
+      User.findByIdAndUpdate(userId, { $pull: { posts: postId } }).session(session),
+      // Delete all comments
+      Comment.deleteMany({ postId }).session(session),
+      // Delete all likes
+      Like.deleteMany({ postId }).session(session),
+      // Delete all notifications related to this post
+      Notification.deleteMany({ post: postId }).session(session),
+      // Delete the post itself
+      Post.deleteOne({ _id: postId }).session(session)
+    ]);
 
-    // Delete post
-    await Post.deleteOne({ _id: postId });
+    await session.commitTransaction();
+    session.endSession();
+
+    // Invalidate caches
+    FeedService.invalidateFeed(userId);
+    FeedService.invalidateFollowersFeeds(userId);
 
     res.status(200).json({
       message: "Post deleted successfully",
     });
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     console.error("Delete post error:", err);
 
     res.status(500).json({

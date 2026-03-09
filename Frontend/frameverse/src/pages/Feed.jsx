@@ -136,6 +136,11 @@ const Feed = () => {
     try {
       await api.delete(`/post/${postId}`);
       setPosts((prev) => prev.filter((p) => p._id !== postId));
+
+      // ✅ CLOSE LIGHTBOX IF DELETED POST IS ACTIVE
+      if (selectedPost?._id === postId) {
+        setSelectedPost(null);
+      }
     } catch (err) {
       console.error("Delete error:", err);
       alert("Failed to delete post");

@@ -167,7 +167,18 @@ const Profile = () => {
 
       const response = await api.put("/user/updateProfile", formData);
 
-      setProfile(response.data.user);
+      const updatedUser = response.data.user;
+      setProfile(updatedUser);
+
+      // ✅ SYNC WITH LOCALSTORAGE
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const currentUserData = JSON.parse(storedUser);
+        // Preserve other fields if necessary (like token etc depending on structure)
+        const newUserData = { ...currentUserData, ...updatedUser };
+        localStorage.setItem("user", JSON.stringify(newUserData));
+        setCurrentUser(newUserData);
+      }
     } catch (error) {
       console.error("Update profile error:", error);
       throw new Error(
@@ -221,6 +232,11 @@ const Profile = () => {
 
     setPosts((prev) => prev.filter((p) => p._id !== postId));
     setDisplayedPosts((prev) => prev.filter((p) => p._id !== postId));
+
+    // ✅ CLOSE VIEWER IF DELETED POST IS ACTIVE
+    if (viewerOpen && activePosts[selectedIndex]?._id === postId) {
+      setViewerOpen(false);
+    }
 
     try {
       await api.delete(`/post/${postId}`);
