@@ -6,29 +6,28 @@ import Like from '../models/like.js';
 import Follow from '../models/follow.js';
 import Notification from '../models/notification.js';
 import PostEngagementDaily from '../models/postEngagementDaily.js';
+import redis from '../config/redis.js';
 
 class EngagementService {
     /**
      * Follow/Unfollow User with Transactions and Soft Deletes
      */
     async toggleFollow(followerId, followingId) {
+        console.log(`[toggleFollow] followerId=${followerId}, followingId=${followingId}`);
         if (followerId.toString() === followingId.toString()) throw new Error("Cannot follow yourself");
 
-        const session = await mongoose.startSession();
-        session.startTransaction();
-
         try {
-            let follow = await Follow.findOne({ followerId, followingId }).session(session);
+            let follow = await Follow.findOne({ followerId, followingId });
             let isFollowing = false;
 
             if (follow) {
                 // Toggle isActive
                 follow.isActive = !follow.isActive;
-                await follow.save({ session });
+                await follow.save();
                 isFollowing = follow.isActive;
             } else {
                 // Create new follow record
-                follow = await Follow.create([{ followerId, followingId, isActive: true }], { session });
+                follow = await Follow.create({ followerId, followingId, isActive: true });
                 isFollowing = true;
             }
 
@@ -39,30 +38,33 @@ class EngagementService {
             await User.findByIdAndUpdate(followerId, {
                 $inc: { followingCount: incAmount },
                 [updateOp]: { following: followingId }
-            }, { session });
+            });
 
             await User.findByIdAndUpdate(followingId, {
                 $inc: { followersCount: incAmount },
                 [updateOp]: { followers: followerId }
-            }, { session });
+            });
 
-            await session.commitTransaction();
-
-            // Notification logic (async, non-blocking for transaction)
+            // Notification logic
             if (isFollowing) {
                 this.sendNotification(followingId, followerId, 'follow');
             }
 
-            // Invalidate feeds
+            // Invalidate feeds and recommendations
             await FeedService.invalidateFeed(followerId);
             await FeedService.invalidateFeed(followingId);
 
+            // Delete recommendation caches to reflect new follow state
+            try {
+                await redis.del(`suggested:users:${followerId}`);
+            } catch (rErr) {
+                console.error("Redis del error:", rErr);
+            }
+
             return { isFollowing, followersCount: (await User.findById(followingId)).followersCount };
         } catch (error) {
-            await session.abortTransaction();
+            console.error("Follow error:", error);
             throw error;
-        } finally {
-            session.endSession();
         }
     }
 

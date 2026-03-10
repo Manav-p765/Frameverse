@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Share2, MessageSquare, Heart, UserPlus, ImagePlus, Check } from "lucide-react";
 import { notificationAPI } from "../services/api";
 import { useSocketEvent } from "../hooks/useSocket";
+import SuggestedUsersSection from "../components/SuggestedUsersSection";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -266,6 +267,10 @@ const Notifications = () => {
               </button>
             </div>
           )}
+
+          <div className="mt-8 pt-6 border-t border-white/10 xl:hidden pb-10">
+            <SuggestedUsersSection />
+          </div>
         </div>
       )}
     </div>

@@ -21,7 +21,7 @@ const notifMeta = {
     new_post: { icon: ImagePlus, text: "new post", color: "text-green-400", bg: "bg-green-500/10" },
 };
 
-const NotificationSidebar = () => {
+const NotificationSidebar = ({ limit = 6 }) => {
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -71,7 +71,7 @@ const NotificationSidebar = () => {
                 </div>
             ) : (
                 <div className="space-y-0.5">
-                    {notifications.slice(0, 15).map((notif) => {
+                    {notifications.slice(0, limit).map((notif) => {
                         const meta = notifMeta[notif.type] || notifMeta.follow;
                         const Icon = meta.icon;
                         return (
@@ -119,6 +119,15 @@ const NotificationSidebar = () => {
                             </button>
                         );
                     })}
+
+                    <div className="pt-3 pb-1 flex justify-center">
+                        <button
+                            onClick={() => navigate('/notifications')}
+                            className="text-xs font-medium text-brand-purple hover:text-brand-pink transition-colors"
+                        >
+                            All notifications
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

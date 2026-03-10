@@ -22,6 +22,7 @@ import adminRoutes from "./routes/admin/adminRoutes.js";
 import userAnalyticsRoutes from "./routes/userAnalyticsRoutes.js";
 import calculateTrendingScores from "./workers/trendingWorker.js";
 import commentRoutes from "./routes/comment.routes.js";
+import recommendationRoutes from "./routes/recommendationRoutes.js";
 
 const Port = process.env.PORT || 8080;
 const server = http.createServer(app);
@@ -81,6 +82,7 @@ app.use("/api/admin/analytics", analyticsRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/user/analytics", userAnalyticsRoutes);
 app.use("/comments", commentRoutes);
+app.use("/api/recommend", recommendationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

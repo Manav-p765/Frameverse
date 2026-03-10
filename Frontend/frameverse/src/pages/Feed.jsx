@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PostCard from "../components/posts/PostCard";
 import PostLightbox from "../components/posts/PostLightbox";
 import NotificationSidebar from "../components/NotificationSidebar";
+import SuggestedUsersSection from "../components/SuggestedUsersSection";
 import CommentPanel from "../components/comments/CommentPanel";
 import api from "../services/post.service";
 import SEOHead from "../components/SEOHead";
@@ -243,9 +244,18 @@ const Feed = () => {
           </div>
 
           {/* Right column — Notifications sidebar (desktop only) */}
-          <div className="hidden xl:block w-[30%] max-w-[320px] shrink-0">
-            <div className="sticky top-4 pt-4 space-y-6">
-              <NotificationSidebar />
+          <div className="hidden xl:flex flex-col w-[30%] max-w-[320px] shrink-0 h-[calc(100vh-2rem)] sticky top-4">
+            <div
+              className="flex-1 overflow-hidden pb-2"
+              style={{ flexBasis: '60%', flexGrow: 0 }}
+            >
+              <NotificationSidebar limit={6} />
+            </div>
+            <div
+              className="flex-1 overflow-y-auto no-scrollbar pt-2 border-t border-white/5"
+              style={{ flexBasis: '40%', flexGrow: 0 }}
+            >
+              <SuggestedUsersSection className="" />
             </div>
           </div>
 
