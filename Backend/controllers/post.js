@@ -6,6 +6,7 @@ import Like from "../models/like.js";
 import mongoose from "mongoose";
 import { uploadToCloudinary, deleteFromCloudinary } from "../config/cloudinary.js";
 import FeedService from "../services/feedService.js";
+import { feedQueue, notificationQueue } from "../workers/queue.js";
 
 // ─── Explore: random posts ───────────────────────────────────────────────────
 export const getExplorePosts = async (req, res) => {
@@ -106,30 +107,20 @@ export const createPost = async (req, res) => {
 
     await newPost.populate("owner", "username profilePic");
 
-    // ── Notification: "X shared a new post" to all followers ──
+    // ── Enqueue Background Jobs ──
     try {
-      const poster = await User.findById(req.userId).select("followers");
-      if (poster?.followers?.length) {
-        const io = req.app.get("io");
-        const notifDocs = poster.followers.map((followerId) => ({
-          recipient: followerId,
-          sender: req.userId,
-          type: "new_post",
-          post: newPost._id,
-        }));
-        const created = await Notification.insertMany(notifDocs, { ordered: false }).catch(() => []);
-        // Emit to each follower's socket room
-        for (const notif of created) {
-          const populated = await notif.populate("sender", "username profilePic");
-          await populated.populate("post", "image description");
-          io.to(notif.recipient.toString()).emit("new-notification", populated);
-        }
-        // Invalidate following's feed caches asynchronously
-        FeedService.invalidateFollowersFeeds(req.userId);
-      }
-    } catch (notifErr) {
-      console.error("New post notif error:", notifErr);
+      await feedQueue.add('feed', { postId: newPost._id, authorId: req.userId });
+      await notificationQueue.add('notification', {
+        type: 'new_post',
+        senderId: req.userId,
+        postId: newPost._id
+      });
+      // Invalidate the cache for followers fully resolved feed
+      FeedService.invalidateFollowersFeeds(req.userId);
+    } catch (err) {
+      console.error("Queue add error:", err);
     }
+
 
     res.status(201).json({
       message: "Post created successfully",
@@ -153,7 +144,7 @@ export const likePost = async (req, res, next) => {
     const result = await EngagementService.toggleLike(req.userId, postId);
 
     // Emit live update
-    const io = req.app.get("io");
+    const io = getIo();
     if (io) {
       io.emit("postLiked", {
         postId,
@@ -176,7 +167,7 @@ export const sharePost = async (req, res, next) => {
     const post = await EngagementService.sharePost(req.userId, postId);
 
     // Emit live update
-    const io = req.app.get("io");
+    const io = getIo();
     if (io) {
       io.emit("postShared", {
         postId,

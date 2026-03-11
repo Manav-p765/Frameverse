@@ -19,6 +19,7 @@ const followSchema = new mongoose.Schema({
 
 // Prevent duplicate follows and optimize lookup
 followSchema.index({ followerId: 1, followingId: 1 }, { unique: true });
+followSchema.index({ followingId: 1, followerId: 1 }); // Covered query for fan-out
 followSchema.index({ followingId: 1, isActive: 1 });
 followSchema.index({ followingId: 1, isActive: 1, createdAt: 1 });
 

@@ -6,6 +6,7 @@ import Notification from "../models/notification.js";
 import admin from "../config/firebaseAdmin.js";
 import { generateOtp } from "../utils/generateOtp.js";
 import { sendOtpEmail } from "../services/emailService.js";
+import { getIo } from "../utils/socketEmitter.js";
 
 // Hash utility for OTP
 const hashOtp = (otp) => {
@@ -62,7 +63,7 @@ export const requestPasswordReset = async (req, res) => {
             const populated = await notif.populate("sender", "username profilePic");
 
             // Emit to socket room
-            req.app.get("io").to(user._id.toString()).emit("new-notification", populated);
+            getIo().to(user._id.toString()).emit("new-notification", populated);
         } catch (notifErr) {
             console.error("Failed to send password reset socket notification:", notifErr);
             // Non-fatal, do not throw

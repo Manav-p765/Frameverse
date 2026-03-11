@@ -1,6 +1,7 @@
 import Message from "../models/message.js";
 import Chat from "../models/chat.js";
 import cloudinary from "../config/cloudinary.js";
+import { getIo } from "../utils/socketEmitter.js";
 
 // Send message
 export const sendMessage = async (req, res) => {
@@ -54,7 +55,7 @@ export const sendMessage = async (req, res) => {
       .populate("sender", "username profilePic")
       .populate("chat");
 
-    const io = req.app.get("io");
+    const io = getIo();
 
     // Chat room only — for users who have the chat open (ChatWindow)
     io.to(chatId).emit("new-message", fullMessage);
@@ -127,7 +128,7 @@ export const markAsRead = async (req, res) => {
     );
 
     // Notify others that messages were read
-    const io = req.app.get("io");
+    const io = getIo();
     io.to(chatId).emit("messages-read", { chatId, readByUserId: req.userId });
 
     res.status(200).json({ message: "Marked as read" });
@@ -148,7 +149,7 @@ export const deleteMessage = async (req, res) => {
     await message.deleteOne();
 
     // Notify everyone in the chat
-    const io = req.app.get("io");
+    const io = getIo();
     io.to(message.chat.toString()).emit("message-deleted", { messageId });
 
     res.status(200).json({ message: "Deleted" });

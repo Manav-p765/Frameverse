@@ -1,14 +1,12 @@
 import Post from "../models/post.js";
 import User from "../models/user.js";
-import redis from "../config/redis.js";
+import redisClient, { isRedisAvailable } from "../config/redis.js";
 import mongoose from "mongoose";
+import { getCache, setCache, deleteCache } from "../utils/cache.js";
 
 const FEED_CACHE_TTL = 120; // 120 seconds as requested
 
 class FeedService {
-    /**
-     * Calculate Feed Score for a single post relative to a user
-     */
     calculateFeedScore(post, user, mutualFollows = []) {
         // 1. Engagement Score: (likes * 2) + (comments * 3) + (shares * 4)
         const engagementScore =
@@ -23,50 +21,74 @@ class FeedService {
         // 3. Relationship Score: (mutualFollow * 3) + (pastInteractions * 2) + (profileViews * 1)
         let relationshipScore = 0;
         if (user) {
-            // Mutual Follow check (* 3)
             const isMutual = mutualFollows.some(id => id.toString() === post.owner._id.toString());
             if (isMutual) relationshipScore += 3;
 
-            // Simplified Relationship signals for this demo
-            // If user has liked the owner's profile or previous posts (pastInteractions proxy)
-            // For now, we use a simple weight if they follow them at all
             if (user.following.some(id => id.toString() === post.owner._id.toString())) {
                 relationshipScore += 2;
             }
         }
 
-        // Apply weights for balanced scoring (recency needs a multiplier to compete with engagement integers)
         return engagementScore + (recencyScore * 50) + relationshipScore;
     }
 
-    /**
-     * Get or Rebuild Feed
-     */
     async getUserFeed(userId, page = 1, limit = 20) {
-        const cacheKey = `feed:user:${userId}`;
+        const cacheKey = `feed:cache:${userId}`;
 
-        // Return from cache if exists
+        // Return from cache if exists and it's page 1
         if (page === 1) {
-            const cachedFeed = await redis.get(cacheKey);
+            const cachedFeed = await getCache(cacheKey);
             if (cachedFeed) {
-                return JSON.parse(cachedFeed);
+                return cachedFeed;
             }
         }
 
-        // Rebuild Feed
-        const user = await User.findById(userId).populate('following');
-        const followingIds = user?.following?.map(f => f._id) || [];
+        const user = await User.findById(userId).populate('following', 'followersCount _id');
+        const following = user?.following || [];
 
-        // Find mutual follows: people you follow who also follow you
-        const mutualFollows = user?.following?.filter(f =>
+        const mutualFollows = following.filter(f =>
             f.followers && f.followers.some(fid => fid.toString() === userId)
         ).map(f => f._id) || [];
 
-        // Fetch recent posts
-        const posts = await Post.find()
-            .sort({ createdAt: -1 })
-            .limit(100) // Consider top 100 recent posts
-            .populate('owner', 'username profilePic followers');
+        let postIdsToFetch = [];
+
+        // Try getting Fan-Out Feed from Redis
+        let fannedOutPostIds = [];
+        if (isRedisAvailable && redisClient.status !== 'mock') {
+            fannedOutPostIds = await redisClient.lrange(`feed:user:${userId}`, 0, 100);
+
+            // Fetch dynamically on read from Large Accounts (> 10k)
+            const largeAccounts = following.filter(f => f.followersCount > 10000);
+            if (largeAccounts.length > 0) {
+                const pipeline = redisClient.pipeline();
+                largeAccounts.forEach(acc => {
+                    pipeline.lrange(`feed:large_accounts:${acc._id}`, 0, 10);
+                });
+                const largeResults = await pipeline.exec();
+                largeResults.forEach(([err, ids]) => {
+                    if (!err && ids && ids.length) {
+                        fannedOutPostIds.push(...ids);
+                    }
+                });
+            }
+        }
+
+        // Deduplicate
+        postIdsToFetch = [...new Set(fannedOutPostIds)];
+
+        let posts = [];
+
+        if (postIdsToFetch.length > 0) {
+            // Fetch the specific posts
+            posts = await Post.find({ _id: { $in: postIdsToFetch } })
+                .populate('owner', 'username profilePic followers followersCount followingCount');
+        } else {
+            // Fallback: Rebuild Feed from DB if Redis is empty or mocking
+            posts = await Post.find()
+                .sort({ createdAt: -1 })
+                .limit(100) // Consider top 100 recent posts
+                .populate('owner', 'username profilePic followers followersCount followingCount');
+        }
 
         // Score and Sort
         const scoredPosts = posts.map(post => ({
@@ -77,30 +99,27 @@ class FeedService {
 
         const feedResult = scoredPosts.slice((page - 1) * limit, page * limit);
 
-        // Cache the first page
+        // Cache the fully built first page
         if (page === 1) {
-            await redis.setex(cacheKey, FEED_CACHE_TTL, JSON.stringify(feedResult));
+            await setCache(cacheKey, feedResult, FEED_CACHE_TTL);
         }
 
         return feedResult;
     }
 
-    /**
-     * Invalidate Feed Cache
-     */
     async invalidateFeed(userId) {
-        await redis.del(`feed:user:${userId}`);
+        await deleteCache(`feed:cache:${userId}`);
     }
 
-    /**
-     * Targeted invalidation for a user's followers (e.g., when they post)
-     */
     async invalidateFollowersFeeds(userId) {
+        // Enqueue fan-out job when creating post instead of just invalidating cache
+        // Note: The actual enqueueing is done in the controller now `feedQueue.add(...)`
+        // We still invalidate the fully resolved feed cache
         const user = await User.findById(userId).select('followers');
         if (user?.followers) {
-            const pipeline = redis.pipeline();
+            const pipeline = redisClient.pipeline();
             user.followers.forEach(followerId => {
-                pipeline.del(`feed:user:${followerId}`);
+                pipeline.del(`feed:cache:${followerId}`);
             });
             await pipeline.exec();
         }

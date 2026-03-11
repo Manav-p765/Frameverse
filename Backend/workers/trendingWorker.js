@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import Post from '../models/post.js';
+import redisClient, { isRedisAvailable } from '../config/redis.js';
 
 /**
      * Trending Algorithm:
@@ -36,6 +37,22 @@ const calculateTrendingScores = async () => {
 
         if (bulkOps.length > 0) {
             await Post.bulkWrite(bulkOps);
+        }
+
+        // --- NEW: Store Top 100 in Redis `trending:posts` ---
+        if (isRedisAvailable && redisClient.status !== 'mock') {
+            const topPosts = posts
+                .map(p => ({ id: p._id.toString(), score: p.trendingScore || 0 }))
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 100);
+
+            const pipeline = redisClient.pipeline();
+            pipeline.del('trending:posts');
+            if (topPosts.length > 0) {
+                // Store as JSON or string. Using ZADD or just a simple stringified array for fast retrieval
+                pipeline.setex('trending:posts', 600, JSON.stringify(topPosts.map(p => p.id)));
+            }
+            await pipeline.exec();
         }
 
         console.log('--- Trending Scores Updated Successfully ---');

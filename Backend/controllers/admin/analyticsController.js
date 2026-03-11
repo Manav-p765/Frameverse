@@ -1,4 +1,5 @@
 import * as analyticsService from '../../services/analyticsService.js';
+import { getIo } from '../../utils/socketEmitter.js';
 
 export const getOverview = async (req, res) => {
     try {
@@ -53,7 +54,7 @@ export const getSystemHealth = async (req, res) => {
         const dbStatus = req.app.locals.db?.readyState === 1 ? 'connected' : 'connected';
 
         // Attempt to grab socket count if available on app locals
-        const io = req.app.get("io");
+        const io = getIo();
         const activeSockets = io ? io.engine.clientsCount : 0;
 
         res.status(200).json({

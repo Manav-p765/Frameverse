@@ -39,7 +39,7 @@ export const createComment = async (req, res) => {
         await newComment.populate('userId', 'username profilePic');
 
         // Emit live update
-        const io = req.app.get("io");
+        const io = getIo();
         if (io) {
             io.emit("postCommented", {
                 postId,
@@ -126,7 +126,7 @@ export const deleteComment = async (req, res) => {
         await EngagementService.trackEngagement(postId, 'comments', -1);
 
         // Emit live update
-        const io = req.app.get("io");
+        const io = getIo();
         if (io) {
             io.emit("commentDeleted", {
                 postId,
