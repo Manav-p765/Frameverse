@@ -34,16 +34,25 @@ export default function CallScreen() {
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimer = useRef(null);
 
-  // ── Stream attachment ───────────────────────────────────────────────────────
+  // ── Stream attachment (mobile Safari requires explicit .play()) ─────────────
   useEffect(() => {
-    if (localVideoRef.current && localStream) {
-      localVideoRef.current.srcObject = localStream;
+    const el = localVideoRef.current;
+    if (el && localStream) {
+      el.srcObject = localStream;
+      // Mobile Safari won't autoplay without an explicit .play() call
+      const playPromise = el.play();
+      if (playPromise) playPromise.catch(() => { });
+      console.log("[CallScreen] Local stream attached — tracks:", localStream.getTracks().map(t => `${t.kind}:${t.readyState}`).join(", "));
     }
   }, [localStream]);
 
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
-      remoteVideoRef.current.srcObject = remoteStream;
+    const el = remoteVideoRef.current;
+    if (el && remoteStream) {
+      el.srcObject = remoteStream;
+      const playPromise = el.play();
+      if (playPromise) playPromise.catch(() => { });
+      console.log("[CallScreen] Remote stream attached — tracks:", remoteStream.getTracks().map(t => `${t.kind}:${t.readyState}`).join(", "));
     }
   }, [remoteStream]);
 

@@ -140,6 +140,7 @@ export const useWebRTC = () => {
       if (!candidate) return;
       const { remoteUser, callId } = store.getState();
       if (!remoteUser) return;
+      console.log("[WebRTC] Sending ICE candidate:", candidate.candidate?.substring(0, 50));
       getSocket()?.emit("call:ice-candidate", {
         callId,
         to: remoteUser._id,
@@ -147,9 +148,12 @@ export const useWebRTC = () => {
       });
     };
 
-    pc.ontrack = ({ streams }) => {
-      console.log("[WebRTC] Remote track received.");
-      setRemoteStream(streams[0]);
+    pc.ontrack = (event) => {
+      console.log("[WebRTC] Remote track received —", event.track.kind, event.track.label, "readyState:", event.track.readyState);
+      if (event.streams && event.streams[0]) {
+        console.log("[WebRTC] Remote stream tracks:", event.streams[0].getTracks().map(t => `${t.kind}:${t.readyState}`).join(", "));
+        setRemoteStream(event.streams[0]);
+      }
     };
 
     pc.onconnectionstatechange = () => {
@@ -187,25 +191,56 @@ export const useWebRTC = () => {
   // ─── Media capture ────────────────────────────────────────────────────────
 
   const getMediaStream = useCallback(async (callType) => {
-    try {
-      const constraints = {
-        audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 48000 },
-        video: callType === "video" ? { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } : false,
-      };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      setLocalStream(stream);
-      return stream;
-    } catch (err) {
-      console.error("[WebRTC] getUserMedia error:", err.name, err.message);
-      const messages = {
-        NotAllowedError: "Camera/microphone permission denied.",
-        NotFoundError: "No camera or microphone found.",
-        NotReadableError: "Camera/microphone is already in use.",
-        OverconstrainedError: "Camera does not support requested resolution.",
-      };
-      setCallFailed(messages[err.name] || "Could not access media devices.");
-      return null;
+    console.log("[WebRTC] getMediaStream called — callType:", callType);
+
+    // Progressive constraints: try ideal first, fallback to minimal for mobile
+    const constraintSets = callType === "video"
+      ? [
+        // Attempt 1: Ideal desktop constraints
+        {
+          audio: { echoCancellation: true, noiseSuppression: true },
+          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+        },
+        // Attempt 2: Minimal mobile-safe constraints
+        {
+          audio: true,
+          video: { facingMode: "user" },
+        },
+        // Attempt 3: Absolute minimum (some old mobile browsers)
+        {
+          audio: true,
+          video: true,
+        },
+      ]
+      : [{ audio: { echoCancellation: true, noiseSuppression: true }, video: false }];
+
+    for (let i = 0; i < constraintSets.length; i++) {
+      try {
+        console.log(`[WebRTC] getUserMedia attempt ${i + 1}/${constraintSets.length}`, JSON.stringify(constraintSets[i]));
+        const stream = await navigator.mediaDevices.getUserMedia(constraintSets[i]);
+        console.log("[WebRTC] getUserMedia SUCCESS — tracks:", stream.getTracks().map(t => `${t.kind}:${t.label}`).join(", "));
+        setLocalStream(stream);
+        return stream;
+      } catch (err) {
+        console.warn(`[WebRTC] getUserMedia attempt ${i + 1} failed:`, err.name, err.message);
+        // Only retry on constraint-related errors; permission errors are final
+        if (err.name === "NotAllowedError" || err.name === "NotFoundError" || err.name === "NotReadableError") {
+          const messages = {
+            NotAllowedError: "Camera/microphone permission denied. Please allow access in your browser settings.",
+            NotFoundError: "No camera or microphone found on this device.",
+            NotReadableError: "Camera/microphone is already in use by another app.",
+          };
+          setCallFailed(messages[err.name]);
+          return null;
+        }
+        // OverconstrainedError / TypeError → try next constraint set
+        if (i === constraintSets.length - 1) {
+          setCallFailed("Could not access camera. Please check permissions and try again.");
+          return null;
+        }
+      }
     }
+    return null;
   }, [setLocalStream, setCallFailed]);
 
   // ─── CALLER: initiate ─────────────────────────────────────────────────────
@@ -218,7 +253,10 @@ export const useWebRTC = () => {
     if (!stream) return;
 
     const pc = createPeerConnection();
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+    stream.getTracks().forEach((t) => {
+      pc.addTrack(t, stream);
+      console.log("[WebRTC] Added track to PC:", t.kind, t.label);
+    });
 
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
@@ -234,7 +272,10 @@ export const useWebRTC = () => {
     if (!remoteUser) return;
 
     const pc = createPeerConnection();
-    stream.getTracks().forEach((t) => pc.addTrack(t, stream));
+    stream.getTracks().forEach((t) => {
+      pc.addTrack(t, stream);
+      console.log("[WebRTC] Callee added track to PC:", t.kind, t.label);
+    });
 
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
 
@@ -308,10 +349,17 @@ export const useWebRTC = () => {
   // ─── ICE candidate (inbound from server) ─────────────────────────────────
 
   const handleIceCandidate = useCallback(async ({ candidate }) => {
-    if (!pcRef.current) return;
+    // Buffer candidates if PeerConnection doesn't exist yet
+    // (critical on mobile where timing is slower)
+    if (!pcRef.current) {
+      console.log("[WebRTC] Buffering ICE candidate (no PC yet)");
+      pendingIceCandidates.current.push(candidate);
+      return;
+    }
 
-    // 🆕 Buffer candidates if remote description isn't set yet (w6 requirement)
+    // Buffer candidates if remote description isn't set yet
     if (!pcRef.current.remoteDescription) {
+      console.log("[WebRTC] Buffering ICE candidate (no remote SDP yet)");
       pendingIceCandidates.current.push(candidate);
       return;
     }
