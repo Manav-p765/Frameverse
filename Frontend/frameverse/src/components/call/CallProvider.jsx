@@ -46,8 +46,10 @@ export default function CallProvider({ children }) {
 
   // 1. call:incoming — store remoteUser, callId, callType immediately
   useSocketEvent("call:incoming", ({ callId, from, callType }) => {
+    console.log("[CallProvider] call:incoming — callId:", callId, "from:", from?._id || from, "callType:", callType);
     const status = useCallStore.getState().callStatus;
     if (status !== "idle") {
+      console.warn("[CallProvider] Already in call (status:", status, ") — auto-rejecting.");
       getSocket()?.emit("call:reject", { callId });
       return;
     }
@@ -67,10 +69,14 @@ export default function CallProvider({ children }) {
 
   // 2. call:offer — REMOVE the status guard, just store the offer
   useSocketEvent("call:offer", async ({ callId, offer }) => {
-    const { callId: currentCallId } = useCallStore.getState();
+    const { callId: currentCallId, callStatus } = useCallStore.getState();
+    console.log("[CallProvider] call:offer received — callId:", callId, "currentCallId:", currentCallId, "callStatus:", callStatus);
 
-    // ✅ Only check callId match — drop the status guard that was blocking it
-    if (callId !== currentCallId) return;
+    // Only check callId match
+    if (callId !== currentCallId) {
+      console.warn("[CallProvider] call:offer callId mismatch — dropping.");
+      return;
+    }
 
     await handleOffer({ offer });
   });
