@@ -2,7 +2,7 @@ import Joi from "joi";
 
 
 export const userschema = Joi.object({
-    username: Joi.string().alphanum().min(3).max(20),
+    username: Joi.string().pattern(/^[a-zA-Z0-9_]{3,30}$/).message("Username must be 3-30 characters: letters, numbers, underscores only"),
     email: Joi.string().email(),
     password: Joi.string().min(8).optional(),
     age: Joi.number().integer().min(13).max(120),

@@ -46,6 +46,38 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.set("view engine", "ejs");
 
+import { client, httpRequestsTotal, httpRequestDuration } from "./utils/metrics.js";
+
+// Metrics endpoint for Prometheus to scrape
+app.get("/metrics", async (req, res) => {
+    try {
+        res.set("Content-Type", client.register.contentType);
+        return res.end(await client.register.metrics());
+    } catch (err) {
+        return res.status(500).send(err.message);
+    }
+});
+
+// Metrics Middleware
+app.use((req, res, next) => {
+    const endTimer = httpRequestDuration.startTimer();
+    res.on("finish", () => {
+        const route = req.route ? req.route.path : req.path;
+        httpRequestsTotal.labels({
+            method: req.method,
+            route: route,
+            status: res.statusCode,
+        }).inc();
+
+        endTimer({
+            method: req.method,
+            route: route,
+            status: res.statusCode,
+        });
+    });
+    next();
+});
+
 connectdb();
 initSocketEmitter(); // Initialize Redis emitter for decoupling APIs
 
