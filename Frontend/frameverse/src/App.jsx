@@ -1,3 +1,12 @@
+/**
+ * App — Root Component
+ *
+ * Defines all application routes wrapped in ThemeProvider and CallProvider.
+ * Public routes (landing, auth, password reset) are accessible without login.
+ * All other routes go through ProtectedRoute which checks JWT auth,
+ * initializes the socket connection, and wraps content in MainLayout.
+ * Push notifications are initialized here via usePushNotifications hook.
+ */
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Feed from "./pages/Feed";

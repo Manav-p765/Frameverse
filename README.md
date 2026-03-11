@@ -1,317 +1,149 @@
-<div align="center">
+# Frameverse
 
-# 🖼️ Frameverse
+A full-stack social platform for developers to share coding progress, connect with peers, and communicate in real-time.
 
-**A full-stack social platform built for developers — share your work, track your progress, and grow with a community.**
+## Features
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-v16+-green.svg)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20Atlas-brightgreen.svg)](https://www.mongodb.com/atlas)
-[![React](https://img.shields.io/badge/Frontend-React.js-61DAFB.svg)](https://reactjs.org/)
+- **Social Feed** — Post updates with images, auto-post from GitHub/LeetCode
+- **Real-time Chat** — 1v1 and group messaging with typing indicators, read receipts, file sharing
+- **Video & Audio Calls** — WebRTC-based calls with push notification alerts
+- **Explore** — Discover trending posts and recommended users
+- **Notifications** — Real-time notifications for likes, comments, follows, and calls
+- **Analytics Dashboard** — Track engagement, growth, and activity metrics
+- **Push Notifications** — Browser/mobile notifications via Web Push API
 
-[Features](#-features) · [Tech Stack](#-tech-stack) · [Getting Started](#-getting-started) · [API Reference](#-api-overview) · [Database Models](#-database-models) · [Deployment](#-deployment) · [Contributing](#-contributing)
+## Tech Stack
 
-</div>
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 19, Vite, TailwindCSS, Zustand, Socket.IO Client |
+| **Backend** | Node.js, Express 5, Socket.IO, MongoDB/Mongoose |
+| **Auth** | Firebase Auth, JWT |
+| **Storage** | Cloudinary (images), MongoDB (data) |
+| **Cache** | Redis (feeds, rate limiting) |
+| **Push** | Web Push API (VAPID) |
+| **Monitoring** | Prometheus (prom-client) |
 
----
-
-## 📌 Project Overview
-
-Frameverse is a high-performance MERN-stack social platform tailored for developers. It enables users to create developer profiles, share project updates, and engage with a community through likes, follows, and real-time messaging. Built with scalability in mind, Frameverse also features automated GitHub/LeetCode progress tracking and detailed analytics dashboards for both users and administrators.
-
----
-
-## ✨ Features
-
-| Feature | Description |
-|---|---|
-| 🔐 **Authentication** | JWT-based secure login and signup with reCAPTCHA v2/v3 integration to prevent bots |
-| 📰 **Social Feed** | Real-time post feed with image cropping support and AI-powered caption suggestions |
-| 💬 **Interactions** | Like, comment on, and share posts with other developers |
-| 👥 **Follow System** | Build your developer network by following and unfollowing other users |
-| 📊 **Analytics** | Dedicated dashboards for admins and users to visualize engagement, growth, and activity trends |
-| 💌 **Messaging** | Real-time one-on-one chat built with WebSockets |
-| 🤖 **Auto-Post** | Automatically share GitHub commits and LeetCode submissions as posts |
-| 🛡️ **Role-Based Access** | Distinct views and permissions for standard users and administrators |
-
----
-
-## 🛠️ Tech Stack
-
-**Frontend**
-- [React.js](https://reactjs.org/) — Component-based UI framework
-- [Tailwind CSS](https://tailwindcss.com/) — Utility-first styling
-- [Framer Motion](https://www.framer.com/motion/) — Animations and transitions
-- [Lucide React](https://lucide.dev/) — Icon library
-
-**Backend**
-- [Node.js](https://nodejs.org/) + [Express.js](https://expressjs.com/) — REST API server
-
-**Database & Storage**
-- [MongoDB Atlas](https://www.mongodb.com/atlas) with [Mongoose](https://mongoosejs.com/) — Cloud-hosted NoSQL database
-- [Cloudinary](https://cloudinary.com/) / Local Storage — Image uploads and management
-
-**Authentication & Security**
-- [JWT](https://jwt.io/) — Stateless token-based authentication
-- [Firebase](https://firebase.google.com/) *(optional)* — Social login integration
-- [reCAPTCHA](https://www.google.com/recaptcha/) — Bot protection on auth forms
-
-**Deployment**
-- [Vercel](https://vercel.com/) — Frontend hosting
-- [Render](https://render.com/) / [Railway](https://railway.app/) — Backend hosting
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 Frameverse/
-├── Backend/                    # Express.js server
-│   ├── controllers/            # Route handler logic (business layer)
-│   ├── models/                 # Mongoose schemas and models
-│   ├── routes/                 # API route definitions
-│   ├── middleware/             # JWT auth, input validation, error handling
-│   └── services/               # External API integrations (GitHub, LeetCode, Cloudinary)
+├── Backend/
+│   ├── config/          # DB, Redis, Cloudinary, Socket.IO, Firebase setup
+│   ├── controllers/     # Request handlers (chat, post, user, auth, calls)
+│   ├── models/          # Mongoose schemas (User, Post, Chat, Message, etc.)
+│   ├── routes/          # Express route definitions
+│   ├── services/        # Business logic (feed, engagement, analytics, AI)
+│   ├── utils/           # Helpers (socket emitter, push, errors, cache)
+│   ├── workers/         # Background jobs (auto-post, trending, notifications)
+│   ├── middleware.js     # Auth, validation, ownership middleware
+│   └── server.js        # Entry point
 │
-└── Frontend/
-    └── frameverse/
-        └── src/
-            ├── components/     # Reusable UI components (buttons, cards, modals)
-            ├── pages/          # Feature-level page views (Feed, Profile, Admin)
-            ├── services/       # Axios API call wrappers
-            └── context/        # React Context for global state (auth, theme)
+├── Frontend/frameverse/
+│   ├── public/          # Static assets, SW, manifest, icons
+│   └── src/
+│       ├── components/  # UI components (chat, call, posts, auth, etc.)
+│       ├── hooks/       # Custom hooks (socket, push notifications)
+│       ├── pages/       # Page-level components
+│       ├── services/    # API client (Axios)
+│       ├── store/       # Zustand state management
+│       └── utils/       # Route protection, helpers
+│
+└── Docs/                # Architecture, API docs, deployment guide
 ```
 
----
-
-## 🚀 Getting Started
+## Setup
 
 ### Prerequisites
+- Node.js 18+
+- MongoDB (Atlas or local)
+- Redis (optional — falls back to in-memory)
+- Firebase project (for auth)
+- Cloudinary account (for image uploads)
 
-Before you begin, ensure you have the following installed and configured:
-
-- **Node.js** v16 or higher — [Download](https://nodejs.org/)
-- **npm** or **yarn** — comes with Node.js
-- **MongoDB Atlas** account — [Sign up free](https://www.mongodb.com/atlas/database)
-- **Cloudinary** account *(for image uploads)* — [Sign up free](https://cloudinary.com/)
-- **Google reCAPTCHA** keys — [Get keys](https://www.google.com/recaptcha/admin)
-
-### Installation
-
-#### 1. Clone the Repository
+### 1. Clone & Install
 
 ```bash
-git clone https://github.com/your-username/frameverse.git
+git clone https://github.com/Manav-p765/Frameverse.git
 cd Frameverse
+
+# Backend
+cd Backend
+npm install
+
+# Frontend
+cd ../Frontend/frameverse
+npm install
 ```
 
-#### 2. Set Up the Backend
+### 2. Environment Variables
+
+Copy the example and fill in your values:
+
+```bash
+cp Backend/.env.example Backend/.env
+```
+
+| Variable | Description |
+|----------|-------------|
+| `MONGO_URL` | MongoDB connection string |
+| `JWT_SECRET` | Secret for JWT token signing |
+| `FIREBASE_PROJECT_ID` | Firebase project ID |
+| `FIREBASE_CLIENT_EMAIL` | Firebase admin SDK email |
+| `FIREBASE_PRIVATE_KEY` | Firebase admin SDK private key |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+| `RECAPTCHA_PROJECT_ID` | Google reCAPTCHA project ID |
+| `RECAPTCHA_SECRET_KEY` | reCAPTCHA secret key |
+| `GEMINI_API_KEY` | Google Gemini AI API key |
+| `SMTP_USER` | Email for sending OTPs |
+| `SMTP_PASS` | Gmail app password |
+| `REDIS_URL` | Redis connection URL (optional) |
+| `FRONTEND_URL` | Frontend URL for CORS |
+| `VAPID_PUBLIC` | Web Push public key |
+| `VAPID_PRIVATE` | Web Push private key |
+| `VAPID_EMAIL` | Contact email for push services |
+
+Frontend `.env.development`:
+| Variable | Description |
+|----------|-------------|
+| `VITE_API_URL` | Backend API base URL |
+| `VITE_SOCKET_URL` | Socket.IO server URL |
+| `VITE_RECAPTCHA_SITE_KEY` | reCAPTCHA site key |
+
+### 3. Generate VAPID Keys (for push notifications)
 
 ```bash
 cd Backend
-npm install
+npx web-push generate-vapid-keys
 ```
 
-Create a `.env` file in the `Backend/` directory (see [Environment Variables](#-environment-variables)), then start the server:
+Add the output to your `.env` as `VAPID_PUBLIC` and `VAPID_PRIVATE`.
+
+### 4. Run
 
 ```bash
-npm start
-# Server runs on http://localhost:5000
-```
+# Backend (with auto-reload)
+cd Backend
+npx nodemon server.js
 
-#### 3. Set Up the Frontend
-
-```bash
+# Frontend
 cd Frontend/frameverse
-npm install
-```
-
-Create a `.env` file in the `Frontend/frameverse/` directory (see [Environment Variables](#-environment-variables)), then start the dev server:
-
-```bash
 npm run dev
-# App runs on http://localhost:5173
 ```
 
----
+Backend runs on `http://localhost:8080`, Frontend on `http://localhost:5173`.
 
-## 🔑 Environment Variables
+## Deployment
 
-### Backend — `Backend/.env`
+- **Frontend**: Vercel (see `vercel.json`)
+- **Backend**: Render / Railway / any Node.js host
+- **Database**: MongoDB Atlas
+- **Cache**: Redis Cloud
 
-```env
-# Server
-PORT=5000
+See `Docs/DEPLOYMENT.md` for detailed instructions.
 
-# Database
-MONGODB_URI=your_mongodb_atlas_connection_string
+## License
 
-# Authentication
-JWT_SECRET=your_strong_jwt_secret_key
-
-# reCAPTCHA
-RECAPTCHA_SECRET_KEY=your_google_recaptcha_secret_key
-
-# Cloudinary (Image Storage)
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-# External Integrations (Auto-Post)
-GITHUB_CLIENT_ID=your_github_oauth_client_id
-GITHUB_CLIENT_SECRET=your_github_oauth_secret
-LEETCODE_API_URL=https://leetcode.com/graphql
-```
-
-### Frontend — `Frontend/frameverse/.env`
-
-```env
-# API Base URL (point to your backend)
-VITE_API_URL=http://localhost:5000/api
-
-# reCAPTCHA
-VITE_RECAPTCHA_SITE_KEY=your_google_recaptcha_site_key
-```
-
-> **Security note:** Never commit `.env` files to version control. Both files are included in `.gitignore` by default.
-
----
-
-## 📡 API Overview
-
-All endpoints are prefixed with `/api`. Authentication-protected routes require a valid `Authorization: Bearer <token>` header.
-
-### Auth
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/auth/register` | Register a new user account | ❌ |
-| `POST` | `/auth/login` | Log in and receive a JWT | ❌ |
-
-### Posts
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `GET` | `/post` | Fetch the paginated post feed | ✅ |
-| `POST` | `/post/create` | Create a new post (with optional image) | ✅ |
-| `DELETE` | `/post/:id` | Delete a post by ID (owner only) | ✅ |
-
-### Users
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `GET` | `/user/profile` | Get the authenticated user's profile | ✅ |
-| `PUT` | `/user/updateProfile` | Update bio, profile picture, and other details | ✅ |
-
-### Follow System
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `POST` | `/user/follow/:id` | Follow a user by ID | ✅ |
-| `POST` | `/user/unfollow/:id` | Unfollow a user by ID | ✅ |
-
-### Analytics *(Admin Only)*
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| `GET` | `/admin/analytics/overview` | Get platform-wide engagement metrics | ✅ Admin |
-
----
-
-## 🗄️ Database Models
-
-### `User`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `username` | String | Unique display name |
-| `email` | String | Unique email address |
-| `password` | String | Bcrypt-hashed password |
-| `bio` | String | Short profile description |
-| `profilePic` | String | Cloudinary image URL |
-| `followers` | [ObjectId] | Array of user references |
-| `following` | [ObjectId] | Array of user references |
-
-### `Post`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `user` | ObjectId | Reference to the post author |
-| `image` | String | Cloudinary image URL |
-| `description` | String | Post caption or body text |
-| `location` | String | Optional location tag |
-| `likes` | [ObjectId] | Array of users who liked the post |
-| `comments` | [Object] | Embedded comment objects |
-| `postType` | String | `manual`, `github`, or `leetcode` |
-
-### `Chat`
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `participants` | [ObjectId] | Two user references |
-| `messages` | [Object] | Embedded message history |
-| `lastMessage` | String | Preview of the most recent message |
-
----
-
-## ☁️ Deployment
-
-### Backend
-
-Deploy to any Node.js-compatible platform such as [Render](https://render.com/), [Railway](https://railway.app/), or [Heroku](https://heroku.com/).
-
-1. Push your `Backend/` directory to a Git repository.
-2. Connect the repository to your hosting provider.
-3. Set all environment variables from `Backend/.env` in the platform's dashboard.
-4. Ensure the start command is set to `npm start` (or `node server.js`).
-
-### Frontend
-
-Deploy to [Vercel](https://vercel.com/) or [Netlify](https://netlify.com/).
-
-1. Connect your repository to Vercel/Netlify and set the root to `Frontend/frameverse`.
-2. Set the build command to `npm run build` and output directory to `dist`.
-3. Add the environment variable `VITE_API_URL` pointing to your **live backend URL** (e.g., `https://frameverse-api.onrender.com/api`).
-
-> **CORS reminder:** Update your backend's CORS config to allow requests from your deployed frontend origin.
-
----
-
-## 🔮 Roadmap
-
-- [ ] **WebRTC Video Calls** — Peer-to-peer video chat between connected developers
-- [ ] **Enhanced AI Analysis** — Smarter image tagging and post recommendations
-- [ ] **Persistent Dark/Light Mode** — Theme preference saved across sessions
-- [ ] **Mobile App** — React Native companion application for iOS and Android
-- [ ] **Notification System** — In-app and push notifications for follows, likes, and messages
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome and appreciated! To get started:
-
-1. **Fork** the repository on GitHub.
-2. **Create a feature branch** from `main`:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. **Commit your changes** with a descriptive message:
-   ```bash
-   git commit -m "feat: add dark mode toggle"
-   ```
-4. **Push** to your fork and open a **Pull Request** against `main`.
-
-Please ensure your code follows the existing style conventions and includes relevant comments. For significant changes, open an issue first to discuss the proposal.
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](./LICENSE) file for full details.
-
----
-
-<div align="center">
-  Built with ❤️ for the developer community · <a href="#">frameverse.io</a>
-</div>
+ISC

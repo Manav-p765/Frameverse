@@ -1,3 +1,10 @@
+/**
+ * Message Controller
+ *
+ * Handles sending, retrieving, and deleting chat messages.
+ * Supports text, image, file, and call message types.
+ * Manages read receipts and real-time delivery via Socket.IO.
+ */
 import Message from "../models/message.js";
 import Chat from "../models/chat.js";
 import cloudinary from "../config/cloudinary.js";

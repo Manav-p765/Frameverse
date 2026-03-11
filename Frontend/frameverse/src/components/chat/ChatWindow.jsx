@@ -1,3 +1,18 @@
+/**
+ * ChatWindow Component
+ *
+ * Renders the active chat conversation with virtualized message list
+ * (react-virtuoso for performance with large histories).
+ *
+ * Key features:
+ *   - Real-time message delivery via socket "receive-message" event
+ *   - Typing indicators with socket "typing_start"/"typing_stop" events
+ *   - Read receipts (marks messages as read when chat is opened)
+ *   - Date dividers between message groups
+ *   - Deduplication via seenIds ref to prevent duplicate messages
+ *   - Auto-scroll to bottom on new messages
+ */
+
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Virtuoso } from "react-virtuoso";
 import { messageAPI } from "../../services/api";

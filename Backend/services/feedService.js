@@ -1,3 +1,10 @@
+/**
+ * Feed Service
+ *
+ * Manages personalized user feeds with Redis caching. Handles feed
+ * construction from followed users' posts, cache invalidation on
+ * new posts or follow changes, and feed pagination.
+ */
 import Post from "../models/post.js";
 import User from "../models/user.js";
 import redisClient, { isRedisAvailable } from "../config/redis.js";

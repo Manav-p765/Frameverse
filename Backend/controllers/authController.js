@@ -1,3 +1,12 @@
+/**
+ * Auth Controller
+ *
+ * Handles password reset flow via email OTP:
+ * 1. requestPasswordReset — generate OTP, email it, create socket notification
+ * 2. verifyOTP — validate OTP with attempt limiting and expiry checks
+ * 3. resetPassword — verify JWT reset token and update Firebase Auth password
+ */
+
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
@@ -8,16 +17,16 @@ import { generateOtp } from "../utils/generateOtp.js";
 import { sendOtpEmail } from "../services/emailService.js";
 import { getIo } from "../utils/socketEmitter.js";
 
-// Hash utility for OTP
+/** Hash OTP using SHA-256 so we never store plaintext OTPs */
 const hashOtp = (otp) => {
     return crypto.createHash("sha256").update(otp).digest("hex");
 };
 
 /**
- * requestPasswordReset
- * 1. Validates email locally
- * 2. Generates OTP, hashes it, saves to Mongo
- * 3. Sends email and socket notification
+ * Step 1: Request a password reset.
+ * Generates a 6-digit OTP, hashes it, stores in DB with 10min expiry,
+ * sends the plaintext OTP to the user's email, and creates a socket
+ * notification if the user is logged in on another device.
  */
 export const requestPasswordReset = async (req, res) => {
     try {
@@ -28,19 +37,17 @@ export const requestPasswordReset = async (req, res) => {
         const user = await User.findOne({ email: normalizedEmail });
 
         if (!user) {
-            // Prevent email enumeration, you can return 404 or a generic success message
             return res.status(404).json({ message: "User not found with this email" });
         }
 
-        // Generate and Hash OTP
+        // Generate OTP and hash it for secure storage
         const otp = generateOtp();
         const hashedOtp = hashOtp(otp);
-        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10-minute window
 
-        // Clear existing OTPs for this email to prevent spam/confusion
+        // Clear any existing OTPs for this email to prevent confusion
         await PasswordResetOTP.deleteMany({ email: normalizedEmail });
 
-        // Save new OTP
         await PasswordResetOTP.create({
             email: normalizedEmail,
             hashedOtp,
@@ -48,25 +55,22 @@ export const requestPasswordReset = async (req, res) => {
             attempts: 0
         });
 
-        // Send Email (async to avoid blocking)
+        // Send email asynchronously — don't block the response
         sendOtpEmail(normalizedEmail, otp).catch(err => console.error("Email send failed:", err));
 
-        // Create socket notification
+        // Send a real-time notification if the user is online on another device
         try {
-            // Send a real-time notification to the user if they are logged in on another device
             const notif = await Notification.create({
                 recipient: user._id,
-                sender: user._id, // self notification
+                sender: user._id, // Self-notification for password reset
                 type: "password_reset",
                 read: false
             });
             const populated = await notif.populate("sender", "username profilePic");
-
-            // Emit to socket room
             getIo().to(user._id.toString()).emit("new-notification", populated);
         } catch (notifErr) {
+            // Non-fatal — password reset still works without the notification
             console.error("Failed to send password reset socket notification:", notifErr);
-            // Non-fatal, do not throw
         }
 
         res.status(200).json({ message: "OTP sent successfully to your email." });
@@ -77,11 +81,9 @@ export const requestPasswordReset = async (req, res) => {
 };
 
 /**
- * verifyOTP
- * 1. Find OTP doc
- * 2. Check attempts and expiration
- * 3. Verify hash matches
- * 4. Return resetToken
+ * Step 2: Verify the OTP.
+ * Checks attempt count (max 5), expiration, and hash match.
+ * On success, returns a short-lived JWT reset token for Step 3.
  */
 export const verifyOTP = async (req, res) => {
     try {
@@ -95,35 +97,37 @@ export const verifyOTP = async (req, res) => {
             return res.status(400).json({ message: "OTP expired or invalid" });
         }
 
+        // Brute-force protection: max 5 verification attempts per OTP
         if (otpDoc.attempts >= 5) {
             await PasswordResetOTP.deleteMany({ email: normalizedEmail });
             return res.status(400).json({ message: "Maximum verification attempts reached. Please request a new OTP." });
         }
 
+        // Check if OTP has expired (10-minute window from generation)
         if (otpDoc.expiresAt < new Date()) {
             await PasswordResetOTP.deleteMany({ email: normalizedEmail });
             return res.status(400).json({ message: "OTP has expired" });
         }
 
+        // Compare hashed input against stored hash
         const hashedInput = hashOtp(otp);
-
         if (otpDoc.hashedOtp !== hashedInput) {
             otpDoc.attempts += 1;
             await otpDoc.save();
             return res.status(400).json({ message: `Invalid OTP. ${5 - otpDoc.attempts} attempts remaining.` });
         }
 
-        // OTP is valid! Send a resetToken
-        await PasswordResetOTP.deleteMany({ email: normalizedEmail }); // cleanup
+        // OTP verified — clean up and issue a short-lived reset token
+        await PasswordResetOTP.deleteMany({ email: normalizedEmail });
 
         const secret = process.env.JWT_SECRET || "fallback_secret";
-        const resetToken = jwt.sign({ email: normalizedEmail, type: 'password_reset' }, secret, { expiresIn: '15m' });
+        const resetToken = jwt.sign(
+            { email: normalizedEmail, type: 'password_reset' },
+            secret,
+            { expiresIn: '15m' } // 15-minute window to complete the reset
+        );
 
-        res.status(200).json({
-            message: "OTP verified successfully",
-            resetToken
-        });
-
+        res.status(200).json({ message: "OTP verified successfully", resetToken });
     } catch (error) {
         console.error("verifyOTP error:", error);
         res.status(500).json({ message: "Server error during OTP verification" });
@@ -131,10 +135,10 @@ export const verifyOTP = async (req, res) => {
 };
 
 /**
- * resetPassword
- * 1. Verify resetToken
- * 2. Validate user
- * 3. Update Firebase auth password
+ * Step 3: Reset the password.
+ * Validates the JWT reset token from Step 2, then updates the user's
+ * password in Firebase Auth. The token must match the email and be
+ * of type "password_reset".
  */
 export const resetPassword = async (req, res) => {
     try {
@@ -144,7 +148,7 @@ export const resetPassword = async (req, res) => {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
-        // Verify JWT token
+        // Verify the JWT reset token from Step 2
         const secret = process.env.JWT_SECRET || "fallback_secret";
         try {
             const decoded = jwt.verify(resetToken, secret);
@@ -162,13 +166,10 @@ export const resetPassword = async (req, res) => {
             return res.status(404).json({ message: "User not found or not linked to Firebase." });
         }
 
-        // Update password using Firebase Admin SDK
-        await admin.auth().updateUser(user.firebaseUid, {
-            password: newPassword
-        });
+        // Update password via Firebase Admin SDK
+        await admin.auth().updateUser(user.firebaseUid, { password: newPassword });
 
         res.status(200).json({ message: "Password updated successfully" });
-
     } catch (error) {
         console.error("resetPassword error:", error);
         res.status(500).json({ message: "Server error during password reset" });

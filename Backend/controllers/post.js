@@ -1,3 +1,11 @@
+/**
+ * Post Controller
+ *
+ * Handles CRUD operations for posts, including creation with Cloudinary
+ * image uploads, explore feed (random sampling), like/unlike toggling
+ * via EngagementService, and share tracking. Emits real-time socket
+ * events for likes, comments, and shares.
+ */
 import Post from "../models/post.js";
 import User from "../models/user.js";
 import Notification from "../models/notification.js";

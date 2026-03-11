@@ -1,3 +1,20 @@
+/**
+ * PostCard Component
+ *
+ * Renders a single social media post with image, engagement buttons (like,
+ * comment, share), author info, and action menu (edit/delete/report).
+ *
+ * Key behaviors:
+ *   - Real-time metric updates via socket events (postLiked, postCommented, postShared)
+ *   - Double-tap/double-click to like (Instagram-style with heart animation)
+ *   - Web Share API with clipboard fallback for sharing
+ *   - Mobile-responsive comment panel
+ *
+ * Props: post, onLikeToggle, onUserClick, onImageClick, onDeletePost,
+ *        onReportPost, onPostUpdate, onCommentClick, onCommentAdded,
+ *        onCommentDeleted, currentUser, onClose, style
+ */
+
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Share2, Heart, MessageCircle, MoreHorizontal, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -50,7 +67,8 @@ const PostCard = ({
 
 
 
-  // Real-time metrics state
+  // Local copies of metrics — allows optimistic UI updates without waiting
+  // for the parent to re-render the whole feed. Socket events update these too.
   const [localLikesCount, setLocalLikesCount] = useState(post.likeCount || 0);
   const [localCommentsCount, setLocalCommentsCount] = useState(post.commentCount || 0);
   const [localSharesCount, setLocalSharesCount] = useState(post.sharesCount || 0);
@@ -64,23 +82,19 @@ const PostCard = ({
     setLocalLikedByCurrentUser(post.likedByCurrentUser || false);
   }, [post.likeCount, post.commentCount, post.sharesCount, post.likedByCurrentUser]);
 
-  // Socket listeners for real-time updates
+  // ─── Real-time socket listeners ──────────────────────────────────────────
+  // Each PostCard independently listens for metric updates for its own postId.
+  // This means likes/comments/shares from OTHER users update in real-time.
   useSocketEvent("postLiked", (data) => {
-    if (data.postId === _id) {
-      setLocalLikesCount(data.likeCount);
-    }
+    if (data.postId === _id) setLocalLikesCount(data.likeCount);
   });
 
   useSocketEvent("postCommented", (data) => {
-    if (data.postId === _id) {
-      setLocalCommentsCount(data.commentCount);
-    }
+    if (data.postId === _id) setLocalCommentsCount(data.commentCount);
   });
 
   useSocketEvent("postShared", (data) => {
-    if (data.postId === _id) {
-      setLocalSharesCount(data.sharesCount);
-    }
+    if (data.postId === _id) setLocalSharesCount(data.sharesCount);
   });
 
 
@@ -88,15 +102,14 @@ const PostCard = ({
   const lastTapTime = useRef(0);
   const menuRef = useRef(null);
 
-  // Handle double-tap/double-click like
+  // Instagram-style double-tap to like: tracks time between taps.
+  // Only triggers if < 300ms gap AND post isn't already liked.
   const handleDoubleTap = useCallback((e) => {
     e.preventDefault();
-
     const now = Date.now();
     const timeDiff = now - lastTapTime.current;
 
     if (timeDiff < 300 && timeDiff > 0) {
-      // Double tap/click detected
       if (!localLikedByCurrentUser) {
         onLikeToggle(_id, localLikedByCurrentUser);
         setShowHeartAnimation(true);
@@ -120,7 +133,7 @@ const PostCard = ({
     }
   }, [_id, localLikedByCurrentUser, onLikeToggle]);
 
-  // Handle share
+  // Uses Web Share API (native share sheet on mobile), falls back to clipboard copy
   const handleShare = useCallback(async (e) => {
     e.stopPropagation();
 
@@ -132,9 +145,9 @@ const PostCard = ({
 
     try {
       if (navigator.share) {
-        await navigator.share(shareData);
+        await navigator.share(shareData); // Native share sheet
       } else {
-        await navigator.clipboard.writeText(shareData.url);
+        await navigator.clipboard.writeText(shareData.url); // Fallback
         alert('Link copied to clipboard!');
       }
     } catch (err) {

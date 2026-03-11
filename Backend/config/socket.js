@@ -3,6 +3,13 @@ import { registerCallHandlers } from "../controllers/callSignaling.js";
 import { registerPresenceEvents } from "../controllers/socket/presenceEvents.js";
 import { registerTypingEvents } from "../controllers/socket/typingEvents.js";
 import { registerChatEvents } from "../controllers/socket/chatEvents.js";
+/**
+ * Socket.IO Initialization
+ *
+ * Initializes socket connections, authenticates users via JWT,
+ * manages user presence (online/offline status), joins users to
+ * chat rooms, and registers call signaling handlers.
+ */
 import jwt from "jsonwebtoken";
 
 // ─── Shared state ───────────────────────────────────────────────────────────

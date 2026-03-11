@@ -1,3 +1,15 @@
+/**
+ * Feed Page
+ *
+ * The main content feed showing posts from users the current user follows.
+ * Features:
+ *   - Infinite scroll using IntersectionObserver
+ *   - Deduplication of fetched posts (prevents duplicates on refetch)
+ *   - Optimistic like/unlike toggling via API
+ *   - Post deletion and image lightbox
+ *   - Desktop sidebar with notifications + suggested users (60/40 split)
+ */
+
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PostCard from "../components/posts/PostCard";

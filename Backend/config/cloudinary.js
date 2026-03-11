@@ -1,3 +1,11 @@
+/**
+ * Cloudinary Configuration
+ *
+ * Configures the Cloudinary SDK for image/file uploads and deletions.
+ * Uploads are automatically optimized (resized to 1080px, auto quality,
+ * auto format) to minimize bandwidth and storage costs.
+ */
+
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
 
@@ -11,7 +19,12 @@ cloudinary.config({
   secure: true,
 });
 
-// Upload Image
+/**
+ * Upload a file to Cloudinary with automatic optimization.
+ * @param {string} file - File path or base64 data URI
+ * @param {string} folder - Cloudinary folder (default: "posts")
+ * @returns {{ url: string, public_id: string }}
+ */
 export const uploadToCloudinary = async (file, folder = "posts") => {
   try {
     const result = await cloudinary.uploader.upload(file, {
@@ -33,7 +46,7 @@ export const uploadToCloudinary = async (file, folder = "posts") => {
   }
 };
 
-// Delete Image
+/** Delete a file from Cloudinary by its public ID */
 export const deleteFromCloudinary = async (publicId) => {
   try {
     return await cloudinary.uploader.destroy(publicId);

@@ -1,3 +1,11 @@
+/**
+ * Server Entry Point
+ *
+ * Bootstraps the Express app, Socket.IO server, database connection,
+ * route registration, and background workers. This file is the main
+ * entry point for the Frameverse backend.
+ */
+
 import dotenv from "dotenv";
 dotenv.config();
 

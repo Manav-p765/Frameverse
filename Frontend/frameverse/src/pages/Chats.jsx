@@ -1,3 +1,16 @@
+/**
+ * Chats Page
+ *
+ * Full-screen responsive messaging page with 3-panel desktop layout
+ * (ChatList | ChatWindow | ChatInfoPanel) and stacked mobile views.
+ *
+ * Key architecture:
+ *   - URL-driven state: /chats (list), /chats/:id (chat), /chats/:id/info (details)
+ *   - Real-time updates via "chat-updated" and "new-message" socket events
+ *   - Unread counts persisted to localStorage for cross-session badges
+ *   - Active chat resolved from URL, falling back to API fetch
+ */
+
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 

@@ -1,10 +1,56 @@
-### IntelliJ IDEA ###
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-.kotlin
+# ─── Dependencies ────────────────────────────────────────────────────────────
+node_modules/
 
-### Eclipse ###
+# ─── Environment ─────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Build Output ────────────────────────────────────────────────────────────
+dist/
+build/
+Frontend/frameverse/dist/
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+*.log.*
+npm-debug.log*
+debug_log.txt
+server_log.txt
+server_test.log
+server_final.log
+recaptcha_debug.log
+
+# ─── Test Output ─────────────────────────────────────────────────────────────
+coverage/
+test_output.txt
+lint_output.txt
+jest.json
+vitest.json
+error.txt
+
+# ─── Temp / Generated ───────────────────────────────────────────────────────
+tmp/
+*.tmp
+*.bak
+vapid_keys.txt
+token.txt
+
+# ─── OS Files ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── IDE / Editor ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.kotlin
+out/
+bin/
+
+# ─── IntelliJ IDEA ──────────────────────────────────────────────────────────
 .apt_generated
 .classpath
 .factorypath
@@ -12,23 +58,9 @@ out/
 .settings
 .springBeans
 .sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
 
-### NetBeans ###
+# ─── NetBeans ────────────────────────────────────────────────────────────────
 /nbproject/private/
 /nbbuild/
-/dist/
 /nbdist/
 /.nb-gradle/
-
-### VS Code ###
-.vscode/
-
-### Mac OS ###
-.DS_Store
-
-node_modules
-
-.env

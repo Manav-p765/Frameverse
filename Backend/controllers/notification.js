@@ -1,12 +1,24 @@
+/**
+ * Notification Controller
+ *
+ * Handles fetching paginated notifications, marking them as read,
+ * and retrieving unread counts for badge display.
+ */
+
 import Notification from "../models/notification.js";
 
-// GET /notifications?page=1
+/**
+ * Get paginated notifications for the authenticated user.
+ * Returns notifications sorted by newest first, with sender/post populated,
+ * along with unread count and pagination metadata.
+ */
 export const getNotifications = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = 30;
         const skip = (page - 1) * limit;
 
+        // Fetch notifications + total count in parallel for efficiency
         const [notifications, total] = await Promise.all([
             Notification.find({ recipient: req.userId })
                 .sort({ createdAt: -1 })
@@ -17,6 +29,7 @@ export const getNotifications = async (req, res) => {
             Notification.countDocuments({ recipient: req.userId }),
         ]);
 
+        // Separate query for unread count (used for badge UI)
         const unreadCount = await Notification.countDocuments({
             recipient: req.userId,
             read: false,
@@ -34,7 +47,10 @@ export const getNotifications = async (req, res) => {
     }
 };
 
-// PATCH /notifications/read
+/**
+ * Mark all unread notifications as read for the authenticated user.
+ * Typically called when the user opens the notification panel.
+ */
 export const markAllRead = async (req, res) => {
     try {
         await Notification.updateMany(
@@ -49,7 +65,10 @@ export const markAllRead = async (req, res) => {
     }
 };
 
-// GET /notifications/unread-count
+/**
+ * Get the count of unread notifications for the authenticated user.
+ * Used by the frontend to display notification badge numbers.
+ */
 export const getUnreadCount = async (req, res) => {
     try {
         const count = await Notification.countDocuments({

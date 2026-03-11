@@ -1,3 +1,15 @@
+/**
+ * Desktop Sidebar Navigation
+ *
+ * Collapsible sidebar (76px → 256px on hover) with animated labels.
+ * Features:
+ *   - Real-time unread badges for Chats and Notifications via socket events
+ *   - Badges auto-reset when navigating to the respective page
+ *   - Theme toggle (light/dark mode)
+ *   - Per-item hover colors (purple default, orange for AutoPost, pink for Notifications)
+ *   - Only visible on md+ screens (mobile uses MobileNavbar)
+ */
+
 import {
   Home,
   Compass,

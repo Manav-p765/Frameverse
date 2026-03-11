@@ -1,3 +1,11 @@
+/**
+ * Call Signaling Controller
+ *
+ * Manages WebRTC call signaling via Socket.IO. Handles call initiation,
+ * offer/answer SDP exchange, ICE candidate relay, call acceptance/rejection,
+ * timeouts, and disconnect cleanup. Persists call records to the database
+ * and sends call summary messages to chat.
+ */
 import Call from "../models/call.js";
 import Chat from "../models/chat.js";
 import Message from "../models/message.js";

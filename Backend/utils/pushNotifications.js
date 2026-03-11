@@ -1,12 +1,22 @@
+/**
+ * Push Notification Utility
+ *
+ * Configures VAPID keys for Web Push and provides a helper to send
+ * push notifications to all subscriptions for a given user.
+ * Automatically cleans up stale/expired subscriptions.
+ */
+
 import webPush from "web-push";
 import PushSubscription from "../models/pushSubscription.js";
 
 // ─── VAPID config ────────────────────────────────────────────────────────────
-// Generate keys once:  npx web-push generate-vapid-keys
-// Then set them in your .env file.
-const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY;
-const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
-const VAPID_EMAIL = process.env.VAPID_EMAIL || "mailto:admin@frameverse.online";
+const VAPID_PUBLIC = process.env.VAPID_PUBLIC;
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE;
+// web-push requires "mailto:" prefix — auto-prepend if missing
+let VAPID_EMAIL = process.env.VAPID_EMAIL || "mailto:admin@frameverse.online";
+if (VAPID_EMAIL && !VAPID_EMAIL.startsWith("mailto:")) {
+    VAPID_EMAIL = `mailto:${VAPID_EMAIL}`;
+}
 
 if (VAPID_PUBLIC && VAPID_PRIVATE) {
     webPush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC, VAPID_PRIVATE);

@@ -1,3 +1,12 @@
+/**
+ * API Client
+ *
+ * Centralized Axios instance for all backend API calls.
+ * Automatically attaches the JWT Bearer token from localStorage
+ * to every request via interceptor. Organized by domain:
+ *   authAPI, postAPI, chatAPI, messageAPI, userAPI,
+ *   notificationAPI, userAnalyticsAPI, adminAnalyticsAPI
+ */
 import axios from "axios";
 
 // Create axios instance with base URL and credentials

@@ -1,3 +1,21 @@
+/**
+ * Socket.IO Client (Singleton)
+ *
+ * Provides a single shared Socket.IO connection for the entire app.
+ * Exports:
+ *   - initSocket(userId)      — connect & authenticate
+ *   - disconnectSocket()      — clean disconnect
+ *   - getSocket()             — access the raw socket instance
+ *   - useSocketEvent(event)   — React hook to listen to socket events
+ *   - useChatRoom(chatId)     — React hook to join a chat room
+ *   - emitTyping/emitStopTyping — typing indicator emitters
+ *
+ * useSocketEvent handles 3 timing cases:
+ *   1. Socket already connected → attach listener immediately
+ *   2. Socket exists but still connecting → wait for "connect"
+ *   3. Socket not created yet → queue via socketReadyListeners
+ */
+
 import { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 

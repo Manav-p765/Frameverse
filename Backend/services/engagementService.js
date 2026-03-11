@@ -1,3 +1,10 @@
+/**
+ * Engagement Service
+ *
+ * Core business logic for social interactions: follow/unfollow,
+ * like/unlike, and share. Uses MongoDB transactions for atomic
+ * counter updates and triggers notifications and feed invalidation.
+ */
 import mongoose from 'mongoose';
 import User from '../models/user.js';
 import Post from '../models/post.js';

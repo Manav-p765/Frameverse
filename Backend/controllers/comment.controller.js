@@ -1,3 +1,10 @@
+/**
+ * Comment Controller
+ *
+ * Handles creating, retrieving, and deleting comments on posts.
+ * Updates post comment counts, tracks engagement analytics, and
+ * emits real-time socket events for comment activity.
+ */
 import Comment from '../models/comment.js';
 import Post from '../models/post.js';
 import EngagementService from '../services/engagementService.js';

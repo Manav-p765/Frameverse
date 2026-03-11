@@ -1,3 +1,10 @@
+/**
+ * Message Model
+ *
+ * Stores chat messages with support for text, image, file, and call types.
+ * Call messages include metadata (callType, duration, status) in callMeta.
+ * Tracks read receipts via readBy array and delivery status.
+ */
 import mongoose from "mongoose";
 
 
