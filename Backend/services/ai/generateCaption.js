@@ -4,7 +4,8 @@ let ai = null;
 
 function getAI() {
     if (!ai) {
-        ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        // SDK auto-reads GEMINI_API_KEY from environment variables
+        ai = new GoogleGenAI({});
     }
     return ai;
 }

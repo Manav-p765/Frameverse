@@ -104,6 +104,12 @@ export async function processUser(userId, options = { isManual: false }) {
         await Promise.all(fetches);
         console.log(`[AutoPost] Final stats for ${userId}:`, stats);
 
+        // Skip posting if there's no activity at all
+        if (stats.githubCommits === 0 && stats.leetcodeSolved === 0) {
+            console.log(`[AutoPost] Skipped (no activity): ${userId}`);
+            return;
+        }
+
         // Generate caption and image in parallel
         const [caption, image] = await Promise.all([
             generateCaption(stats),
@@ -126,10 +132,7 @@ export async function processUser(userId, options = { isManual: false }) {
 
         console.log(`[AutoPost] Post created: ${post._id}`);
 
-        // Compute streaks
-        const { streakCount, longestStreak } = await calculateStreak(userId, today);
-
-        // Upsert DailyStats and mark as posted (use upsert so manual runs don't hit duplicate key errors)
+        // Step 1: Save DailyStats FIRST so today's record exists in the DB
         await DailyStats.findOneAndUpdate(
             { user: userId, date: today },
             {
@@ -138,10 +141,17 @@ export async function processUser(userId, options = { isManual: false }) {
                 caption,
                 imageUrl: image.url,
                 posted: true,
-                streakCount,
-                longestStreak,
             },
             { new: true, upsert: true }
+        );
+
+        // Step 2: NOW calculate streaks — today's DailyStats is in the DB so it's counted
+        const { streakCount, longestStreak } = await calculateStreak(userId, today);
+
+        // Step 3: Update DailyStats with the computed streak values
+        await DailyStats.findOneAndUpdate(
+            { user: userId, date: today },
+            { streakCount, longestStreak }
         );
 
         console.log(`[AutoPost] Streak for ${userId}: ${streakCount} (Longest: ${longestStreak})`);

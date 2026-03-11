@@ -20,16 +20,20 @@ dayjs.extend(timezone);
 export async function getTodayCommits(username, tz = "Asia/Kolkata") {
     try {
         console.log(`[GitHub] Fetching commits for username: "${username}" (tz: ${tz})`);
-        const url = `https://api.github.com/users/${encodeURIComponent(username)}/events/public?per_page=100`;
-        console.log(`[GitHub] Request URL: ${url}`);
+
+        // Use /events (includes private repos) when authenticated, /events/public otherwise
+        const hasToken = !!process.env.GITHUB_TOKEN;
+        const eventsPath = hasToken ? "events" : "events/public";
+        const url = `https://api.github.com/users/${encodeURIComponent(username)}/${eventsPath}?per_page=100`;
+        console.log(`[GitHub] Request URL: ${url} (authenticated: ${hasToken})`);
 
         const headers = {
             Accept: "application/vnd.github+json",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         };
 
-        if (process.env.GITHUB_TOKEN) {
-            headers.Authorization = `token ${process.env.GITHUB_TOKEN}`;
+        if (hasToken) {
+            headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
         }
 
         const res = await fetch(url, { headers });
