@@ -55,6 +55,16 @@ export default function CallProvider({ children }) {
     playRingtone();
   });
 
+  // 1b. call:error — server rejected the call request (offline, busy, invalid state)
+  useSocketEvent("call:error", ({ code, message }) => {
+    console.error("[CallProvider] call:error —", code, message);
+    const { callStatus: status } = useCallStore.getState();
+    if (status === "calling" || status === "connecting") {
+      setCallFailed(message || "Call failed");
+      setTimeout(endCall, 3000);
+    }
+  });
+
   // 2. call:offer — REMOVE the status guard, just store the offer
   useSocketEvent("call:offer", async ({ callId, offer }) => {
     const { callId: currentCallId } = useCallStore.getState();

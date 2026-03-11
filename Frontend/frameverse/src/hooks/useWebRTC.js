@@ -12,18 +12,8 @@ import { useCallStore } from "../store/useCallStore";
 const ICE_SERVERS = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
-
-    {
-      urls: "turn:openrelay.metered.ca:80",
-      username: "openrelayproject",
-      credential: "openrelayproject"
-    },
-
-    {
-      urls: "turn:openrelay.metered.ca:443",
-      username: "openrelayproject",
-      credential: "openrelayproject"
-    }
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
   ],
   iceCandidatePoolSize: 10,
 };
@@ -79,6 +69,9 @@ export const useWebRTC = () => {
 
   // Full teardown — call this from both local and remote end events
   const endCall = useCallback(() => {
+    console.log("[WebRTC] endCall() triggered");
+    console.trace("[WebRTC] endCall stack trace");
+
     const { localStream, remoteStream } = store.getState();
     stopTracks(localStream);
     stopTracks(remoteStream);
@@ -98,7 +91,7 @@ export const useWebRTC = () => {
       ringTimeoutRef.current = null;
     }
 
-    pendingIceCandidates.current = []; // 🆕 Reset queue
+    pendingIceCandidates.current = []; // Reset queue
     resetCall();
     console.log("[WebRTC] Call fully cleaned up.");
   }, [store, stopTracks, closePeerConnection, stopQualityMonitor, resetCall, setLocalStream, setRemoteStream]);
@@ -158,7 +151,8 @@ export const useWebRTC = () => {
 
     pc.onconnectionstatechange = () => {
       const state = pc.connectionState;
-      console.log(`[WebRTC] Connection state: ${state}`);
+      const currentStatus = store.getState().callStatus;
+      console.log(`[WebRTC] Connection state: ${state} (callStatus: ${currentStatus})`);
 
       if (state === "connected") {
         setConnected();
@@ -172,9 +166,15 @@ export const useWebRTC = () => {
           }
         }, 5000);
       } else if (state === "failed") {
-        console.error("[WebRTC] Connection failed.");
-        setCallFailed("Connection lost");
-        setTimeout(endCall, 3000);
+        console.error("[WebRTC] Connection failed. ICE state:", pc.iceConnectionState, "Signaling:", pc.signalingState);
+        // Only auto-end if we were already connected; during handshake, try ICE restart first
+        if (currentStatus === "connected") {
+          setCallFailed("Connection lost");
+          setTimeout(endCall, 3000);
+        } else {
+          console.warn("[WebRTC] Connection failed during handshake — attempting ICE restart.");
+          initiateIceRestart();
+        }
       } else if (state === "closed") {
         stopQualityMonitor();
       }
