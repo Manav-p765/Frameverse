@@ -229,37 +229,14 @@ export const useWebRTC = () => {
 
   // ─── CALLEE: accept ──────────────────────────────────────────────────────
 
-  const acceptCall = useCallback(async () => {
-
-    const state = store.getState();
-    // 🔍 Add this temporarily to confirm what's set
-    console.log("[DEBUG] acceptCall →", {
-      remoteUser: state.remoteUser?._id,
-      hasOffer: !!state.incomingOffer,
-      callType: state.callType,
-      callId: state.callId,
-      callStatus: state.callStatus,
-    });
-
-    const { remoteUser, incomingOffer, callType, callId } = store.getState();
-    if (!remoteUser || !incomingOffer) {
-      return console.warn("[WebRTC] acceptCall: missing remoteUser or offer");
-    }
-
-    setConnecting();
-    // Signal server: "I accepted"
-    getSocket()?.emit("call:accept", { callId });
-
-    const stream = await getMediaStream(callType);
-    if (!stream) {
-      getSocket()?.emit("call:reject", { callId });
-      return;
-    }
+  const processOfferAndAnswer = useCallback(async (offer, stream) => {
+    const { remoteUser, callId } = store.getState();
+    if (!remoteUser) return;
 
     const pc = createPeerConnection();
     stream.getTracks().forEach((t) => pc.addTrack(t, stream));
 
-    await pc.setRemoteDescription(new RTCSessionDescription(incomingOffer));
+    await pc.setRemoteDescription(new RTCSessionDescription(offer));
 
     // 🆕 Process any candidates that arrived while we were setting up
     console.log("[WebRTC] Remote description set. Processing ICE queue...");
@@ -277,7 +254,31 @@ export const useWebRTC = () => {
 
     getSocket()?.emit("call:answer", { callId, to: remoteUser._id, answer });
     console.log("[WebRTC] Answer sent to", remoteUser._id);
-  }, [store, setConnecting, getMediaStream, createPeerConnection]);
+  }, [store, createPeerConnection]);
+
+  const acceptCall = useCallback(async () => {
+    const { remoteUser, callType, callId } = store.getState();
+    if (!remoteUser) {
+      return console.warn("[WebRTC] acceptCall: missing remoteUser");
+    }
+
+    setConnecting();
+    // Signal server: "I accepted"
+    getSocket()?.emit("call:accept", { callId });
+
+    const stream = await getMediaStream(callType);
+    if (!stream) {
+      getSocket()?.emit("call:reject", { callId });
+      return;
+    }
+
+    const currentOffer = store.getState().incomingOffer;
+    if (currentOffer) {
+      await processOfferAndAnswer(currentOffer, stream);
+    } else {
+      console.log("[WebRTC] Accepted call, but waiting for incomingOffer...");
+    }
+  }, [store, setConnecting, getMediaStream, processOfferAndAnswer]);
 
 
   // ─── Decline ─────────────────────────────────────────────────────────────
@@ -346,10 +347,16 @@ export const useWebRTC = () => {
 
   const handleOffer = useCallback(({ offer }) => {
     // remoteUser was already set by receiveCall() in call:incoming
-    const { remoteUser } = store.getState();
+    const { remoteUser, callStatus, localStream } = store.getState();
     console.log("[WebRTC] handleOffer — remoteUser:", remoteUser?._id, "offer:", !!offer);
     setIncomingOffer(offer);
-  }, [store, setIncomingOffer]);
+
+    // If caller's offer arrives late, but user has ALREADY accepted and has media ready
+    if (callStatus === "connecting" && localStream) {
+      console.log("[WebRTC] Offer arrived late. User already accepted. Processing now...");
+      processOfferAndAnswer(offer, localStream);
+    }
+  }, [store, setIncomingOffer, processOfferAndAnswer]);
 
   // ─── ICE restart ─────────────────────────────────────────────────────────
 
