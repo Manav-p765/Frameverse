@@ -67,7 +67,9 @@ export default function CallProvider({ children }) {
 
   // 3. call:ringing — confirms to caller that receiver was notified
   useSocketEvent("call:ringing", ({ callId }) => {
-    console.log("[CallProvider] call:ringing — receiver was notified, sending offer now.");
+    // Sync server's authoritative callId into the store
+    useCallStore.getState().setCallId(callId);
+    console.log("[CallProvider] call:ringing — synced callId:", callId, "— sending offer now.");
     // Now that server confirmed receiver is online, send the offer
     startCall();
   });
