@@ -2,6 +2,7 @@ import Comment from '../models/comment.js';
 import Post from '../models/post.js';
 import EngagementService from '../services/engagementService.js';
 import Notification from '../models/notification.js';
+import { getIo } from '../utils/socketEmitter.js';
 
 export const createComment = async (req, res) => {
     try {

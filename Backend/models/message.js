@@ -31,7 +31,7 @@ const messageSchema = new mongoose.Schema(
 
         messageType: {
             type: String,
-            enum: ["text", "image", "file"],
+            enum: ["text", "image", "file", "call"],
             default: "text"
         },
         fileName: { type: String, default: null },
@@ -39,6 +39,13 @@ const messageSchema = new mongoose.Schema(
             type: String,
             enum: ["sent", "delivered", "read"],
             default: "sent"
+        },
+
+        // Call metadata — only present when messageType === "call"
+        callMeta: {
+            callType: { type: String, enum: ["audio", "video"] },
+            duration: { type: Number, default: 0 },  // seconds
+            status: { type: String, enum: ["completed", "missed", "rejected", "cancelled", "timeout", "disconnected"] },
         }
 
     },

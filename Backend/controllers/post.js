@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import { uploadToCloudinary, deleteFromCloudinary } from "../config/cloudinary.js";
 import FeedService from "../services/feedService.js";
 import { feedQueue, notificationQueue } from "../workers/queue.js";
+import { getIo } from "../utils/socketEmitter.js";
 
 // ─── Explore: random posts ───────────────────────────────────────────────────
 export const getExplorePosts = async (req, res) => {

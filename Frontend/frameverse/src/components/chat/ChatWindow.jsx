@@ -83,14 +83,14 @@ export default function ChatWindow({
   });
 
   // Socket: typing
-  useSocketEvent("typing", ({ chatId, userId }) => {
+  useSocketEvent("typing_start", ({ chatId, userId }) => {
     if (chatId !== chat?._id || userId === currentUserId) return;
     setTypingUsers((prev) =>
       prev.includes(userId) ? prev : [...prev, userId]
     );
   });
 
-  useSocketEvent("stop-typing", ({ chatId, userId }) => {
+  useSocketEvent("typing_stop", ({ chatId, userId }) => {
     if (chatId !== chat?._id) return;
     setTypingUsers((prev) => prev.filter((id) => id !== userId));
   });

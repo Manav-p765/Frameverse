@@ -55,6 +55,22 @@ export default function CallProvider({ children }) {
     }
     receiveCall(callId, from, callType, null);
     playRingtone();
+
+    // Show browser notification if tab is not focused
+    if (document.hidden && Notification.permission === "granted") {
+      const callerName = from?.username || "Someone";
+      const notif = new Notification(`Incoming ${callType} call`, {
+        body: `${callerName} is calling you`,
+        icon: from?.profilePic || "/android-chrome-192x192.png",
+        tag: `call-${callId}`,
+        requireInteraction: true,
+        vibrate: [200, 100, 200, 100, 200],
+      });
+      notif.onclick = () => {
+        window.focus();
+        notif.close();
+      };
+    }
   });
 
   // 1b. call:error — server rejected the call request (offline, busy, invalid state)

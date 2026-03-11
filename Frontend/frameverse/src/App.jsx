@@ -23,8 +23,12 @@ import VerifyOtp from "./pages/VerifyOtp";
 import AnalyticsDashboard from "./pages/dashboard/AnalyticsDashboard";
 import EngagementDashboard from "./pages/dashboard/EngagementDashboard";
 import LandingPage from './pages/LandingPage';
+import usePushNotifications from './hooks/usePushNotifications';
 
 const App = () => {
+  // Register service worker & subscribe to push notifications
+  usePushNotifications();
+
   return (
     <ThemeProvider>
       <CallProvider>

@@ -1,6 +1,71 @@
 import Call from "../models/call.js";
+import Chat from "../models/chat.js";
+import Message from "../models/message.js";
+import { getIo } from "../utils/socketEmitter.js";
+import { sendPushToUser } from "../utils/pushNotifications.js";
 
 const CALL_TIMEOUT_MS = 30_000; // 30 s ring timeout
+
+/**
+ * Create a call summary message in the DM chat between caller and receiver.
+ */
+async function createCallSummaryMessage(call, status, duration) {
+  // Find the DM chat between the two users
+  let chat = await Chat.findOne({
+    isGroup: false,
+    users: { $all: [call.callerId, call.receiverId], $size: 2 },
+  });
+
+  // If no DM chat exists, skip — we shouldn't create chats just for calls
+  if (!chat) {
+    console.log("[Call] No DM chat found between users, skipping call summary message.");
+    return;
+  }
+
+  // Build human-readable content
+  const callLabel = call.callType === "video" ? "Video call" : "Audio call";
+  let content;
+  if (status === "completed" && duration > 0) {
+    const mins = Math.floor(duration / 60);
+    const secs = duration % 60;
+    const durationStr = mins > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : `${secs}s`;
+    content = `${callLabel} · ${durationStr}`;
+  } else if (status === "missed" || status === "timeout") {
+    content = `Missed ${callLabel.toLowerCase()}`;
+  } else if (status === "rejected") {
+    content = `${callLabel} declined`;
+  } else if (status === "cancelled") {
+    content = `${callLabel} cancelled`;
+  } else {
+    content = `${callLabel} ended`;
+  }
+
+  const msg = await Message.create({
+    chat: chat._id,
+    sender: call.callerId,
+    content,
+    messageType: "call",
+    callMeta: {
+      callType: call.callType,
+      duration,
+      status,
+    },
+  });
+
+  // Update chat's latestMessage
+  chat.latestMessage = msg._id;
+  await chat.save();
+
+  // Populate sender for real-time display
+  const populated = await msg.populate("sender", "username profilePic");
+
+  // Emit to both users so the message appears in real-time
+  const io = getIo();
+  if (io) {
+    io.to(call.callerId).emit("new-message", populated);
+    io.to(call.receiverId).emit("new-message", populated);
+  }
+}
 
 /**
  * activeCalls structure:
@@ -89,6 +154,10 @@ export function registerCallHandlers(io, socket, activeCalls, userCallMap) {
       duration,
     }).catch((err) => console.error("[Call] Failed to save call record:", err));
 
+    // ── Create a call summary message in the DM chat ──
+    createCallSummaryMessage(call, statusMap[reason] || "missed", duration)
+      .catch((err) => console.error("[Call] Failed to send call summary message:", err));
+
     console.log(`[Call] Call ${callId} ended. Reason: ${reason}`);
   }
 
@@ -155,6 +224,15 @@ export function registerCallHandlers(io, socket, activeCalls, userCallMap) {
 
     // Confirm to caller
     socket.emit("call:ringing", { callId });
+
+    // 🔔 Send push notification for incoming call (works outside the app)
+    sendPushToUser(to, {
+      title: `Incoming ${callType} call`,
+      body: `${callerInfo?.username || "Someone"} is calling you`,
+      icon: callerInfo?.profilePic || "/android-chrome-192x192.png",
+      url: "/chats",
+      tag: `call-${callId}`,
+    }).catch((err) => console.error("[Push] Call notification error:", err));
   });
 
   // ─── call:offer ─────────────────────────────────────────────────────────

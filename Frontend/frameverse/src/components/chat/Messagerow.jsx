@@ -99,7 +99,48 @@ const FileBubble = ({ url, fileName, isOwn }) => {
   );
 };
 
-// ── MessageRow ───────────────────────────────────────────────────────────────
+const CallBubble = ({ msg }) => {
+  const meta = msg.callMeta || {};
+  const isVideo = meta.callType === "video";
+  const isMissed = meta.status === "missed" || meta.status === "timeout";
+  const isRejected = meta.status === "rejected";
+  const isCancelled = meta.status === "cancelled";
+  const wasAnswered = meta.status === "completed";
+
+  const iconColor = isMissed || isRejected ? "text-red-400" : "text-green-400";
+
+  return (
+    <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-bg-secondary/60 border border-border-color/30 min-w-[200px] max-w-[280px]">
+      <div className={`w-9 h-9 rounded-full flex items-center justify-center bg-white/5 ${iconColor}`}>
+        {isVideo ? (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+          </svg>
+        ) : (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-text-primary font-medium">{msg.content}</p>
+        <p className="text-[10px] text-text-secondary mt-0.5">
+          {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        </p>
+      </div>
+      {(isMissed || isRejected || isCancelled) && (
+        <div className="shrink-0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-red-400/60" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.62 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91" />
+            <line x1="23" y1="1" x2="1" y2="23" />
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── MessageRow ─────────────────────────────────────────────────────────────────────
 
 const MessageRow = React.memo(function MessageRow({
   msg,
@@ -111,7 +152,17 @@ const MessageRow = React.memo(function MessageRow({
   const isImage = msg.messageType === "image" && !isVideoUrl(msg.content);
   const isVideo = msg.messageType === "image" && isVideoUrl(msg.content);
   const isFile = msg.messageType === "file";
+  const isCall = msg.messageType === "call";
   const isMedia = isImage || isVideo || isFile;
+
+  // Call messages render centered, not in own/other bubble style
+  if (isCall) {
+    return (
+      <div className="flex justify-center py-1">
+        <CallBubble msg={msg} />
+      </div>
+    );
+  }
 
   return (
     <div
