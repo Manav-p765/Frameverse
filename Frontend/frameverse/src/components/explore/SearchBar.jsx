@@ -34,7 +34,7 @@ export default function SearchBar() {
         setShowDropdown(true);
         debounceRef.current = setTimeout(async () => {
             try {
-                const data = await userAPI.searchUsers(q.trim());
+                const data = await userAPI.search(q.trim());
                 setResults(data);
             } catch {
                 setResults([]);
