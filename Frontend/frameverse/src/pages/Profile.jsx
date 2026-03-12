@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../services/post.service";
+import { postAPI } from "../services/api";
 import ProfileHeader from "../components/profile/ProfileHeader";
 import ProfilePosts from "../components/profile/ProfilePosts";
 import AutoProgressPosts from "../components/profile/AutoProgressPosts";
@@ -239,7 +240,7 @@ const Profile = () => {
     }
 
     try {
-      await api.delete(`/post/${postId}`);
+      await postAPI.delete(postId);
     } catch (err) {
       setPosts(prevPosts);
       setDisplayedPosts(prevDisplayed);

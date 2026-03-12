@@ -11,6 +11,7 @@ import User from "../models/user.js";
 import Notification from "../models/notification.js";
 import Comment from "../models/comment.js";
 import Like from "../models/like.js";
+import PostEngagementDaily from "../models/postEngagementDaily.js";
 import mongoose from "mongoose";
 import { uploadToCloudinary, deleteFromCloudinary } from "../config/cloudinary.js";
 import FeedService from "../services/feedService.js";
@@ -332,18 +333,16 @@ export const deletePost = async (req, res) => {
       }
     }
 
+    const postIdObj = mongoose.Types.ObjectId.isValid(postId) ? new mongoose.Types.ObjectId(postId) : postId;
+
     // Parallel cleanup using transaction session
     await Promise.all([
-      // Remove post reference from user
-      User.findByIdAndUpdate(userId, { $pull: { posts: postId } }).session(session),
-      // Delete all comments
-      Comment.deleteMany({ postId }).session(session),
-      // Delete all likes
-      Like.deleteMany({ postId }).session(session),
-      // Delete all notifications related to this post
-      Notification.deleteMany({ post: postId }).session(session),
-      // Delete the post itself
-      Post.deleteOne({ _id: postId }).session(session)
+      User.findByIdAndUpdate(userId, { $pull: { posts: postIdObj } }).session(session),
+      Comment.deleteMany({ postId: postIdObj }).session(session),
+      Like.deleteMany({ postId: postIdObj }).session(session),
+      Notification.deleteMany({ post: postIdObj }).session(session),
+      PostEngagementDaily.deleteMany({ postId: postIdObj }).session(session),
+      Post.deleteOne({ _id: postIdObj }).session(session),
     ]);
 
     await session.commitTransaction();

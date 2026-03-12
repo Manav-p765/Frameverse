@@ -18,6 +18,7 @@ import NotificationSidebar from "../components/NotificationSidebar";
 import SuggestedUsersSection from "../components/SuggestedUsersSection";
 import CommentPanel from "../components/comments/CommentPanel";
 import api from "../services/post.service";
+import { postAPI } from "../services/api";
 import SEOHead from "../components/SEOHead";
 
 const Feed = () => {
@@ -147,7 +148,7 @@ const Feed = () => {
   const onDeletePost = async (postId) => {
     if (!window.confirm("Delete this post?")) return;
     try {
-      await api.delete(`/post/${postId}`);
+      await postAPI.delete(postId);
       setPosts((prev) => prev.filter((p) => p._id !== postId));
 
       // ✅ CLOSE LIGHTBOX IF DELETED POST IS ACTIVE
