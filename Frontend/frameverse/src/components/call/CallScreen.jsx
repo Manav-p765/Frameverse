@@ -7,7 +7,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useCallStore } from "../../store/useCallStore";
 import { useCallActions } from "./CallProvider";
 import {
-  PhoneOff, Mic, MicOff, Video, VideoOff,
+  PhoneOff, Mic, MicOff, Video, VideoOff, X,
   Monitor, MonitorOff, Signal, SignalHigh, SignalLow,
 } from "lucide-react";
 
@@ -101,9 +101,10 @@ export default function CallScreen() {
     >
       {/* ── Header ── */}
       <div
-        className={`absolute top-0 left-0 right-0 p-5 flex items-center gap-3 bg-gradient-to-b from-black/80 to-transparent z-20 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
+        className={`absolute top-0 left-0 right-0 p-5 flex items-center justify-between gap-3 bg-gradient-to-b from-black/80 to-transparent z-20 transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"}`}
       >
-        <Avatar user={remoteUser} size="sm" />
+        <div className="flex items-center gap-3 min-w-0">
+          <Avatar user={remoteUser} size="sm" />
         <div>
           <p className="text-white font-semibold text-base leading-tight">
             {remoteUser?.username ?? "Unknown"}
@@ -113,6 +114,14 @@ export default function CallScreen() {
             {subtitle}
           </div>
         </div>
+        <button
+          onClick={callStatus === "calling" ? cancelCall : emitEndCall}
+          className="shrink-0 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+          aria-label="End call and go back"
+          title="End call"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       {/* ── Video area ── */}

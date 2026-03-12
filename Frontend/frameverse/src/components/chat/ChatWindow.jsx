@@ -111,7 +111,7 @@ export default function ChatWindow({
   });
 
   // Socket: read receipts
-  useSocketEvent("messages-read", ({ chatId, readByUserId }) => {
+  useSocketEvent("messages_read", ({ chatId, readByUserId }) => {
     if (chatId !== chat?._id) return;
     setMessages((prev) =>
       prev.map((m) => ({

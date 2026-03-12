@@ -63,21 +63,20 @@ export const sendMessage = async (req, res) => {
       .populate("chat");
 
     const io = getIo();
+    if (io) {
+      io.to(chatId.toString()).emit("new-message", fullMessage);
 
-    // Chat room only — for users who have the chat open (ChatWindow)
-    io.to(chatId).emit("new-message", fullMessage);
-
-    // Personal room — for users not in the chat room (toast + unread + list update)
-    chat.users.forEach((userId) => {
-      if (userId.toString() !== req.userId.toString()) {
-        io.to(userId.toString()).emit("chat-updated", {
+      chat.users.forEach((userId) => {
+        if (userId.toString() !== req.userId.toString()) {
+          io.to(userId.toString()).emit("chat-updated", {
           chatId,
           lastMessage: fullMessage,
           lastMessageAt: new Date(),
-          newMessage: fullMessage, // 👈 used by toast and unread counter
-        });
-      }
-    });
+            newMessage: fullMessage,
+          });
+        }
+      });
+    }
 
     res.status(201).json(fullMessage);
   } catch (err) {
@@ -134,9 +133,8 @@ export const markAsRead = async (req, res) => {
       { $addToSet: { readBy: req.userId }, $set: { status: "read" } }
     );
 
-    // Notify others that messages were read
     const io = getIo();
-    io.to(chatId).emit("messages-read", { chatId, readByUserId: req.userId });
+    if (io) io.to(chatId.toString()).emit("messages_read", { chatId, readByUserId: req.userId });
 
     res.status(200).json({ message: "Marked as read" });
   } catch (err) {
@@ -155,9 +153,8 @@ export const deleteMessage = async (req, res) => {
 
     await message.deleteOne();
 
-    // Notify everyone in the chat
     const io = getIo();
-    io.to(message.chat.toString()).emit("message-deleted", { messageId });
+    if (io) io.to(message.chat.toString()).emit("message-deleted", { messageId });
 
     res.status(200).json({ message: "Deleted" });
   } catch (err) {

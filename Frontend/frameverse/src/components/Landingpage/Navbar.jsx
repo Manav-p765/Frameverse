@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { label: 'Features', href: '/#features' },
   { label: 'Real-Time', href: '/#realtime' },
   { label: 'Security', href: '/#security' },
+  { label: 'Feed', href: '/', internal: true },
 ];
 
 export default function Navbar() {
@@ -42,12 +43,18 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-1">
-          {NAV_LINKS.map(({ label, href }) => (
-            <a key={label} href={href} onClick={(e) => anchor(e, href)}
-              className={`px-3 py-1.5 text-sm rounded-md hover:text-white hover:bg-white/5 transition-colors ${scrolled ? 'text-[#666666]' : 'text-white/80'
-                }`}>
-              {label}
-            </a>
+          {NAV_LINKS.map(({ label, href, internal }) => (
+            internal ? (
+              <Link key={label} to={href}
+                className={`px-3 py-1.5 text-sm rounded-md hover:text-white hover:bg-white/5 transition-colors ${scrolled ? 'text-[#666666]' : 'text-white/80'}`}>
+                {label}
+              </Link>
+            ) : (
+              <a key={label} href={href} onClick={(e) => anchor(e, href)}
+                className={`px-3 py-1.5 text-sm rounded-md hover:text-white hover:bg-white/5 transition-colors ${scrolled ? 'text-[#666666]' : 'text-white/80'}`}>
+                {label}
+              </a>
+            )
           ))}
         </div>
 
@@ -72,12 +79,18 @@ export default function Navbar() {
         {menuOpen && (
           <motion.div className="md:hidden mt-2 flex flex-col gap-1 p-4 bg-surface border border-white/10 rounded-2xl"
             initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}>
-            {NAV_LINKS.map(({ label, href }) => (
-              <a key={label} href={href} onClick={(e) => anchor(e, href)}
-                className={`px-4 py-3 text-[15px] rounded-lg hover:bg-white/5 hover:text-white transition-colors ${scrolled ? 'text-[#666666]' : 'text-white/80'
-                  }`}>
-                {label}
-              </a>
+            {NAV_LINKS.map(({ label, href, internal }) => (
+              internal ? (
+                <Link key={label} to={href} onClick={() => setMenuOpen(false)}
+                  className={`px-4 py-3 text-[15px] rounded-lg hover:bg-white/5 hover:text-white transition-colors ${scrolled ? 'text-[#666666]' : 'text-white/80'}`}>
+                  {label}
+                </Link>
+              ) : (
+                <a key={label} href={href} onClick={(e) => { anchor(e, href); setMenuOpen(false); }}
+                  className={`px-4 py-3 text-[15px] rounded-lg hover:bg-white/5 hover:text-white transition-colors ${scrolled ? 'text-[#666666]' : 'text-white/80'}`}>
+                  {label}
+                </a>
+              )
             ))}
             <button onClick={() => { navigate('/auth'); setMenuOpen(false); }}
               className="mt-2 w-full py-3 text-sm font-medium text-[#0f0f0f] bg-accent rounded-full">

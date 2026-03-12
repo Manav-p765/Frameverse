@@ -16,6 +16,7 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import initSocket from "./config/socket.js";
+import { setIo } from "./utils/socketEmitter.js";
 import userRoute from "./routes/user.js";
 import chatRoute from "./routes/chat.js";
 import postRoute from "./routes/post.js";
@@ -106,6 +107,7 @@ const io = new Server(server, {
 
 app.set("view engine", "ejs");
 app.set("io", io);
+setIo(io);
 
 // Call handlers are registered inside socket.js (initSocket)
 // Do NOT duplicate activeCalls/userCallMap here

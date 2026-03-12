@@ -67,11 +67,13 @@ async function createCallSummaryMessage(call, status, duration) {
   // Populate sender for real-time display
   const populated = await msg.populate("sender", "username profilePic");
 
-  // Emit to both users so the message appears in real-time
   const io = getIo();
   if (io) {
-    io.to(call.callerId).emit("new-message", populated);
-    io.to(call.receiverId).emit("new-message", populated);
+    const callerStr = call.callerId?.toString?.() ?? call.callerId;
+    const receiverStr = call.receiverId?.toString?.() ?? call.receiverId;
+    io.to(callerStr).emit("new-message", populated);
+    io.to(receiverStr).emit("new-message", populated);
+    io.to(chat._id.toString()).emit("new-message", populated);
   }
 }
 
