@@ -114,6 +114,7 @@ export default function CallScreen() {
             {subtitle}
           </div>
         </div>
+        </div>
         <button
           onClick={callStatus === "calling" ? cancelCall : emitEndCall}
           className="shrink-0 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
