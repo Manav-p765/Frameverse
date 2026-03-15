@@ -23,6 +23,7 @@ import { io } from "socket.io-client";
 
 let socketInstance = null;
 const socketReadyListeners = new Set();
+let activeUsersList = []; // Local cache for debugging
 
 export const getSocket = () => socketInstance;
 
@@ -42,10 +43,33 @@ export const initSocket = (userId) => {
     reconnectionDelay: 1500,
   });
 
+  // Track active users for debugging (restricted access)
+  socketInstance.on("presence_sync_full", (list) => {
+    activeUsersList = list; // array of { userId, username }
+  });
+  socketInstance.on("user_online", ({ userId, username }) => {
+    if (!activeUsersList.some(u => u.userId === userId)) {
+      activeUsersList.push({ userId, username });
+    }
+  });
+  socketInstance.on("user_offline", ({ userId }) => {
+    activeUsersList = activeUsersList.filter(u => u.userId !== userId);
+  });
+
+  window.printActiveUsers = () => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (user.email !== "manavparihar2000@gmail.com") {
+      console.warn("Unauthorized: This command is restricted to the administrator.");
+      return;
+    }
+    console.log("Current Active Users (IDs):", activeUsersList);
+  };
+
   socketInstance.on("connect", () => {
     console.log("🟢 Socket connected:", socketInstance?.id);
     if (socketInstance) {
       socketInstance.emit("setup", userId);
+      socketInstance.emit("sync_presence"); // Fetch active users list right away
     }
     socketReadyListeners.forEach((cb) => cb(socketInstance));
     socketReadyListeners.clear();
