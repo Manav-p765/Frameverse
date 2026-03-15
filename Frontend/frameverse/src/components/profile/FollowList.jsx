@@ -1,5 +1,61 @@
 import React, { useState, useEffect } from "react";
 
+// ── UserListItem ─────────────────────────────────────────────────────────────
+
+const UserListItem = ({ user, currentUserId, onUserClick }) => {
+  const [imgError, setImgError] = useState(false);
+  const userId = user._id?.toString();
+  const isSelf = currentUserId && userId === currentUserId.toString();
+
+  const avatarSrc = user.profilePic || (user.avatar && user.avatar.length > 0 ? user.avatar[0].url : null);
+
+  return (
+    <div
+      onClick={() => onUserClick(user)}
+      className="flex items-center gap-3 p-4 hover:bg-bg-secondary/50 transition-colors cursor-pointer"
+    >
+      {/* Avatar */}
+      <div className="shrink-0">
+        {!imgError && avatarSrc ? (
+          <img
+            src={avatarSrc}
+            alt={user.username}
+            onError={() => setImgError(true)}
+            className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-800"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-800">
+            <span className="text-text-primary font-semibold text-lg">
+              {user.username?.charAt(0).toUpperCase() || "?"}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* User Info */}
+      <div className="flex-1 min-w-0">
+        <p className="text-text-primary font-medium truncate">
+          {user.username}
+          {isSelf && (
+            <span className="ml-2 text-xs text-text-secondary font-normal">(you)</span>
+          )}
+        </p>
+        {user.bio && (
+          <p className="text-text-secondary text-sm truncate">{user.bio}</p>
+        )}
+      </div>
+
+      {/* Arrow */}
+      <svg
+        width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" strokeWidth="2" className="text-gray-600 shrink-0"
+      >
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </div>
+  );
+};
+
 const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState(users);
@@ -85,63 +141,14 @@ const FollowList = ({ type, users, isOpen, onClose, onUserClick, currentUserId }
               </div>
             ) : (
               <div className="divide-y divide-gray-800">
-                {filteredUsers.map((user) => {
-                  // ✅ FIX: normalize id to string to avoid object comparison issues
-                  const userId = user._id?.toString();
-                  const isSelf = currentUserId && userId === currentUserId.toString();
-
-                  return (
-                    <div
-                      key={userId}  // ✅ FIX: was potentially using an ObjectId object as key
-                      onClick={() => onUserClick(user)}
-                      className="flex items-center gap-3 p-4 hover:bg-bg-secondary/50 transition-colors cursor-pointer"
-                    >
-                      {/* Avatar */}
-                      <div className="shrink-0">
-                        {user.profilePic ? (
-                          <img
-                            src={user.profilePic}
-                            alt={user.username}
-                            className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-800"
-                          />
-                        ) : user.avatar && user.avatar.length > 0 ? (
-                          <img
-                            src={user.avatar[0].url}
-                            alt={user.username}
-                            className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-800"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center ring-2 ring-gray-800">
-                            <span className="text-text-primary font-semibold text-lg">
-                              {user.username?.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* User Info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-text-primary font-medium truncate">
-                          {user.username}
-                          {isSelf && (
-                            <span className="ml-2 text-xs text-text-secondary font-normal">(you)</span>
-                          )}
-                        </p>
-                        {user.bio && (
-                          <p className="text-text-secondary text-sm truncate">{user.bio}</p>
-                        )}
-                      </div>
-
-                      {/* Arrow */}
-                      <svg
-                        width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2" className="text-gray-600 shrink-0"
-                      >
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
-                    </div>
-                  );
-                })}
+                {filteredUsers.map((user) => (
+                  <UserListItem 
+                    key={user._id?.toString()} 
+                    user={user} 
+                    currentUserId={currentUserId} 
+                    onUserClick={onUserClick} 
+                  />
+                ))}
               </div>
             )}
           </div>

@@ -85,6 +85,74 @@ const SkeletonItem = () => (
   </div>
 );
 
+// ── NotificationItem ──────────────────────────────────────────────────────────
+
+const NotificationItem = ({ notif, handleClick }) => {
+  const [imgError, setImgError] = useState(false);
+  const meta = notifMeta[notif.type] || notifMeta.follow;
+  const Icon = meta.icon;
+
+  const avatarSrc = notif.sender?.profilePic || (notif.sender?.avatar && notif.sender.avatar.length > 0 ? notif.sender.avatar[0].url : null);
+
+  return (
+    <button
+      onClick={() => handleClick(notif)}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left
+        hover:bg-white/5
+        ${!notif.read ? "bg-white/[0.02]" : ""}`}
+    >
+      {/* Avatar */}
+      <div className="relative shrink-0">
+        {!imgError && avatarSrc ? (
+          <img
+            src={avatarSrc}
+            alt={notif.sender?.username}
+            onError={() => setImgError(true)}
+            className="w-11 h-11 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-11 h-11 rounded-full bg-bg-secondary flex items-center justify-center text-text-primary text-sm font-medium uppercase">
+            {notif.sender?.username?.[0] || "?"}
+          </div>
+        )}
+        {/* Type badge */}
+        <div
+          className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full ${meta.bg} flex items-center justify-center border-2 border-[#18181c]`}
+        >
+          <Icon size={10} className={meta.color} />
+        </div>
+      </div>
+
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-text-primary leading-snug">
+          <span className="font-semibold">
+            {notif.sender?.username || "Someone"}
+          </span>{" "}
+          <span className="text-text-secondary">{meta.text}</span>
+        </p>
+        <p className="text-xs text-[#5a5a6a] mt-0.5">
+          {timeAgo(notif.createdAt)}
+        </p>
+      </div>
+
+      {/* Post thumbnail (for like/new_post) */}
+      {notif.post?.image?.url && (
+        <img
+          src={notif.post.image.url}
+          alt="post"
+          className="w-11 h-11 rounded-lg object-cover shrink-0"
+        />
+      )}
+
+      {/* Unread dot */}
+      {!notif.read && (
+        <div className="w-2 h-2 rounded-full bg-brand-purple shrink-0" />
+      )}
+    </button>
+  );
+};
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 const Notifications = () => {
@@ -190,68 +258,9 @@ const Notifications = () => {
                 {group.label}
               </h2>
               <div className="space-y-0.5">
-                {group.items.map((notif) => {
-                  const meta = notifMeta[notif.type] || notifMeta.follow;
-                  const Icon = meta.icon;
-
-                  return (
-                    <button
-                      key={notif._id}
-                      onClick={() => handleClick(notif)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left
-                        hover:bg-white/5
-                        ${!notif.read ? "bg-white/[0.02]" : ""}`}
-                    >
-                      {/* Avatar */}
-                      <div className="relative shrink-0">
-                        {notif.sender?.profilePic ? (
-                          <img
-                            src={notif.sender.profilePic}
-                            alt={notif.sender.username}
-                            className="w-11 h-11 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-11 h-11 rounded-full bg-bg-secondary flex items-center justify-center text-text-primary text-sm font-medium uppercase">
-                            {notif.sender?.username?.[0] || "?"}
-                          </div>
-                        )}
-                        {/* Type badge */}
-                        <div
-                          className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full ${meta.bg} flex items-center justify-center border-2 border-[#18181c]`}
-                        >
-                          <Icon size={10} className={meta.color} />
-                        </div>
-                      </div>
-
-                      {/* Text */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-text-primary leading-snug">
-                          <span className="font-semibold">
-                            {notif.sender?.username || "Someone"}
-                          </span>{" "}
-                          <span className="text-text-secondary">{meta.text}</span>
-                        </p>
-                        <p className="text-xs text-[#5a5a6a] mt-0.5">
-                          {timeAgo(notif.createdAt)}
-                        </p>
-                      </div>
-
-                      {/* Post thumbnail (for like/new_post) */}
-                      {notif.post?.image?.url && (
-                        <img
-                          src={notif.post.image.url}
-                          alt="post"
-                          className="w-11 h-11 rounded-lg object-cover shrink-0"
-                        />
-                      )}
-
-                      {/* Unread dot */}
-                      {!notif.read && (
-                        <div className="w-2 h-2 rounded-full bg-brand-purple shrink-0" />
-                      )}
-                    </button>
-                  );
-                })}
+                {group.items.map((notif) => (
+                  <NotificationItem key={notif._id} notif={notif} handleClick={handleClick} />
+                ))}
               </div>
             </div>
           ))}

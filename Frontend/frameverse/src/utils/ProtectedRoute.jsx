@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import MainLayout from "../components/mainlayout";
 import api from "../services/post.service";
@@ -80,7 +80,13 @@ const ProtectedRoute = () => {
 
   return (
     <MainLayout>
-      <Outlet />
+      <Suspense fallback={
+        <div className="flex items-center justify-center p-8 text-text-primary/40 text-sm">
+          Loading...
+        </div>
+      }>
+        <Outlet />
+      </Suspense>
     </MainLayout>
   );
 };

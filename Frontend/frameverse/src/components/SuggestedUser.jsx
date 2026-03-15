@@ -7,6 +7,7 @@ const SuggestedUser = ({ user, onFollowComplete }) => {
     const navigate = useNavigate();
     const [isFollowing, setIsFollowing] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [imgError, setImgError] = useState(false);
 
     const handleFollow = async (e) => {
         e.stopPropagation();
@@ -25,6 +26,8 @@ const SuggestedUser = ({ user, onFollowComplete }) => {
         }
     };
 
+    const avatarSrc = user.profilePic || (user.avatar && user.avatar.length > 0 ? user.avatar[0].url : null);
+
     return (
         <div
             onClick={() => navigate(`/profile/${user.userId}`)}
@@ -32,8 +35,13 @@ const SuggestedUser = ({ user, onFollowComplete }) => {
         >
             <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0 w-10 h-10">
-                    {user.profilePic ? (
-                        <img src={user.profilePic} alt={user.username} className="w-10 h-10 rounded-full object-cover" />
+                    {!imgError && avatarSrc ? (
+                        <img 
+                            src={avatarSrc} 
+                            alt={user.username} 
+                            onError={() => setImgError(true)}
+                            className="w-10 h-10 rounded-full object-cover" 
+                        />
                     ) : (
                         <div className="w-10 h-10 rounded-full bg-bg-secondary flex items-center justify-center text-text-primary text-sm font-medium uppercase">
                             {user.username?.[0] || "?"}
