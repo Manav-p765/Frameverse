@@ -36,6 +36,7 @@ const PostCard = ({
   currentUser,
   onClose,
   style,
+  priority = false, // Explicit priority loading for LCP
 }) => {
   if (!post) return null;
 
@@ -237,7 +238,7 @@ const PostCard = ({
             onDoubleClick={handleDoubleTap}
           >
             {!imageLoaded && mainImage && (
-              <div className="absolute inset-0 bg-linear-to-br from-gray-800/30 to-gray-900/30 animate-pulse" />
+              <div className="absolute inset-0 bg-linear-to-br from-gray-800/30 to-gray-900/30 animate-pulse aspect-video max-h-[65vh]" />
             )}
 
             {mainImage ? (
@@ -245,7 +246,8 @@ const PostCard = ({
                 <img
                   src={mainImage.url}
                   alt="Post"
-                  loading="lazy"
+                  loading={priority ? "eager" : "lazy"}
+                  fetchPriority={priority ? "high" : "auto"}
                   onLoad={() => setImageLoaded(true)}
                   className={`w-full max-h-[65vh] object-cover transition-all duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'
                     } `}

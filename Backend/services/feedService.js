@@ -27,11 +27,13 @@ class FeedService {
 
         // 3. Relationship Score: (mutualFollow * 3) + (pastInteractions * 2) + (profileViews * 1)
         let relationshipScore = 0;
-        if (user) {
-            const isMutual = mutualFollows.some(id => id.toString() === post.owner._id.toString());
+        if (user && post.owner && post.owner._id) {
+            const postOwnerIdStr = post.owner._id.toString();
+            
+            const isMutual = mutualFollows.some(id => id?.toString() === postOwnerIdStr);
             if (isMutual) relationshipScore += 3;
 
-            if (user.following.some(id => id.toString() === post.owner._id.toString())) {
+            if (user.following.some(id => (id?._id?.toString() || id?.toString()) === postOwnerIdStr)) {
                 relationshipScore += 2;
             }
         }
@@ -51,10 +53,10 @@ class FeedService {
         }
 
         const user = await User.findById(userId).populate('following', 'followersCount _id');
-        const following = user?.following || [];
+        const following = (user?.following || []).filter(f => f != null);
 
         const mutualFollows = following.filter(f =>
-            f.followers && f.followers.some(fid => fid.toString() === userId)
+            f.followers && f.followers.some(fid => fid?.toString() === userId)
         ).map(f => f._id) || [];
 
         let postIdsToFetch = [];
@@ -98,11 +100,13 @@ class FeedService {
         }
 
         // Score and Sort
-        const scoredPosts = posts.map(post => ({
-            ...post.toObject(),
-            likedByCurrentUser: user ? post.likes.some(id => id.toString() === userId) : false,
-            feedScore: this.calculateFeedScore(post, user, mutualFollows)
-        })).sort((a, b) => b.feedScore - a.feedScore);
+        const scoredPosts = posts
+            .filter(post => post && post.owner) // Exclude posts with missing owners
+            .map(post => ({
+                ...post.toObject(),
+                likedByCurrentUser: user ? post.likes.some(id => id?.toString() === userId) : false,
+                feedScore: this.calculateFeedScore(post, user, mutualFollows)
+            })).sort((a, b) => b.feedScore - a.feedScore);
 
         const feedResult = scoredPosts.slice((page - 1) * limit, page * limit);
 

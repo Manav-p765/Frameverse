@@ -17,8 +17,14 @@ export default function Hero() {
       {/* BG image */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-hero-overlay z-10" />
-        <div className="absolute inset-0 scale-105 bg-cover bg-center"
-          style={{ backgroundImage: "url('https://framerusercontent.com/images/LzblaeZXHMibAuWgYhFsP59pXk.png?scale-down-to=2048&width=2912&height=1632')" }} />
+        <img 
+          src="https://framerusercontent.com/images/LzblaeZXHMibAuWgYhFsP59pXk.png?scale-down-to=2048&width=2912&height=1632" 
+          alt="Hero background" 
+          className="absolute inset-0 w-full h-full object-cover scale-105"
+          fetchPriority="high"
+          loading="eager"
+          decoding="sync"
+        />
       </div>
 
       {/* Ambient blobs */}

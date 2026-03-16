@@ -219,10 +219,11 @@ const Feed = () => {
 
             {/* Posts Feed - Single Column with side-by-side comments on desktop */}
             <div className="flex flex-col gap-10 w-full mb-10">
-              {posts.map((post) => (
+              {posts.map((post, index) => (
                 <div key={post._id} className="w-full">
                   <PostCard
                     post={post}
+                    priority={index === 0}
                     onUserClick={onUserClick}
                     onImageClick={handleImageClick}
                     onLikeToggle={onLikeToggle}
